@@ -1,60 +1,53 @@
 <x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
-
-        <x-validation-errors class="mb-4" />
-
-        <form method="POST" action="{{ route('register') }}">
-            @csrf
-
-            <div>
-                <x-label for="name" value="{{ __('Name') }}" />
-                <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
+    <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
+        <div class="w-full max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden">
+            <div class="text-center p-8 bg-white">
+                <h1 class="text-3xl font-bold text-gray-900">Welcome to Padma Cloud Office</h1>
+                <p class="mt-2 text-lg text-gray-600">Get started instantly with your virtual collaboration hub</p>
             </div>
 
-            <div class="mt-4">
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            </div>
-
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            </div>
-
-            <div class="mt-4">
-                <x-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
-                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
-            </div>
-
-            @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
-                <div class="mt-4">
-                    <x-label for="terms">
-                        <div class="flex items-center">
-                            <x-checkbox name="terms" id="terms" required />
-
-                            <div class="ms-2">
-                                {!! __('I agree to the :terms_of_service and :privacy_policy', [
-                                        'terms_of_service' => '<a target="_blank" href="'.route('terms.show').'" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">'.__('Terms of Service').'</a>',
-                                        'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">'.__('Privacy Policy').'</a>',
-                                ]) !!}
+            <div class="grid md:grid-cols-2 gap-8 p-8">
+                <!-- Company Registration Card -->
+                <a href="{{ route('company.register') }}" class="block group">
+                    <div class="p-6 bg-white border border-gray-200 rounded-lg transition-all duration-200 hover:border-black hover:shadow-lg">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-3 bg-gray-100 rounded-lg group-hover:bg-gray-200">
+                                <svg class="w-6 h-6 text-gray-600 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-800 group-hover:text-black">Company</h2>
+                                <p class="mt-2 text-gray-600">Create a company account</p>
                             </div>
                         </div>
-                    </x-label>
-                </div>
-            @endif
-
-            <div class="flex items-center justify-end mt-4">
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                    {{ __('Already registered?') }}
+                    </div>
                 </a>
 
-                <x-button class="ms-4">
-                    {{ __('Register') }}
-                </x-button>
+                <!-- Talent Registration Card -->
+                <a href="{{ route('talent.register') }}" class="block group">
+                    <div class="p-6 bg-white border border-gray-200 rounded-lg transition-all duration-200 hover:border-black hover:shadow-lg">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-3 bg-gray-100 rounded-lg group-hover:bg-gray-200">
+                                <svg class="w-6 h-6 text-gray-600 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-800 group-hover:text-black">Talent</h2>
+                                <p class="mt-2 text-gray-600">Create a talent account</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
             </div>
-        </form>
-    </x-authentication-card>
+
+            <div class="text-center pb-8">
+                <p class="text-gray-600">
+                    Already have an account? 
+                    <a href="{{ route('login') }}" class="text-blue-500 hover:text-blue-600 font-semibold">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
 </x-guest-layout>
