@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Company;
+use App\Models\Project;
+use App\Models\ProjectLog;
+use App\Models\CompanyTalent;
 
 
 use Illuminate\Support\Facades\Hash;
@@ -64,6 +67,230 @@ class CompanyController extends Controller
     public function index()
     {
         return view('users.Company.index');
+    }
+
+
+
+
+
+    // Project Store Data
+    public function storeProject(Request $request)
+    {
+        // Validate the request data
+        $validated = $request->validate([
+            'project_name' => 'required|string|max:255',
+            'project_volume' => 'required|string|max:255',
+            'project_file' => 'nullable|string|max:255',
+            'project_type_id' => 'required|exists:project_types,id',
+            'talent' => 'nullable|exists:users,id',
+            'qc_agent' => 'nullable|exists:users,id',
+            'project_rate' => 'required|numeric|min:0',
+            'qc_rate' => 'required|numeric|min:0',
+            'bonuses' => 'nullable|numeric|min:0',
+            'status' => 'required|max:225',
+            'start_date' => 'required|date',
+            'finish_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
+
+        try {
+            // Add user_id and company_id
+            $validated['user_id'] = auth()->id();
+            $validated['company_id'] = auth()->user()->company_id;
+            $validated['status'] = 'waiting talent'; // Set initial status
+
+            // Create the project
+            $project = Project::create($validated);
+
+            // Create initial project log
+            ProjectLog::create([
+                'user_id' => auth()->id(),
+                'project_id' => $project->id,
+                'company_id' => $project->company_id,
+                'talent_id' => $project->talent,
+                'talent_qc_id' => $project->qc_agent,
+                'timestamp' => now(),
+                'status' => 'waiting talent'
+            ]);
+
+            return redirect()->back()->with('success', 'Project created successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create project: ' . $e->getMessage());
+        }
+    }
+
+    // Edit Project
+    public function editProject(Request $request, $id)
+    {
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'project_name' => 'required|string|max:255',
+                'project_volume' => 'required|string|max:255',
+                'project_file' => 'nullable|string|max:255',
+                'project_type_id' => 'required|exists:project_types,id',
+                'talent' => 'nullable|exists:users,id',
+                'qc_agent' => 'nullable|exists:users,id',
+                'project_rate' => 'required|numeric|min:0',
+                'qc_rate' => 'required|numeric|min:0',
+                'bonuses' => 'nullable|numeric|min:0',
+                'status' => 'required|max:225',
+                'start_date' => 'required|date',
+                'finish_date' => 'nullable|date|after_or_equal:start_date',
+            ]);
+
+            // Find the project
+            $project = Project::findOrFail($id);
+
+            // Check if user has permission to edit this project
+            if ($project->company_id !== auth()->user()->company_id) {
+                return redirect()->back()->with('error', 'You do not have permission to edit this project');
+            }
+
+            // Update the project
+            $project->update($validated);
+
+            // Create project log for the update
+            ProjectLog::create([
+                'user_id' => auth()->id(),
+                'project_id' => $project->id,
+                'company_id' => $project->company_id,
+                'talent_id' => $project->talent,
+                'talent_qc_id' => $project->qc_agent,
+                'timestamp' => now(),
+                'status' => $project->status
+            ]);
+
+            return redirect()->back()->with('success', 'Project updated successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to update project: ' . $e->getMessage());
+        }
+    }
+
+    // Delete Project
+    public function deleteProject($id)
+    {
+        try {
+            // Find the project
+            $project = Project::findOrFail($id);
+
+            // Check if user has permission to delete this project
+            if ($project->company_id !== auth()->user()->company_id) {
+                return redirect()->back()->with('error', 'You do not have permission to delete this project');
+            }
+
+            // Delete the project
+            $project->delete();
+
+            return redirect()->back()->with('success', 'Project deleted successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to delete project: ' . $e->getMessage());
+        }
+    }
+
+    // Detail Project
+    public function detailProject($slug)
+    {
+        try {
+            // Find the project by slug
+            $id = explode('-', $slug)[0];
+            $project = Project::findOrFail($id);
+
+            // Get project logs with related dataE
+            $projectLogs = $project->projectLogs()
+                ->with(['user', 'talent', 'talentQc'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return view('users.Company.project-detail', [
+                'project' => $project,
+                'projectLogs' => $projectLogs
+            ]);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to load project details: ' . $e->getMessage());
+        }
+    }
+
+    // Project Overview List
+    public function projectOverview()
+    {
+        try {
+            // Get all projects with related data
+            $projects = Project::with(['projectType', 'talent', 'talentQc'])
+                ->where('company_id', auth()->user()->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return view('users.Company.project-overview', [
+                'projects' => $projects
+            ]);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to load project overview: ' . $e->getMessage());
+        }
+    }
+
+    // Users Overview
+    public function usersOverview()
+    {
+        try {
+            // Get current user's company
+            $currentUser = auth()->user();
+            $company = $currentUser->company;
+
+            if (!$company) {
+                return redirect()->back()->with('error', 'Company not found');
+            }
+
+            // Get all users who are either assigned as talents or have assigned talents
+            $users = User::whereHas('companyTalent', function($query) use ($company) {
+                    $query->where('company_id', $company->id);
+                })
+                ->orWhereHas('assignedTalents', function($query) use ($company) {
+                    $query->where('company_id', $company->id);
+                })
+                ->with([
+                    'companyTalent' => function($query) use ($company) {
+                        $query->where('company_id', $company->id);
+                    },
+                    'assignedTalents' => function($query) use ($company) {
+                        $query->where('company_id', $company->id);
+                    }
+                ])
+                ->get();
+
+            return view('users.Company.users-overview', [
+                'users' => $users
+            ]);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to load users overview: ' . $e->getMessage());
+        }
+    }
+
+    // Detail User Profile
+    public function detailUser($slug)
+    {
+        try {
+            // Find the user by slug
+            $id = explode('-', $slug)[0];
+            $user = User::findOrFail($id);
+
+            // Get user's company talent
+            $companyTalent = CompanyTalent::where('user_id', $user->id)->first();
+
+            return view('users.Company.user-detail', [
+                'user' => $user,
+                'companyTalent' => $companyTalent
+            ]);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to load user details: ' . $e->getMessage());
+        }
     }
 
 }
