@@ -1,11 +1,19 @@
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-lg p-6 flex items-center space-x-4 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl">
-    @if($icon)
-        <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center {{ $iconBackground ?? 'bg-blue-100' }} {{ $iconColor ?? 'text-blue-500' }}">
-            <i class="{{ $icon }} text-xl"></i>
+@props(['icon', 'title', 'value', 'iconColor' => 'text-red-500', 'bgColor' => 'bg-red-100'])
+
+<div class="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+    <div class="flex items-center">
+        <div class="inline-flex items-center justify-center flex-shrink-0 w-12 h-12 rounded-lg {{ $bgColor }} dark:bg-red-900/30">
+             <svg class="w-6 h-6 {{ $iconColor }} dark:text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                {{ $icon }}
+            </svg>
         </div>
-    @endif
-    <div>
-        <div class="text-3xl font-bold text-gray-800 dark:text-white">{{ $value }}</div>
-        <div class="text-sm text-gray-500 dark:text-gray-400">{{ $description }}</div>
+        <div class="flex-1 min-w-0 ml-4">
+            <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+                {{ $title }}
+            </p>
+            <p class="text-3xl font-semibold text-gray-900 dark:text-white">
+                {{ $value }}
+            </p>
+        </div>
     </div>
 </div>
