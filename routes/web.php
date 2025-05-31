@@ -40,12 +40,30 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 Route::prefix('superadmin')->middleware(['auth', 'superadmin'])->group(function () {
     Route::get('/', [SuperAdminController::class, 'index'])->name('superadmin#index');
 
+    // Company Management Routes
+    Route::get('/companies', [SuperAdminController::class, 'manageCompany'])->name('superadmin.companies');
+    Route::get('/company/{slug}', [SuperAdminController::class, 'companyDetail'])->name('superadmin.company.detail');
+
+    // Talent Management Routes
+    Route::get('/talents', [SuperAdminController::class, 'manageTalent'])->name('superadmin.talents');
+    Route::get('/talent/{slug}', [SuperAdminController::class, 'talentDetail'])->name('superadmin.talent.detail');
 });
 
 // Company Routes
 Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
     Route::get('/', [CompanyController::class, 'index'])->name('company#index');
+    Route::get('/company/dashboard', [CompanyController::class, 'index'])->name('company.dashboard');
 
+    // User Management Routes
+    Route::get('/company/users', [CompanyController::class, 'usersOverview'])->name('company.users');
+    Route::get('/company/user/{slug}', [CompanyController::class, 'detailUser'])->name('company.user.detail');
+
+    // Project Management Routes
+    Route::post('/company/project/store', [CompanyController::class, 'storeProject'])->name('company.project.store');
+    Route::put('/company/project/{id}/edit', [CompanyController::class, 'editProject'])->name('company.project.edit');
+    Route::delete('/company/project/{id}/delete', [CompanyController::class, 'deleteProject'])->name('company.project.delete');
+    Route::get('/company/project/{slug}', [CompanyController::class, 'detailProject'])->name('company.project.detail');
+    Route::get('/company/projects', [CompanyController::class, 'projectOverview'])->name('company.projects');
 });
 
 // Talent Routes
