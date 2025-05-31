@@ -9,9 +9,10 @@
         <meta name="description" content="@yield('meta_description', 'Padma Cloud Office - Project Management System')">
 
         {{-- Favicon --}}
-        <link rel="icon" type="image/png" href="{{ asset('images/logo/favicon.png') }}" sizes="16x16">
+        {{-- <link rel="icon" type="image/png" href="{{ asset('images/logo/favicon.png') }}" sizes="16x16"> --}}
 
         <!-- Fonts -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
@@ -22,6 +23,7 @@
         @livewireStyles
     </head>
 
+
     <body class="h-full font-sans antialiased">
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
             {{-- Loading State --}}
@@ -31,6 +33,7 @@
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                 </svg>
             </div>
+
 
             <x-banner />
 
