@@ -37,5 +37,5 @@
                 <x-theme-switcher />
             </div>
         </div>
-    </div>
+  </div>
 </nav>

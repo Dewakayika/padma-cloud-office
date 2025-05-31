@@ -1,4 +1,5 @@
-@extends('layouts.app')
+index (yang di folder talent)
+"@extends('layouts.app')
 @section('title', 'Dashboard')
 @section('meta_description', 'Padma Cloud Office')
 
@@ -126,7 +127,6 @@
                 {{-- Project On Going Section --}}
                 <div class="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
                     <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Project On Going</h2>
-                    
                     {{-- Project Status List --}}
                     <div class="space-y-4">
                         {{-- Project Assign --}}
@@ -249,4 +249,4 @@
             </div>
         </div>
     </div>
-@endsection
+@endsection"

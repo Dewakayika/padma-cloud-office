@@ -67,6 +67,12 @@ Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
 
     // Company Settings
     Route::get('/settings', [CompanyController::class, 'companySettings'])->name('company.settings');
+    Route::post('/company/project-type/store', [CompanyController::class, 'storeProjectType'])->name('company.project.store');
+    Route::delete('/company/project-type/{id}/edit', [CompanyController::class, 'editProjectType'])->name('company.project.type.edit');
+    Route::delete('/company/project-type/{id}/destroy', [CompanyController::class, 'destroyProjectType'])->name('company.project.type.destroy');
+
+
+
 
 });
 

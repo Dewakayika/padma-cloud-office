@@ -8,6 +8,8 @@ use App\Models\Company;
 use App\Models\Project;
 use App\Models\ProjectLog;
 use App\Models\CompanyTalent;
+use App\Models\ProjectType;
+
 
 
 use Illuminate\Support\Facades\Hash;
@@ -127,54 +129,6 @@ class CompanyController extends Controller
             'projects' => $projects, // Pass projects to the view
             'projectColumns' => $projectColumns, // Pass column definition to the view
         ]);
-    }
-
-
-    // Project Store Data
-    public function storeProject(Request $request)
-    {
-        // Validate the request data
-        $validated = $request->validate([
-            'project_name' => 'required|string|max:255',
-            'project_volume' => 'required|string|max:255',
-            'project_file' => 'nullable|string|max:255',
-            'project_type_id' => 'required|exists:project_types,id',
-            'talent' => 'nullable|exists:users,id',
-            'qc_agent' => 'nullable|exists:users,id',
-            'project_rate' => 'required|numeric|min:0',
-            'qc_rate' => 'required|numeric|min:0',
-            'bonuses' => 'nullable|numeric|min:0',
-            'status' => 'required|max:225',
-            'start_date' => 'required|date',
-            'finish_date' => 'nullable|date|after_or_equal:start_date',
-        ]);
-
-        try {
-            // Add user_id and company_id
-            $validated['user_id'] = auth()->id();
-            $validated['company_id'] = auth()->user()->company_id;
-            $validated['status'] = 'waiting talent'; // Set initial status
-
-            // Create the project
-            $project = Project::create($validated);
-
-            // Create initial project log
-            ProjectLog::create([
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'company_id' => $project->company_id,
-                'talent_id' => $project->talent,
-                'talent_qc_id' => $project->qc_agent,
-                'timestamp' => now(),
-                'status' => 'waiting talent'
-            ]);
-
-            return redirect()->back()->with('success', 'Project created successfully');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Failed to create project: ' . $e->getMessage());
-        }
     }
 
     // Edit Project
@@ -354,7 +308,72 @@ class CompanyController extends Controller
     public function companySettings()
     {
 
-        return view ('users.Company.settings');
+        // get company based on user_id
+        $company = Company::where('user_id', auth()->user()->id)->first();
+        $projectTypes =ProjectType::where('company_id', $company->id)->paginate(10);
+
+        return view ('users.Company.settings', [
+            'company' => $company,
+            'projectTypes' => $projectTypes
+        ]);
+    }
+
+    // Store Project Type
+    public function storeProjectType(Request $request)
+    {
+        // Validate the request data
+        $validated = $request->validate([
+            'user_id' => 'required|string|max:255',
+            'company_id' => 'required|string|max:255',
+            'project_name' => 'required|string|max:255',
+            'project_rate' => 'required|string|max:255',
+        ]);
+
+        try {
+
+            ProjectType::create([
+                'user_id' => $request->user_id,
+                'company_id' => $request->company_id,
+                'project_rate' => $request->project_rate,
+                'project_name' => $request->project_name,
+            ]);
+
+            return redirect()->back()->with('success', 'Project type created successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create project type: ' . $e->getMessage());
+        }
+    }
+
+    // Edit Project Type
+    public function editProjectType($id)
+    {
+        // Find the project type
+        $projectType = ProjectType::findOrFail($id);
+
+        // Check if the authenticated user's company owns this project type
+        if ($projectType->company_id !== auth()->user()->company->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // You will need to create a view for editing project types
+        // return view('users.Company.edit-project-type', ['projectType' => $projectType]);
+         return redirect()->back()->with('info', 'Edit functionality not yet implemented.');
+    }
+
+    // Delete Project Type
+    public function destroyProjectType($id)
+    {
+        try {
+            // Find the project type
+            $projectType = ProjectType::findOrFail($id);
+            $projectType->delete();
+
+            return redirect()->back()->with('success', 'Project type deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to delete project type: ' . $e->getMessage());
+        }
     }
 
 }
