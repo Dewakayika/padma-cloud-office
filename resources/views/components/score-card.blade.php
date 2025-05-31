@@ -1,4 +1,4 @@
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-lg p-6 flex items-center space-x-4">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-lg p-6 flex items-center space-x-4 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl">
     @if($icon)
         <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center {{ $iconBackground ?? 'bg-blue-100' }} {{ $iconColor ?? 'text-blue-500' }}">
             <i class="{{ $icon }} text-xl"></i>

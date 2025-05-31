@@ -64,6 +64,10 @@ Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
     Route::delete('/company/project/{id}/delete', [CompanyController::class, 'deleteProject'])->name('company.project.delete');
     Route::get('/company/project/{slug}', [CompanyController::class, 'detailProject'])->name('company.project.detail');
     Route::get('/company/projects', [CompanyController::class, 'projectOverview'])->name('company.projects');
+
+    // Company Settings
+    Route::get('/settings', [CompanyController::class, 'companySettings'])->name('company.settings');
+
 });
 
 // Talent Routes

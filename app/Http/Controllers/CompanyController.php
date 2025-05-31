@@ -12,6 +12,7 @@ use App\Models\CompanyTalent;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CompanyController extends Controller
 {
@@ -66,11 +67,67 @@ class CompanyController extends Controller
 
     public function index()
     {
-        return view('users.Company.index');
+        $companyId = auth()->user()->company_id;
+
+        // Fetch counts for "On Going Projects" based on status for the authenticated company
+        $projectCounts = Project::where('company_id', $companyId)
+            ->select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        // Prepare counts with default values if a status has no projects
+        $onGoingProjects = [
+            'waiting talent' => $projectCounts['waiting talent'] ?? 0,
+            'assign' => $projectCounts['assign'] ?? 0,
+            'qc' => $projectCounts['qc'] ?? 0,
+            'draft' => $projectCounts['draft'] ?? 0,
+            'revision' => $projectCounts['revision'] ?? 0,
+            'completed' => $projectCounts['completed'] ?? 0,
+        ];
+
+        // Fetch monthly project statistics for the current year for the authenticated company
+        $currentYear = date('Y');
+        $monthlyProjects = Project::where('company_id', $companyId)
+            ->whereYear('start_date', $currentYear)
+            ->select(DB::raw('MONTH(start_date) as month'), DB::raw('count(*) as count'))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()
+            ->pluck('count', 'month')
+            ->toArray();
+
+        // Prepare data for the chart (full year, 0 if no projects in a month)
+        $chartData = [];
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        for ($i = 1; $i <= 12; $i++) {
+            $chartData[] = $monthlyProjects[$i] ?? 0;
+        }
+
+        // Fetch the list of projects for the authenticated company with pagination
+        $projects = Project::where('company_id', $companyId)->paginate(10);
+
+        // Define columns for the project table
+        $projectColumns = [
+            ['label' => 'Project Name', 'key' => 'project_name'],
+            ['label' => 'Project Type', 'key' => 'projectType.name'],
+            ['label' => 'Volume', 'key' => 'project_volume'],
+            ['label' => 'Rate', 'key' => 'project_rate'],
+            ['label' => 'Status', 'key' => 'status'],
+            ['label' => 'Start Date', 'key' => 'start_date'],
+            ['label' => 'Finish Date', 'key' => 'finish_date'],
+
+        ];
+
+        return view('users.Company.index', [
+            'user' => auth()->user(), // Pass authenticated user
+            'onGoingProjects' => $onGoingProjects,
+            'monthlyProjectData' => $chartData,
+            'chartLabels' => $months,
+            'projects' => $projects, // Pass projects to the view
+            'projectColumns' => $projectColumns, // Pass column definition to the view
+        ]);
     }
-
-
-
 
 
     // Project Store Data
@@ -291,6 +348,13 @@ class CompanyController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to load user details: ' . $e->getMessage());
         }
+    }
+
+    // Settings
+    public function companySettings()
+    {
+
+        return view ('users.Company.settings');
     }
 
 }
