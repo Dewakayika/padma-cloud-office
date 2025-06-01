@@ -10,7 +10,7 @@
                 method="POST"
                 action="{{ route('company.project.store') }}"
                 enctype="multipart/form-data">
-                @csrf
+        @csrf
                 <input type="hidden" name="company_id" value="{{ $company->id }}">
                     <input type="hidden" name="user_id" value="{{ auth()->user()->id }}">
 
@@ -169,9 +169,9 @@
                                 <option value="">Select Talent</option>
                                 @foreach($talents as $talent)
                                 <option
-                                    value="{{ $talent->id }}"
-                                    {{ old('talent') == $talent->id ? 'selected' : '' }}>
-                                    {{ $talent->name }}
+                                    value="{{ $talent->talent_id }}"
+                                    {{ old('talent') == $talent->talent_id ? 'selected' : '' }}>
+                                    {{ $talent->talent->name }}
                                 </option>
                                 @endforeach
                             </select>
@@ -181,7 +181,7 @@
                         </div>
 
                         {{-- QC Type Selection --}}
-                        <div class="mt-4">
+                            <div class="mt-4">
                             <x-label for="qc_type" value="{{ __('QC Type*') }}"/>
                             <select
                                 id="qc_type"
@@ -210,20 +210,20 @@
                             @error('qc_agent')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
-                        </div>
+        </div>
 
-                        <div class="flex items-center justify-end mt-4">
+        <div class="flex items-center justify-end mt-4">
                             {{-- Cancel Button --}}
                             <x-secondary-button id="cancelCreateProjectButton" type="button" class="ms-4">
                                 {{ __('Cancel') }}
                             </x-secondary-button>
                             {{-- Create Project Button --}}
-                            <x-button class="ms-4">
+            <x-button class="ms-4">
                                 {{ __('Create Project') }}
-                            </x-button>
-                        </div>
-                    </form>
-                </div>
+            </x-button>
+        </div>
+    </form>
+</div>
             </div>
         </div>
 

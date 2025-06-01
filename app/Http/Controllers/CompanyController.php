@@ -9,10 +9,15 @@ use App\Models\Project;
 use App\Models\ProjectLog;
 use App\Models\CompanyTalent;
 use App\Models\ProjectType;
+use App\Models\Invitation;
+use App\Mail\UserInvitation;
+
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class CompanyController extends Controller
 {
@@ -80,11 +85,10 @@ class CompanyController extends Controller
         // Prepare counts with default values if a status has no projects
         $onGoingProjects = [
             'waiting talent' => $projectCounts['waiting talent'] ?? 0,
-            'assign' => $projectCounts['assign'] ?? 0,
-            'qc' => $projectCounts['qc'] ?? 0,
-            'draft' => $projectCounts['draft'] ?? 0,
-            'revision' => $projectCounts['revision'] ?? 0,
-            'completed' => $projectCounts['completed'] ?? 0,
+            'project assign' => $projectCounts['project assign'] ?? 0,
+            'Project QC ' => $projectCounts['Project QC'] ?? 0,
+            'Revision' => $projectCounts['Revision'] ?? 0,
+            'Done' => $projectCounts['Done'] ?? 0,
         ];
 
         // Fetch monthly project statistics for the current year for the authenticated company
@@ -106,23 +110,17 @@ class CompanyController extends Controller
         }
 
         // Fetch the list of projects for the authenticated company with pagination
-        $projects = Project::where('company_id', $companyId)->paginate(10);
-
-        // Define columns for the project table
-        $projectColumns = [
-            ['label' => 'Project Name', 'key' => 'project_name'],
-            ['label' => 'Project Type', 'key' => 'projectType.name'],
-            ['label' => 'Volume', 'key' => 'project_volume'],
-            ['label' => 'Rate', 'key' => 'project_rate'],
-            ['label' => 'Status', 'key' => 'status'],
-            ['label' => 'Start Date', 'key' => 'start_date'],
-            ['label' => 'Finish Date', 'key' => 'finish_date'],
-        ];
+        $projects = Project::where('company_id', $companyId)
+                ->with('qcAgent')
+                ->orderBy('created_at', 'asc')
+                ->paginate(5);
 
         // New Project Fields
         $projectTypes = ProjectType::where('company_id', $companyId)->get();
-        $talents = User::where('role', 'talent')->get();
-
+        $talents = CompanyTalent::where('job_role', 'talent')
+                ->where('company_id', $companyId)
+                ->with('user')
+                ->get();
 
         return view('users.Company.index', [
             'user' => auth()->user(),
@@ -130,7 +128,6 @@ class CompanyController extends Controller
             'monthlyProjectData' => $chartData,
             'chartLabels' => $months,
             'projects' => $projects,
-            'projectColumns' => $projectColumns,
             'projectTypes' => $projectTypes,
             'talents' => $talents,
             'company' => $company
@@ -169,15 +166,15 @@ class CompanyController extends Controller
             $project = Project::create($validated);
 
             // Create initial project log
-            // $project->projectLogs()->create([
-            //     'user_id' => auth()->id(),
-            //     'project_id' => $project->id,
-            //     'company_id' => $project->company_id,
-            //     'status' => $project->status,
-            //     'timestamp' => now()
-            //     'talent_id' => $request->talent,
-            //     'talent_qc_id' => $request->qc_agent
-            // ]);
+            $project->projectLogs()->create([
+                'user_id' => auth()->id(),
+                'project_id' => $project->id,
+                'company_id' => $project->company_id,
+                'status' => $project->status,
+                'timestamp' => now(),
+                'talent_id' => $project->talent,
+                'talent_qc_id' => $project->qc_agent,
+            ]);
 
             return redirect()->back()->with('success', 'Project created successfully');
 
@@ -435,6 +432,54 @@ class CompanyController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to delete project type: ' . $e->getMessage());
         }
+    }
+
+    public function inviteUserByEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|unique:users,email', // Validate email and check if user already exists
+        ]);
+
+        $email = $request->email;
+        $invitingUser = auth()->user();
+        $company = Company::where('user_id', $invitingUser->id)->first();
+        // $companyId = Company::where('user_id', auth()->id())->value('id');
+        // $invitingUser = auth()->user();
+        // $company = $invitingUser->company;
+
+        if (!$company) {
+            return response()->json(['message' => 'User is not associated with a company.'], 400);
+        }
+
+        // Check if an invitation already exists for this email and company
+        $existingInvitation = Invitation::where('email', $email)->where('company_id', $company->id)->first();
+        if ($existingInvitation) {
+             return response()->json(['message' => 'An invitation has already been sent to this email for this company.'], 409);
+        }
+
+
+        // 1. Generate a unique invitation token
+        $token = Str::random(60); // Or use UUIDs
+
+        // 2. Store the invitation details in a database table (you'll need an 'invitations' table)
+        // This table should store email, token, company_id, inviting_user_id, and potentially expiration
+        $invitation = Invitation::create([
+            'email' => $email,
+            'token' => $token,
+            'company_id' => $company->id,
+            'inviting_user_id' => $invitingUser->id,
+            'expires_at' => now()->addDays(7), // Example: expire in 7 days
+        ]);
+
+        // 3. Send an email to the invited user with a link containing the token
+        // You'll need to create a Mailable class (e.g., App\Mail\UserInvitation)
+        // And a view for the email content
+        // The link should point to a route that handles invitation acceptance/registration
+        $invitationLink = url('/register?token=' . $token); // Example link structure
+        Mail::to($email)->send(new UserInvitation($invitationLink, $invitingUser, $company));
+
+        // Success response
+        return response()->json(['message' => 'Invitation email sent to ' . $email], 200);
     }
 
 }

@@ -11,16 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('company_talents', function (Blueprint $table) {
+        Schema::create('invitations', function (Blueprint $table) {
             $table->id();
+            $table->string('email')->unique();
+            $table->string('token')->unique();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('talent_id')->constrained('users')->onDelete('cascade');
-            $table->string('job_role');
+            $table->foreignId('inviting_user_id')->constrained('users')->onDelete('cascade');
+            $table->timestamp('expires_at')->nullable();
             $table->timestamps();
-
-            // Add unique constraint to prevent duplicate assignments
-            $table->unique(['company_id', 'talent_id']);
         });
     }
 
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('company_talents');
+        Schema::dropIfExists('invitations');
     }
 };
