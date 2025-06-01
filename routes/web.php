@@ -79,5 +79,8 @@ Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
 // Talent Routes
 Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/', [TalentController::class, 'index'])->name('talent#index');
+    Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage.projects');
+    Route::get('/project-detail', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
+    Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
 });
 
