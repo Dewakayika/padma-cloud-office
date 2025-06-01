@@ -10,8 +10,6 @@ use App\Models\ProjectLog;
 use App\Models\CompanyTalent;
 use App\Models\ProjectType;
 
-
-
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -66,10 +64,11 @@ class CompanyController extends Controller
         return redirect()->route('home')->with('success', 'Company registered successfully');
     }
 
-
     public function index()
     {
-        $companyId = auth()->user()->company_id;
+        $user = auth()->user();
+        $company = Company::where('user_id', $user->id)->first();
+        $companyId = Company::where('user_id', auth()->id())->value('id');
 
         // Fetch counts for "On Going Projects" based on status for the authenticated company
         $projectCounts = Project::where('company_id', $companyId)
@@ -118,17 +117,79 @@ class CompanyController extends Controller
             ['label' => 'Status', 'key' => 'status'],
             ['label' => 'Start Date', 'key' => 'start_date'],
             ['label' => 'Finish Date', 'key' => 'finish_date'],
-
         ];
 
+        // New Project Fields
+        $projectTypes = ProjectType::where('company_id', $companyId)->get();
+        $talents = User::where('role', 'talent')->get();
+
+
         return view('users.Company.index', [
-            'user' => auth()->user(), // Pass authenticated user
+            'user' => auth()->user(),
             'onGoingProjects' => $onGoingProjects,
             'monthlyProjectData' => $chartData,
             'chartLabels' => $months,
-            'projects' => $projects, // Pass projects to the view
-            'projectColumns' => $projectColumns, // Pass column definition to the view
+            'projects' => $projects,
+            'projectColumns' => $projectColumns,
+            'projectTypes' => $projectTypes,
+            'talents' => $talents,
+            'company' => $company
         ]);
+    }
+
+    // Store Project
+    public function storeProject(Request $request)
+    {
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'project_name' => 'required|string|max:255',
+                'project_volume' => 'required|numeric|min:0',
+                'project_file' => 'nullable|url|max:255', // Changed to URL validation
+                'project_type_id' => 'required|exists:project_types,id',
+                'talent' => 'nullable|exists:users,id',
+                'qc_agent' => 'nullable|exists:users,id',
+                'project_rate' => 'required|numeric|min:0',
+                'qc_rate' => 'required|numeric|min:0',
+                'bonuses' => 'nullable|numeric|min:0',
+                'start_date' => 'required|date',
+                'finish_date' => 'required|date|after:start_date',
+                'qc_type' => 'required|in:self,talent',
+            ]);
+
+            $user = auth()->user();
+            $company = Company::where('user_id', $user->id)->first();
+            $companyId = Company::where('user_id', auth()->id())->value('id');
+
+            $validated['company_id'] = $companyId;
+            $validated['user_id'] = auth()->id();
+            $validated['status'] = 'waiting talent';
+
+            // Create the project using validated data
+            $project = Project::create($validated);
+
+            // Create initial project log
+            // $project->projectLogs()->create([
+            //     'user_id' => auth()->id(),
+            //     'project_id' => $project->id,
+            //     'company_id' => $project->company_id,
+            //     'status' => $project->status,
+            //     'timestamp' => now()
+            //     'talent_id' => $request->talent,
+            //     'talent_qc_id' => $request->qc_agent
+            // ]);
+
+            return redirect()->back()->with('success', 'Project created successfully');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors($e->errors());
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create project: ' . $e->getMessage());
+        }
     }
 
     // Edit Project

@@ -6,30 +6,50 @@
 
 
         <div class="sm:ml-64">
-            <div class="space-y-6">
-                    {{-- Welcome Message --}}
+            <div class="py-5 space-y-6">
+
                     <div class="flex items-center justify-between">
                         <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
                             Good to see you, {{ Auth::user()->name }}!
                         </h1>
+
                         <div class="flex items-center gap-2">
-                            <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-                                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
-                                    <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
-                                </svg>
-                                Export Report
-                            </button>
-                            <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700">
-                                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                                </svg>
-                                New Project
-                            </button>
+                            <div x-data="{ openEdit: false }">
+                                <a @click="openEdit = true"
+                                   class="inline-flex items-center px-3 py-2 gap-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 cursor-pointer">
+                                    New Project
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                        <path d="M6 3a3 3 0 0 0-3 3v2.25a3 3 0 0 0 3 3h2.25a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H6ZM15.75 3a3 3 0 0 0-3 3v2.25a3 3 0 0 0 3 3H18a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3h-2.25ZM6 12.75a3 3 0 0 0-3 3V18a3 3 0 0 0 3 3h2.25a3 3 0 0 0 3-3v-2.25a3 3 0 0 0-3-3H6ZM17.625 13.5a.75.75 0 0 0-1.5 0v2.625H13.5a.75.75 0 0 0 0 1.5h2.625v2.625a.75.75 0 0 0 1.5 0v-2.625h2.625a.75.75 0 0 0 0-1.5h-2.625V13.5Z" />
+                                    </svg>
+                                </a>
+
+                                <!-- Modal -->
+                                <div x-show="openEdit" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                    <div @click.outside="openEdit = false" class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-3xl">
+                                        {{-- Komponen Edit Kompetisi --}}
+                                        @include('components.create-project', ['projectTypes' => $projectTypes, 'talents' => $talents])
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Score Cards --}}
+                    @if(session('success'))
+                    <x-alert type="success" :message="session('success')" />
+                    @endif
+
+                    @if(session('error'))
+                        <x-alert type="error" :message="session('error')" />
+                    @endif
+
+                    @if(session('warning'))
+                        <x-alert type="warning" :message="session('warning')" />
+                    @endif
+
+                    @if(session('info'))
+                        <x-alert type="info" :message="session('info')" />
+                    @endif
+
                     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 mt-6">
                         {{-- Project Serving Time --}}
                         <x-score-card
@@ -151,7 +171,6 @@
                         </div>
                     </div>
 
-                    {{-- Project List Table --}}
                     <div class="mt-4 sm:mt-6 md:mt-8">
                         <x-generic-table :data="$projects" :columns="$projectColumns" />
                     </div>

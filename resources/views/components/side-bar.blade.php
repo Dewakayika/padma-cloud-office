@@ -15,20 +15,16 @@
     <div class="flex-1 px-3 py-4 overflow-y-auto">
         <ul class="space-y-2 font-medium">
             @if (Auth::user()->role == 'superadmin')
-            <li>
-                <a href="{{ url('/') }}"
-                   class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white
-                   group
-                   {{ Request::is('superadmin') ? 'bg-blue-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="shrink-0 w-6 h-6 transition duration-75
-                        {{ Request::is('superadmin') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}"
-                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path fill-rule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z"
-                              clip-rule="evenodd" />
-                    </svg>
-                    <span class="ms-3">Dashboard</span>
-                </a>
-            </li>
+                {{-- Dashboard --}}
+                <li>
+                    <a href="{{ url('/superadmin') }}"
+                       class="flex items-center p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 {{ Request::is('superadmin') ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8.25V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V8.25m-18 0V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18M5.25 6h.008v.008H5.25V6zM7.5 6h.008v.008H7.5V6zm2.25 0h.008v.008H9.75V6z" />
+                        </svg>
+                        <span class="ml-3">Dashboard</span>
+                    </a>
+                </li>
 
                 {{-- Manage Companies --}}
                 <li>
@@ -76,23 +72,17 @@
                     </a>
                 </li>
 
-            {{-- Nav bar untuk company admin --}}
-
-            @elseif(Auth::user()->role == 'talent')
-            <li>
-                <a href="{{ url('/') }}"
-                   class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white
-                   group
-                   {{ Request::is('company') ? 'bg-blue-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="shrink-0 w-6 h-6 transition duration-75
-                        {{ Request::is('company') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}"
-                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path fill-rule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z"
-                              clip-rule="evenodd" />
-                    </svg>
-                    <span class="ms-3">Dashboard</span>
-                </a>
-            </li>
+            @elseif (Auth::user()->role == 'talent')
+                {{-- Dashboard --}}
+                <li>
+                    <a href="{{ url('/talent') }}"
+                       class="flex items-center p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 {{ Request::is('talent') ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8.25V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V8.25m-18 0V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18M5.25 6h.008v.008H5.25V6zM7.5 6h.008v.008H7.5V6zm2.25 0h.008v.008H9.75V6z" />
+                        </svg>
+                        <span class="ml-3">Dashboard</span>
+                    </a>
+                </li>
 
                 {{-- Settings --}}
                 <li>
@@ -107,12 +97,12 @@
                 </li>
             @endif
 
-
-
+            {{-- Profile Link (Common for all roles) --}}
             <li>
-                <a href="{{ url('/user/profile') }}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white group {{ Request::is('user/profile') ? 'bg-blue-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="shrink-0 w-6 h-6 text-gray-500 transition duration-75 {{ Request::is('user/profile') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                        <path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653Zm-12.54-1.285A7.486 7.486 0 0 1 12 15a7.486 7.486 0 0 1 5.855 2.812A8.224 8.224 0 0 1 12 20.25a8.224 8.224 0 0 1-5.855-2.438ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" clip-rule="evenodd" />
+                <a href="{{ url('/user/profile') }}"
+                   class="flex items-center p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 {{ Request::is('user/profile*') ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
+                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span class="ml-3">Profile</span>
                 </a>
@@ -121,7 +111,29 @@
         </ul>
     </div>
 
-  </aside>
+    <!-- User Profile Section -->
+    <div class="mt-auto border-t border-gray-200 dark:border-gray-700">
+        <div class="px-5 py-4">
+            <div class="flex items-center gap-3">
+                <img src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" class="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-600">
+                <div class="flex flex-col min-w-0">
+                    <span class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ Auth::user()->name }}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ ucfirst(Auth::user()->role) }}</span>
+                </div>
+                <form method="POST" action="{{ route('logout') }}" x-data class="ml-auto">
+                    @csrf
+                    <button type="submit"
+                            @click.prevent="$root.submit();"
+                            class="p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</aside>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
