@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Talent;
 use App\Models\Company;
-
+use App\Models\Project;
+use App\Models\ProjectLog;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -69,5 +70,20 @@ class TalentController extends Controller
     public function index()
     {
         return view('users.Talent.index');
+    }
+
+    public function manageProjects()
+    {
+        return view('users.Talent.talent-manage-projects');
+    }
+
+    public function projectDetail()
+    {
+        return view('users.Talent.project-detail');
+    }
+
+    public function report()
+    {
+        return view('users.Talent.report');
     }
 }

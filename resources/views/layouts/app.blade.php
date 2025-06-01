@@ -23,6 +23,7 @@
 
         <!-- Styles -->
         @livewireStyles
+        @stack('styles')
     </head>
 
     <body class="h-full font-sans antialiased">
@@ -42,16 +43,19 @@
                         @yield('content')
                     </main>
                 </div>
+                <x-footer />
             @else
                 <x-navbar />
                 <main>
                     @yield('content')
                 </main>
+                <x-footer />
             @endif
         </div>
 
         @stack('modals')
         @livewireScripts
+        @stack('scripts')
     </body>
 </html>
 "

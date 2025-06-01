@@ -54,7 +54,7 @@
 
         <main>
             <!-- Hero Section -->
-            <div class="relative min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center pb-72">
+            <div class="relative min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center pb-72 pt-10 mb-10">
                 <div class="w-full px-4 sm:px-6 lg:px-8">
                     <div class="max-w-4xl mx-auto text-center">
                         <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
@@ -88,7 +88,7 @@
                         <img 
                             src="{{ asset('images/hero-section.png') }}" 
                             alt="Dashboard preview"
-                            class="w-full h-auto object-cover rounded-2xl"
+                            class="w-[90%] h-auto object-cover rounded-2xl"
                         >
                     </div>
                 </div>

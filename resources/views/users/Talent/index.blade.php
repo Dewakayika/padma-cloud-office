@@ -1,5 +1,4 @@
-index (yang di folder talent)
-"@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'Dashboard')
 @section('meta_description', 'Padma Cloud Office')
 
@@ -249,4 +248,4 @@ index (yang di folder talent)
             </div>
         </div>
     </div>
-@endsection"
+@endsection
