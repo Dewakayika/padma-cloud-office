@@ -5,6 +5,7 @@ use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\TalentController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Auth\RegisteredUserController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -67,12 +68,12 @@ Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
 
     // Company Settings
     Route::get('/settings', [CompanyController::class, 'companySettings'])->name('company.settings');
-    Route::post('/company/project-type/store', [CompanyController::class, 'storeProjectType'])->name('company.project.store');
+    Route::post('/company/project-type/store', [CompanyController::class, 'storeProjectType'])->name('company.projectType.store');
     Route::delete('/company/project-type/{id}/edit', [CompanyController::class, 'editProjectType'])->name('company.project.type.edit');
     Route::delete('/company/project-type/{id}/destroy', [CompanyController::class, 'destroyProjectType'])->name('company.project.type.destroy');
 
-
-
+    // Add this new route for sending invitations
+    Route::post('/company/invite-user', [CompanyController::class, 'inviteUserByEmail'])->name('company.invite.user');
 
 });
 
@@ -83,4 +84,8 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/project-detail', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
     Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
 });
+
+// Add this new route for invitation acceptance
+Route::get('/register/{token}', [RegisteredUserController::class, 'showInvitationRegistrationForm'])->middleware('guest')->name('register.invitation');
+Route::post('/register/store', [RegisteredUserController::class, 'store'])->middleware('guest')->name('register.invitation.store');
 

@@ -64,8 +64,16 @@ class Project extends Model
         return $this->belongsTo(User::class, 'qc_agent');
     }
 
-    public function projectLogs(): HasMany
+    public function projectLogs()
     {
         return $this->hasMany(ProjectLog::class);
+    }
+
+    /**
+     * Get the user assigned as the QC agent for the project.
+     */
+    public function qcAgent()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'qc_agent');
     }
 }
