@@ -4,10 +4,8 @@
 
 @section('content')
 
-
         <div class="sm:ml-64">
             <div class="py-5 space-y-6">
-
                     <div class="flex items-center justify-between">
                         <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
                             Good to see you, {{ Auth::user()->name }}!

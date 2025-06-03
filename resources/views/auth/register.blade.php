@@ -22,7 +22,7 @@
                             </div>
                         </div>
                     </div>
-                </a> --}}
+                </a>
 
                 <!-- Talent Registration Card -->
                 <a href="{{ route('talent.register') }}" class="block group">

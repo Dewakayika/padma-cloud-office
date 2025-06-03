@@ -7,7 +7,6 @@ use App\Models\Invitation;
 use App\Models\CompanyTalent;
 use App\Models\User;
 
-
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -42,8 +41,6 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
-
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
@@ -54,30 +51,36 @@ class RegisteredUserController extends Controller
         DB::beginTransaction();
 
         try {
-            // Create the user
+            $invitation = Invitation::where('email', $request->email)->first();
+
+            if (!$invitation) {
+                throw new \Exception('No invitation found for this email.');
+            }
+
+            // Create the user with the role from invitation
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => 'talent',
+                'role' => $invitation->role,
             ]);
 
-            $invitation = Invitation::where('email', $request->email)->first();
-
-            // dd($invitation);
-
-
+            // Create CompanyTalent record
             $companyTalent = CompanyTalent::create([
                 'company_id' => $invitation->company_id,
                 'user_id' => $invitation->inviting_user_id,
                 'talent_id' => $user->id,
-                'job_role' => 'talent',
+                'job_role' => $invitation->role,
             ]);
+
+            // Delete the invitation after successful registration
+            $invitation->delete();
 
             event(new Registered($user));
             Auth::login($user);
             DB::commit();
-            return redirect()->route('home')->with('success', 'Talent registered successfully.');
+
+            return redirect()->route('home')->with('success', 'Registration successful.');
         } catch (\Exception $e) {
             DB::rollBack();
 

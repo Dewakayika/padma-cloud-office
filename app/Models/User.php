@@ -99,6 +99,6 @@ class User extends Authenticatable
 
     public function companyTalent()
     {
-        return $this->hasMany(CompanyTalent::class, 'user');
+        return $this->hasMany(CompanyTalent::class, 'talent_id');
     }
 }

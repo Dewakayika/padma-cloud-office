@@ -40,6 +40,8 @@
     {{-- List Current Project Type --}}
     <div class="mt-6">
         <h3 class="text-xl font-semibold mb-4">Existing Project Types</h3>
+
+        {{-- Existing project types list --}}
         @forelse ($projectTypes as $projectType)
             <div class="bg-gray-100 p-3 rounded-md mb-3 flex justify-between items-center">
                 <div>
@@ -64,7 +66,12 @@
         </div>
     </div>
 
-
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Project settings specific JavaScript can go here if needed
+});
+</script>
 
 
