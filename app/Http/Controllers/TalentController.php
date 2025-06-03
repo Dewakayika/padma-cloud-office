@@ -67,6 +67,12 @@ class TalentController extends Controller
         return redirect()->route('home')->with('success', 'Talent registered successfully..');
     }
 
+
+    // Talent Dashboard
+    public function landingPage() {
+        return view('users.Talent.landing-page');
+    }
+
     public function index()
     {
         return view('users.Talent.index');
@@ -85,5 +91,17 @@ class TalentController extends Controller
     public function report()
     {
         return view('users.Talent.report');
+    }
+
+
+    //Talen Landing Page
+    public function eWallet()
+    {
+        return view('users.Talent.e-wallet');
+    } 
+
+    public function statistic()
+    {
+        return view('users.Talent.statistic');
     }
 }
