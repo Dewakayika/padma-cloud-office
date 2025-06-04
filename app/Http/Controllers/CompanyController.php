@@ -11,6 +11,7 @@ use App\Models\CompanyTalent;
 use App\Models\ProjectType;
 use App\Models\Invitation;
 use App\Mail\UserInvitation;
+use App\Models\ProjectSop;
 
 
 use Illuminate\Support\Facades\Hash;
@@ -112,7 +113,7 @@ class CompanyController extends Controller
         // Fetch the list of projects for the authenticated company with pagination
         $projects = Project::where('company_id', $companyId)
                 ->with('qcAgent')
-                ->orderBy('created_at', 'asc')
+                ->orderBy('created_at', 'desc')
                 ->paginate(5);
 
         // New Project Fields
@@ -142,15 +143,13 @@ class CompanyController extends Controller
             $validated = $request->validate([
                 'project_name' => 'required|string|max:255',
                 'project_volume' => 'required|numeric|min:0',
-                'project_file' => 'nullable|url|max:255', // Changed to URL validation
+                'project_file' => 'nullable|url|max:255',
                 'project_type_id' => 'required|exists:project_types,id',
                 'talent' => 'nullable|exists:users,id',
                 'qc_agent' => 'nullable|exists:users,id',
                 'project_rate' => 'required|numeric|min:0',
                 'qc_rate' => 'required|numeric|min:0',
                 'bonuses' => 'nullable|numeric|min:0',
-                'start_date' => 'required|date',
-                'finish_date' => 'required|date|after:start_date',
                 'qc_type' => 'required|in:self,talent',
             ]);
 
@@ -158,6 +157,7 @@ class CompanyController extends Controller
             $company = Company::where('user_id', $user->id)->first();
             $companyId = Company::where('user_id', auth()->id())->value('id');
 
+            $validated['start_date'] = now();
             $validated['company_id'] = $companyId;
             $validated['user_id'] = auth()->id();
             $validated['status'] = 'waiting talent';
@@ -365,14 +365,25 @@ class CompanyController extends Controller
     // Settings
     public function companySettings()
     {
-
         // get company based on user_id
         $company = Company::where('user_id', auth()->user()->id)->first();
-        $projectTypes =ProjectType::where('company_id', $company->id)->paginate(10);
+        $projectTypes = ProjectType::where('company_id', $company->id)->paginate(5);
 
-        return view ('users.Company.settings', [
+        // Get team members
+        $teamMembers = User::whereHas('companyTalent', function($query) use ($company) {
+            $query->where('company_id', $company->id)
+                  ->whereIn('job_role', ['talent', 'talent_qc']); // Filter by the correct job roles
+        })
+        ->with(['companyTalent' => function($query) use ($company) {
+            $query->where('company_id', $company->id)
+                  ->select('id', 'company_id', 'user_id', 'talent_id', 'job_role'); // Select necessary columns
+        }])
+        ->paginate(5);
+
+        return view('users.Company.settings', [
             'company' => $company,
-            'projectTypes' => $projectTypes
+            'projectTypes' => $projectTypes,
+            'teamMembers' => $teamMembers
         ]);
     }
 
@@ -437,49 +448,319 @@ class CompanyController extends Controller
     public function inviteUserByEmail(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|unique:users,email', // Validate email and check if user already exists
+            'email' => 'required|email|unique:users,email',
+            'role' => 'required|in:talent,talent_qc',
         ]);
 
         $email = $request->email;
         $invitingUser = auth()->user();
         $company = Company::where('user_id', $invitingUser->id)->first();
-        // $companyId = Company::where('user_id', auth()->id())->value('id');
-        // $invitingUser = auth()->user();
-        // $company = $invitingUser->company;
 
         if (!$company) {
-            return response()->json(['message' => 'User is not associated with a company.'], 400);
+            return redirect()->back()->with('error', 'User is not associated with a company.');
         }
 
         // Check if an invitation already exists for this email and company
-        $existingInvitation = Invitation::where('email', $email)->where('company_id', $company->id)->first();
+        $existingInvitation = Invitation::where('email', $email)
+            ->where('company_id', $company->id)
+            ->first();
+
         if ($existingInvitation) {
-             return response()->json(['message' => 'An invitation has already been sent to this email for this company.'], 409);
+            return redirect()->back()->with('warning', 'An invitation has already been sent to this email for this company.');
         }
 
+        // Generate a unique invitation token
+        $token = Str::random(60);
 
-        // 1. Generate a unique invitation token
-        $token = Str::random(60); // Or use UUIDs
+        try {
+            // Store the invitation details
+            $invitation = Invitation::create([
+                'email' => $email,
+                'role' => $request->role,
+                'token' => $token,
+                'company_id' => $company->id,
+                'inviting_user_id' => $invitingUser->id,
+                'expires_at' => now()->addDays(7),
+            ]);
 
-        // 2. Store the invitation details in a database table (you'll need an 'invitations' table)
-        // This table should store email, token, company_id, inviting_user_id, and potentially expiration
-        $invitation = Invitation::create([
-            'email' => $email,
-            'token' => $token,
-            'company_id' => $company->id,
-            'inviting_user_id' => $invitingUser->id,
-            'expires_at' => now()->addDays(7), // Example: expire in 7 days
+            // Send invitation email
+            $invitationLink = url('/register?token=' . $token);
+            Mail::to($email)->send(new UserInvitation($invitationLink, $invitingUser, $company));
+
+            return redirect()->back()->with('success', 'Invitation email sent to ' . $email);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to send invitation');
+        }
+    }
+
+    // Project SOPs
+    public function getProjectSops($projectTypeId)
+    {
+        try {
+            // Get the company ID from the authenticated user
+            $companyId = auth()->user()->company->id;
+
+            // Log the request parameters
+            \Log::info('Fetching SOPs for project type', [
+                'project_type_id' => $projectTypeId,
+                'company_id' => $companyId,
+                'user_id' => auth()->id()
+            ]);
+
+            // First verify the project type belongs to the company
+            $projectType = ProjectType::where('id', $projectTypeId)
+                ->where('company_id', $companyId)
+                ->first();
+
+            if (!$projectType) {
+                \Log::warning('Project type not found or not authorized', [
+                    'project_type_id' => $projectTypeId,
+                    'company_id' => $companyId
+                ]);
+                return response()->json(['error' => 'Project type not found or not authorized'], 404);
+            }
+
+            // Get the SOPs with detailed logging
+            $sops = ProjectSop::where('project_type_id', $projectTypeId)
+                ->where('company_id', $companyId)
+                ->get();
+
+            \Log::info('SOPs query details', [
+                'sql' => ProjectSop::where('project_type_id', $projectTypeId)
+                    ->where('company_id', $companyId)
+                    ->toSql(),
+                'bindings' => [
+                    'project_type_id' => $projectTypeId,
+                    'company_id' => $companyId
+                ]
+            ]);
+
+            \Log::info('SOPs fetched successfully', [
+                'count' => $sops->count(),
+                'project_type_id' => $projectTypeId,
+                'sops' => $sops->toArray()
+            ]);
+
+            return response()->json($sops);
+
+        } catch (\Exception $e) {
+            \Log::error('Error fetching SOPs', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'project_type_id' => $projectTypeId
+            ]);
+            return response()->json(['error' => 'Failed to fetch SOPs: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function storeProjectSop(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+            'project_type_id' => 'required|exists:project_types,id',
+                'sop_formula' => 'required|string|min:1',
+            'description' => 'nullable|string',
         ]);
 
-        // 3. Send an email to the invited user with a link containing the token
-        // You'll need to create a Mailable class (e.g., App\Mail\UserInvitation)
-        // And a view for the email content
-        // The link should point to a route that handles invitation acceptance/registration
-        $invitationLink = url('/register?token=' . $token); // Example link structure
-        Mail::to($email)->send(new UserInvitation($invitationLink, $invitingUser, $company));
+        $user = auth()->user();
+        $company = Company::where('user_id', $user->id)->first();
 
-        // Success response
-        return response()->json(['message' => 'Invitation email sent to ' . $email], 200);
+        if (!$company) {
+                return response()->json(['error' => 'User is not associated with a company.'], 403);
+        }
+
+        // Find the project type and ensure it belongs to the company
+         $projectType = ProjectType::where('id', $request->project_type_id)
+                                  ->where('company_id', $company->id)
+                                  ->first();
+
+        if (!$projectType) {
+                return response()->json(['error' => 'Project type not found for this company.'], 404);
+        }
+
+            $sop = ProjectSop::create([
+                'user_id' => $user->id,
+                'company_id' => $company->id,
+                'project_type_id' => $validated['project_type_id'],
+                'sop_formula' => $validated['sop_formula'],
+                'description' => $validated['description'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Project SOP added successfully.',
+                'sop' => $sop
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add project SOP: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Show SOPs for a specific project type
+    public function showProjectTypeSops($id)
+    {
+        try {
+            $user = auth()->user();
+            $company = Company::where('user_id', $user->id)->first();
+
+            if (!$company) {
+                return redirect()->back()->with('error', 'User is not associated with a company.');
+            }
+
+            $projectType = ProjectType::where('id', $id)
+                                    ->where('company_id', $company->id)
+                                    ->first();
+
+            if (!$projectType) {
+                return redirect()->back()->with('error', 'Project type not found or not authorized.');
+            }
+
+            $sops = ProjectSop::where('project_type_id', $id)
+                             ->where('company_id', $company->id)
+                             ->with('user')
+                             ->paginate(10);
+
+            return view('users.Company.sop-details', [
+                'projectType' => $projectType,
+                'sops' => $sops
+            ]);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to load SOPs: ' . $e->getMessage());
+        }
+    }
+
+    // Get a specific SOP
+    public function getSop($id)
+    {
+        try {
+            $user = auth()->user();
+            $company = Company::where('user_id', $user->id)->first();
+
+            if (!$company) {
+                return response()->json(['error' => 'User is not associated with a company.'], 403);
+            }
+
+            $sop = ProjectSop::where('id', $id)
+                            ->where('company_id', $company->id)
+                            ->first();
+
+            if (!$sop) {
+                return response()->json(['error' => 'SOP not found or not authorized.'], 404);
+            }
+
+            return response()->json([
+                'id' => $sop->id,
+                'sop_formula' => $sop->sop_formula,
+                'description' => $sop->description,
+                'project_type_id' => $sop->project_type_id
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch SOP: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Update a SOP
+    public function updateSop(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'sop_formula' => 'required|string|min:1',
+                'description' => 'nullable|string',
+            ]);
+
+            $user = auth()->user();
+            $company = Company::where('user_id', $user->id)->first();
+
+            if (!$company) {
+                return response()->json(['error' => 'User is not associated with a company.'], 403);
+            }
+
+            $sop = ProjectSop::where('id', $id)
+                            ->where('company_id', $company->id)
+                            ->first();
+
+            if (!$sop) {
+                return response()->json(['error' => 'SOP not found or not authorized.'], 404);
+            }
+
+            // Log the incoming data for debugging
+            \Log::info('Updating SOP', [
+                'id' => $id,
+                'request_data' => $request->all(),
+                'validated_data' => $validated
+            ]);
+
+            $sop->update([
+                'sop_formula' => $validated['sop_formula'],
+                'description' => $validated['description'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'SOP updated successfully.',
+                'sop' => $sop
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation error updating SOP', [
+                'id' => $id,
+                'errors' => $e->errors()
+            ]);
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error updating SOP', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update SOP: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Delete a SOP
+    public function deleteSop($id)
+    {
+        try {
+            $user = auth()->user();
+            $company = Company::where('user_id', $user->id)->first();
+
+            if (!$company) {
+                return response()->json(['error' => 'User is not associated with a company.'], 403);
+            }
+
+            $sop = ProjectSop::where('id', $id)
+                            ->where('company_id', $company->id)
+                            ->first();
+
+            if (!$sop) {
+                return response()->json(['error' => 'SOP not found or not authorized.'], 404);
+            }
+
+            $sop->delete();
+
+            return response()->json(['success' => true, 'message' => 'SOP deleted successfully.']);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete SOP: ' . $e->getMessage()], 500);
+        }
     }
 
 }
+

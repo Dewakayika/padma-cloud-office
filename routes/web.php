@@ -72,6 +72,22 @@ Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
     Route::delete('/company/project-type/{id}/edit', [CompanyController::class, 'editProjectType'])->name('company.project.type.edit');
     Route::delete('/company/project-type/{id}/destroy', [CompanyController::class, 'destroyProjectType'])->name('company.project.type.destroy');
 
+    // Project SOP Routes
+    Route::get('/project-sops/{projectTypeId}', [CompanyController::class, 'getProjectSops'])->name('company.project.sops.get');
+    Route::post('/project-sop/store', [CompanyController::class, 'storeProjectSop'])->name('company.project.sop.store');
+    Route::get('/project-type/{id}/sops', [CompanyController::class, 'showProjectTypeSops'])->name('company.project.type.sops');
+    Route::get('/project-sop/{id}', [CompanyController::class, 'getSop'])->name('company.project.sop.get');
+    Route::put('/project-sop/{id}', [CompanyController::class, 'updateSop'])->name('company.project.sop.update');
+    Route::delete('/project-sop/{id}', [CompanyController::class, 'deleteSop'])->name('company.project.sop.delete');
+
+    // SOP Routes
+    Route::get('/company/project-type/{id}/sop-form', [CompanyController::class, 'getSopForm'])->name('company.project.type.sop.form');
+    Route::post('/company/project-sop/store', [CompanyController::class, 'storeProjectSop'])->name('company.project.sop.store');
+    Route::get('/company/project-type/{id}/sops', [CompanyController::class, 'showProjectTypeSops'])->name('company.project.type.sops');
+    Route::get('/company/project-sop/{id}', [CompanyController::class, 'getSop'])->name('company.project.sop.get');
+    Route::put('/company/project-sop/{id}', [CompanyController::class, 'updateSop'])->name('company.project.sop.update');
+    Route::delete('/company/project-sop/{id}', [CompanyController::class, 'deleteSop'])->name('company.project.sop.delete');
+
     // Add this new route for sending invitations
     Route::post('/company/invite-user', [CompanyController::class, 'inviteUserByEmail'])->name('company.invite.user');
 

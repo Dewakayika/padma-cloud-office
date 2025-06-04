@@ -96,36 +96,6 @@
                             @enderror
                         </div>
 
-                        {{-- Start Date --}}
-                        <div class="mt-4">
-                            <x-label for="start_date" value="{{ __('Start Date') }}"/>
-                            <x-input
-                                id="start_date"
-                                class="block mt-1 w-full"
-                                type="date"
-                                name="start_date"
-                                :value="old('start_date')"
-                                required="required"/>
-                            @error('start_date')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        {{-- Finish Date --}}
-                        <div class="mt-4">
-                            <x-label for="finish_date" value="{{ __('Finish Date') }}"/>
-                            <x-input
-                                id="finish_date"
-                                class="block mt-1 w-full"
-                                type="date"
-                                name="finish_date"
-                                :value="old('finish_date')"
-                                required="required"/>
-                            @error('finish_date')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         {{-- QC Rate --}}
                         <div class="mt-4">
                             <x-label for="qc_rate" value="{{ __('QC Rate') }}"/>
