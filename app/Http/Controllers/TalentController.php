@@ -67,20 +67,156 @@ class TalentController extends Controller
         return redirect()->route('home')->with('success', 'Talent registered successfully..');
     }
 
-
     // Talent Dashboard
-    public function landingPage() {
-        return view('users.Talent.landing-page');
+    public function index() {
+        // Get Company List in table company Talent
+        $user = auth()->user();
+        $companies = Company::whereHas('companyTalent', function($query) use ($user) {
+            $query->where('talent_id', $user->id);
+        })->get();
+
+        // Get Project List in table project Talent
+        $projects = Project::whereHas('company', function($query) use ($user) {
+            $query->whereHas('companyTalent', function($q) use ($user) {
+                $q->where('talent_id', $user->id);
+            });
+        })
+        ->where('status', 'waiting talent')
+        ->get();
+
+        return view('users.Talent.landing-page', compact('companies', 'projects'));
     }
 
-    public function index()
+    public function detailCompany($slug)
     {
-        return view('users.Talent.index');
+        $user = auth()->user();
+        $company = Company::where('company_name', 'LIKE', '%' . str_replace('-', ' ', $slug) . '%')
+            ->orWhere('company_name', 'LIKE', '%' . ucwords(str_replace('-', ' ', $slug)) . '%')
+            ->firstOrFail();
+
+        // Score Card Data
+        $onGoingProjects = Project::where('company_id', $company->id)
+            ->whereIn('status', ['in_progress', 'qc', 'revision'])
+            ->count();
+
+        $projectQC = Project::where('company_id', $company->id)
+            ->where('status', 'qc')
+            ->count();
+
+        $projectThisMonth = Project::where('company_id', $company->id)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        $totalProjects = Project::where('company_id', $company->id)
+            ->where('status', 'completed')
+            ->count();
+
+        // Project Status Counts
+        $projectAssign = Project::where('company_id', $company->id)
+            ->where('status', 'in_progress')
+            ->count();
+
+        $projectQCStatus = Project::where('company_id', $company->id)
+            ->where('status', 'qc')
+            ->count();
+
+        $projectRevision = Project::where('company_id', $company->id)
+            ->where('status', 'revision')
+            ->count();
+
+        $projectDone = Project::where('company_id', $company->id)
+            ->where('status', 'completed')
+            ->count();
+
+        // Project Offers (waiting talent)
+        $projectOffers = Project::where('company_id', $company->id)
+            ->where('status', 'waiting talent')
+            ->with('projectType')
+            ->paginate(5);
+
+        // All Projects
+        $allProjects = Project::where('company_id', $company->id)
+            ->where('status', '!=', 'waiting talent')
+            ->with(['projectType', 'User'])
+            ->paginate(5);
+
+        // Top 5 Last Updated Projects
+        $recentProjects = Project::where('company_id', $company->id)
+            ->orderBy('updated_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('users.Talent.index', compact(
+            'company',
+            'onGoingProjects',
+            'projectQC',
+            'projectThisMonth',
+            'totalProjects',
+            'projectAssign',
+            'projectQCStatus',
+            'projectRevision',
+            'projectDone',
+            'projectOffers',
+            'allProjects',
+            'recentProjects'
+        ));
     }
 
-    public function manageProjects()
+    public function manageProjects(Request $request)
     {
-        return view('users.Talent.talent-manage-projects');
+        $user = auth()->user();
+
+        // Base query for projects
+        $query = Project::whereHas('company', function($query) use ($user) {
+            $query->whereHas('companyTalent', function($q) use ($user) {
+                $q->where('talent_id', $user->id);
+            });
+        })->with(['projectType', 'User']);
+
+        // Status filtering
+        $status = $request->get('status', 'all');
+        switch ($status) {
+            case 'ongoing':
+                $query->whereIn('status', ['project assign', 'draft']);
+                break;
+            case 'qc':
+                $query->where('status', 'qc');
+                break;
+            case 'revision':
+                $query->where('status', 'revision');
+                break;
+            case 'completed':
+                $query->where('status', 'done');
+                break;
+        }
+
+        // Search functionality
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where('project_name', 'LIKE', "%{$search}%");
+        }
+
+        // Sorting
+        $sort = $request->get('sort', 'newest');
+        switch ($sort) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'name_asc':
+                $query->orderBy('project_name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('project_name', 'desc');
+                break;
+            default: // newest
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $projects = $query->paginate(10);
+
+        return view('users.Talent.talent-manage-projects', compact('projects'));
     }
 
     public function projectDetail()
@@ -98,7 +234,7 @@ class TalentController extends Controller
     public function eWallet()
     {
         return view('users.Talent.e-wallet');
-    } 
+    }
 
     public function statistic()
     {

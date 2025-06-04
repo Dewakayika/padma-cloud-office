@@ -6,7 +6,7 @@
                 <x-application-logo class="w-5 h-5" />
             </div>
             <div class="flex flex-col">
-                <span class="font-semibold text-gray-900 dark:text-white">Padma Studio</span>
+                <span class="font-semibold text-sm text-gray-900 dark:text-white">Padma Cloud Office</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">{{ ucfirst(Auth::user()->role) }}</span>
             </div>
         </div>
@@ -74,21 +74,21 @@
 
 
             @elseif(Auth::user()->role == 'talent')
+            {{-- Company Detail --}}
             <li>
-                <a href="{{ url('/') }}"
+                <a href="{{ $companySlug ? url('/talent/company/' . $companySlug) : '#' }}"
                    class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
-                   group
-                   {{ Request::is('talent') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                   group {{ Request::is('talent/company/*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                     <svg class="shrink-0 w-6 h-6 transition duration-75
-                        {{ Request::is('talent') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}"
+                        {{ Request::is('talent/company/*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}"
                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z"
                               clip-rule="evenodd" />
                     </svg>
-                    <span class="ms-3">Dashboard</span>
+                    <span class="ms-3">Company Detail</span>
                 </a>
             </li>
-            
+
             {{-- Manage Projects --}}
                 <li>
                     <a href="{{ url('/talent/manage-projects') }}"
@@ -101,8 +101,6 @@
 
                     </a>
                 </li>
-
-
 
                 {{-- Report --}}
                 <li>

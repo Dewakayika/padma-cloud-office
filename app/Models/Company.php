@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
 
 class Company extends Model
@@ -19,6 +20,14 @@ class Company extends Model
     ];
 
     /**
+     * Generate slug from company name
+     */
+    public function getSlugAttribute()
+    {
+        return Str::slug($this->company_name);
+    }
+
+    /**
      * Get the user that owns the company.
      */
     public function user()
@@ -26,32 +35,32 @@ class Company extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function talent(): HasMany
+    public function talent()
     {
         return $this->hasMany(Talent::class);
     }
 
-    public function project(): HasMany
+    public function project()
     {
         return $this->hasMany(Project::class);
     }
 
-    public function projectType(): HasMany
+    public function projectType()
     {
         return $this->hasMany(ProjectType::class);
     }
 
-    public function projectLogs(): HasMany
+    public function projectLogs()
     {
         return $this->hasMany(ProjectLog::class);
     }
 
-    public function projectsSop(): HasMany
+    public function projectsSop()
     {
         return $this->hasMany(ProjectSop::class);
     }
 
-    public function companyTalent(): HasMany
+    public function companyTalent()
     {
         return $this->hasMany(CompanyTalent::class);
     }
