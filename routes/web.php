@@ -96,9 +96,13 @@ Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
 // Talent Routes
 Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/', [TalentController::class, 'index'])->name('talent#index');
+    Route::get('/landing-page', [TalentController::class, 'landingPage'])->name('talent.landing.page');
     Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage.projects');
     Route::get('/project-detail', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
     Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
+    
+    Route::get('/e-wallet', [TalentController::class, 'eWallet'])->name('talent.e-wallet');
+    Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
 });
 
 // Add this new route for invitation acceptance

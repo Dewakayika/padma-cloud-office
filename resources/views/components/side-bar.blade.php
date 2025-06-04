@@ -2,11 +2,12 @@
     <!-- Logo Section -->
     <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-black dark:bg-purple-900/50 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-full bg-black dark:bg-black flex items-center justify-center">
                 <x-application-logo class="w-5 h-5" />
             </div>
             <div class="flex flex-col">
                 <span class="font-semibold text-gray-900 dark:text-white">Padma Studio</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ ucfirst(Auth::user()->role) }}</span>
             </div>
         </div>
     </div>
@@ -75,9 +76,9 @@
             @elseif(Auth::user()->role == 'talent')
             <li>
                 <a href="{{ url('/') }}"
-                   class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white
+                   class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
                    group
-                   {{ Request::is('talent') ? 'bg-blue-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                   {{ Request::is('talent') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                     <svg class="shrink-0 w-6 h-6 transition duration-75
                         {{ Request::is('talent') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}"
                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -91,8 +92,9 @@
             {{-- Manage Projects --}}
                 <li>
                     <a href="{{ url('/talent/manage-projects') }}"
-                       class="flex items-center p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 {{ Request::is('talent/manage-projects') ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
-                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                       class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
+                   group {{ Request::is('talent/manage-projects') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                        <svg class="w-6 h-6 {{ Request::is('talent/manage-projects') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
                         </svg>
                         <span class="ml-3">Manage Projects</span>
@@ -105,8 +107,9 @@
                 {{-- Report --}}
                 <li>
                     <a href="{{ url('/talent/report') }}"
-                       class="flex items-center p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 {{ Request::is('talent/report*') ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
-                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                       class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
+                   group {{ Request::is('talent/report*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                        <svg class="w-6 h-6 {{ Request::is('talent/report') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
                         </svg>
                         <span class="ml-3">Report</span>
@@ -117,8 +120,9 @@
             {{-- Profile Link (Common for all roles) --}}
             <li>
                 <a href="{{ url('/user/profile') }}"
-                   class="flex items-center p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 {{ Request::is('user/profile*') ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
-                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                   class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
+                   group {{ Request::is('user/profile*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                    <svg class="w-6 h-6 {{ Request::is('user/profile') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span class="ml-3">Profile</span>
