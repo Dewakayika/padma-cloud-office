@@ -94,9 +94,23 @@
                 <x-theme-switcher />
 
                 <!-- Profile -->
-                <button type="button" class="p-2 flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
-                <img src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" class="w-8 h-8 rounded-full object-cover">
-                </button>
+                <!-- <button type="button" class="p-2 flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
+                    <img src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" class="w-8 h-8 rounded-full object-cover">
+                </button> -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open" class="p-2 flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 focus:outline-none">
+                        <img src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" class="w-8 h-8 rounded-full object-cover">
+                    </button>
+                    <!-- Dropdown -->
+                    <div x-show="open" @click.away="open = false" x-transition
+                        class="absolute right-0 z-50 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-md py-1 text-sm text-gray-700">
+                        <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-gray-100">Detail</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-100">Logout</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
