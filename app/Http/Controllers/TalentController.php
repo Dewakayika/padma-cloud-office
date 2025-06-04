@@ -7,9 +7,11 @@ use App\Models\Talent;
 use App\Models\Company;
 use App\Models\Project;
 use App\Models\ProjectLog;
+use App\Models\ProjectType;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TalentController extends Controller
 {
@@ -219,9 +221,39 @@ class TalentController extends Controller
         return view('users.Talent.talent-manage-projects', compact('projects'));
     }
 
-    public function projectDetail()
+    /**
+     * Display the project detail page for a talent.
+     *
+     * @param  \App\Models\Project  $id // Laravel will bind the Project model based on the {id} route parameter
+     * @return \Illuminate\View\View|\Illuminate\Http\Response
+     */
+    public function projectDetail(Project $id)
     {
-        return view('users.Talent.project-detail');
+        // Laravel's route model binding will automatically find the Project by the {id} from the route
+        // The $id variable now holds the Project model instance.
+        $project = $id; // Assign the bound Project model to a variable named $project for clarity
+
+        // Eager load relationships, including sorting logs by timestamp
+        $project->load(['company', 'projectType', 'assignedTalent', 'assignedQcAgent', 'projectLogs' => function($query) {
+            $query->orderBy('timestamp');
+        }]);
+
+        // Find the timestamp for the 'project assign' status
+        $assignLog = $project->projectLogs->firstWhere('status', 'project assign');
+        $assignTimestamp = $assignLog ? $assignLog->timestamp->toISOString() : null;
+
+        // Find the timestamp for the 'done' status (if completed)
+        $doneLog = $project->projectLogs->where('status', 'done')->last();
+        $doneTimestamp = $doneLog ? $doneLog->timestamp->toISOString() : null;
+
+
+        // You might want to add a check here to ensure the authenticated talent
+        // is assigned to this project before showing details.
+        // if ($project->talent !== Auth::id()) {
+        //     abort(403, 'Unauthorized action.');
+        // }
+
+        return view('users.Talent.project-detail', compact('project', 'assignTimestamp', 'doneTimestamp'));
     }
 
     public function report()
@@ -239,5 +271,35 @@ class TalentController extends Controller
     public function statistic()
     {
         return view('users.Talent.statistic');
+    }
+
+    /**
+     * Handle the project application by a talent.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Project  $id // Laravel will bind the Project model based on the {id} route parameter
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function applyProject(Request $request, Project $id)
+    {
+
+        $user = Auth::user(); // The authenticated talent
+
+        // Update the Project table
+        $id->talent = $user->id; // Using $id as the Project model instance
+        $id->status = 'project assign'; // Or a status code representing 'assigned'
+        $id->save();
+
+        // Create a log entry in the ProjectLog table
+        ProjectLog::create([
+            'user_id' => $user->id, // The user who applied
+            'project_id' => $id->id, // Using $id as the Project model instance
+            'company_id' => $id->company_id, // Using $id as the Project model instance
+            'talent_id' => $user->id, // The talent who applied
+            'timestamp' => now(),
+            'status' => 'project assign', // Or a more descriptive log status
+        ]);
+
+        return redirect()->back()->with('success', 'Successfully applied for the project!'); // Redirect back to the dashboard or project list
     }
 }
