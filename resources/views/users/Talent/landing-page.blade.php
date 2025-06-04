@@ -159,7 +159,19 @@
                         <span class="inline-block w-2 h-2 bg-yellow-500 rounded-full"></span>
                         <span class="ml-2 text-sm text-gray-600">Waiting for Talent</span>
                     </div>
-                    <a href="{{ url('/talent/project/' . $project->id) }}" class="px-4 py-2 text-sm text-purple-600 bg-purple-100 rounded-md hover:text-purple-700 font-medium">Apply Project</a>
+                    {{-- <a href="{{ url('/talent/project/' . $project->id) }}" class="px-4 py-2 text-sm text-purple-600 bg-purple-100 rounded-md hover:text-purple-700 font-medium">Apply Project</a> --}}
+                    <div x-data="{ open: false }">
+                        <a @click="open = true" class="px-4 py-2 text-sm text-purple-600 bg-purple-100 rounded-md hover:text-purple-700 font-medium cursor-pointer">
+                            Apply Project
+                        </a>
+                        <!-- Modal -->
+                        <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                            <div @click.outside="open = false" class="bg-white dark:bg-gray-800 p-6 rounded-xl w-full max-w-lg shadow-xl">
+                                {{-- return competitons data --}}
+                                @include('components.apply-modal', ['project' => $project]  )
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             @empty
