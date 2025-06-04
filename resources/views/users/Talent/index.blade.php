@@ -18,12 +18,6 @@
                         </svg>
                         Export Report
                     </button>
-                    <button type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700">
-                        <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                        </svg>
-                        New Project
-                    </button>
                 </div>
             </div>
 
@@ -42,7 +36,7 @@
                                 On Going Project
                             </p>
                             <p class="text-3xl font-semibold text-gray-900 dark:text-white">
-                                0
+                                {{ $onGoingProjects }}
                             </p>
                         </div>
                     </div>
@@ -61,7 +55,7 @@
                                 Project QC
                             </p>
                             <p class="text-3xl font-semibold text-gray-900 dark:text-white">
-                                27
+                                {{ $projectQC }}
                             </p>
                         </div>
                     </div>
@@ -81,7 +75,7 @@
                                 Project This Month
                             </p>
                             <p class="text-3xl font-semibold text-gray-900 dark:text-white">
-                                0
+                                {{ $projectThisMonth }}
                             </p>
                         </div>
                     </div>
@@ -101,7 +95,7 @@
                                 Total Project
                             </p>
                             <p class="text-3xl font-semibold text-gray-900 dark:text-white">
-                                0
+                                {{ $totalProjects }}
                             </p>
                         </div>
                     </div>
@@ -109,18 +103,62 @@
             </div>
 
             {{-- Main Content Grid --}}
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {{-- Project Offer Section --}}
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
                 <div class="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
                     <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Project Offer</h2>
-                    <div class="flex items-center justify-center h-48 bg-gray-50 rounded-lg dark:bg-gray-700/50">
-                        <div class="text-center">
-                            <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">There's no Project Offer yet</h3>
+                    @if($projectOffers->count() > 0)
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 ">Project Name</th>
+                                        <th scope="col" class="px-6 py-3">Type</th>
+                                        <th scope="col" class="px-6 py-3">Volume</th>
+                                        {{-- <th scope="col" class="px-6 py-3">QC Talent</th> --}}
+                                        <th scope="col" class="px-6 py-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($projectOffers as $offer)
+                                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                        <td class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                            {{ $offer->project_name }}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {{ $offer->projectType->name === 'Manga' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 whitespace-nowrap' }}">
+                                                {{ $offer->projectType->project_name }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            {{ $offer->project_volume }}
+                                        </td>
+                                        {{-- <td class="px-6 py-4 whitespace-nowrap">
+                                            {{ $offer->talent_qc ? $offer->talent_qc->name : 'Not Assigned' }}
+                                        </td> --}}
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <a href="{{ url('/talent/project/' . $offer->id) }}"
+                                               class="inline-flex items-center px-2 py-1 text-xs font-medium text-center text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                                                Apply Project
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
+                        <div class="mt-4">
+                            {{ $projectOffers->links() }}
+                        </div>
+                    @else
+                        <div class="flex items-center justify-center h-48 bg-gray-50 rounded-lg dark:bg-gray-700/50">
+                            <div class="text-center">
+                                <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">There's no Project Offer yet</h3>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Project On Going Section --}}
@@ -142,7 +180,7 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Project Applied, still working on it</p>
                                 </div>
                             </div>
-                            <span class="text-2xl font-semibold text-gray-900 dark:text-white">0</span>
+                            <span class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $projectAssign }}</span>
                         </div>
 
                         {{-- Project QC --}}
@@ -158,23 +196,7 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Waiting QC agent check the project</p>
                                 </div>
                             </div>
-                            <span class="text-2xl font-semibold text-gray-900 dark:text-white">27</span>
-                        </div>
-
-                        {{-- Project Draft --}}
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg dark:bg-gray-700/50">
-                            <div class="flex items-center gap-3">
-                                <div class="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-lg dark:bg-purple-900/30">
-                                    <svg class="w-4 h-4 text-purple-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 013.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 013.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 01-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875zm6.905 9.97a.75.75 0 00-1.06 0l-3 3a.75.75 0 101.06 1.06l1.72-1.72V18a.75.75 0 001.5 0v-5.19l1.72 1.72a.75.75 0 101.06-1.06l-3-3z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-900 dark:text-white">Project Draft</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Project with status draft submitted</p>
-                                </div>
-                            </div>
-                            <span class="text-2xl font-semibold text-gray-900 dark:text-white">0</span>
+                            <span class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $projectQCStatus }}</span>
                         </div>
 
                         {{-- Project Revision --}}
@@ -190,7 +212,7 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Revision note passed by admin</p>
                                 </div>
                             </div>
-                            <span class="text-2xl font-semibold text-gray-900 dark:text-white">0</span>
+                            <span class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $projectRevision }}</span>
                         </div>
 
                         {{-- Project Completed --}}
@@ -206,7 +228,7 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Number of project completed</p>
                                 </div>
                             </div>
-                            <span class="text-2xl font-semibold text-gray-900 dark:text-white">0</span>
+                            <span class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $projectDone }}</span>
                         </div>
                     </div>
                 </div>
@@ -214,36 +236,77 @@
 
             {{-- Projects QC Overview --}}
             <div class="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
-                <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Projects QC Overview</h2>
+                <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Projects Overview</h2>
                 <div class="relative overflow-x-auto">
                     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                             <tr>
-                                <th scope="col" class="px-6 py-3">Project Type</th>
-                                <th scope="col" class="px-6 py-3">Comic Name</th>
-                                <th scope="col" class="px-6 py-3">Episode Number</th>
-                                <th scope="col" class="px-6 py-3">Talent</th>
+                                <th scope="col" class="px-6 py-3">Project Name</th>
+                                <th scope="col" class="px-6 py-3">Type</th>
+                                <th scope="col" class="px-6 py-3">Volume</th>
+                                <th scope="col" class="px-6 py-3">QC Talent</th>
                                 <th scope="col" class="px-6 py-3">Status</th>
                                 <th scope="col" class="px-6 py-3">Action</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @forelse ($allProjects as $project)
                             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                <td class="px-6 py-4">Vivian</td>
-                                <td class="px-6 py-4">Keiken Ninzu</td>
-                                <td class="px-6 py-4">49</td>
-                                <td class="px-6 py-4">Adisurya</td>
+                                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                    {{ $project->project_name }}
+                                </td>
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                        First Draft Submitted
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {{ $project->projectType->name === 'Manga' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' }} whitespace-nowrap">
+                                        {{ $project->projectType->project_name }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <a href="#" class="font-medium text-blue-600 hover:underline dark:text-blue-500">Detail</a>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ $project->project_volume }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ $project->User ? $project->User->name : 'Not Assigned' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        @if($project->status === 'in_progress')
+                                            bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300
+                                        @elseif($project->status === 'qc')
+                                            bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300
+                                        @elseif($project->status === 'revision')
+                                            bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300
+                                        @elseif($project->status === 'completed')
+                                            bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300
+                                        @else
+                                            bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300
+                                        @endif">
+                                        {{ ucfirst(str_replace('_', ' ', $project->status)) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <a href="{{ url('/talent/project/' . $project->id) }}"
+                                       class="inline-flex items-center px-2 py-1 text-xs font-medium text-center text-white bg-purple-700 rounded-lg hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800">
+                                        Detail
+                                    </a>
                                 </td>
                             </tr>
+                            @empty
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <td colspan="6" class="px-6 py-4 text-center">
+                                    <div class="flex flex-col items-center justify-center py-8">
+                                        <svg class="w-12 h-12 text-gray-400 dark:text-gray-500 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
+                                        </svg>
+                                        <h3 class="text-sm font-medium text-gray-900 dark:text-white">No projects found</h3>
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">There are no projects available at the moment.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="mt-4">
+                    {{ $allProjects->links() }}
                 </div>
             </div>
         </div>

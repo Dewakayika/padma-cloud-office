@@ -11,12 +11,12 @@
                         </path>
                     </svg>
                 </button>
-                
-                <a href="{{ url('/talent/landing-page') }}" class="flex items-center ml-3 gap-2">
+
+                <a href="{{ url('/talent') }}" class="flex items-center ml-3 gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-500">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3" />
                     </svg>
-                    <span class="text-xl font-semibold text-gray-800 dark:text-white">Padma Cloud Office</span>
+                    <span class="text-xl font-semibold text-gray-800 dark:text-white">{{ $companySlug}} Space</span>
                 </a>
             </div>
             <div class="flex items-center  gap-4">

@@ -4,36 +4,43 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Tab Navigation -->
     <div class="flex space-x-1 mb-8 border-b">
-        <button 
+        <button
             onclick="switchTab('studios')"
             id="studios-tab"
             class="px-6 py-3 text-sm font-medium border-b-2 transition-colors duration-200"
             :class="activeTab === 'studios' ? 'text-gray-600 border-purple-500' : 'text-gray-400 border-transparent hover:text-gray-600'">
             Studios
         </button>
-        <button 
+        <button
             onclick="switchTab('current-tasks')"
             id="current-tasks-tab"
-            class="px-6 py-3 text-sm font-medium border-b-2 transition-colors duration-200"
+            class="px-6 py-3 text-sm font-medium border-b-2 transition-colors duration-200 relative"
             :class="activeTab === 'current-tasks' ? 'text-gray-600 border-purple-500' : 'text-gray-400 border-transparent hover:text-gray-600'">
-            Current Tasks
+            Available Task
+            @if($projects->count() > 0)
+            <span class="absolute -top-1 -right-1 bg-purple-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {{ $projects->count() }}
+            </span>
+            @endif
         </button>
     </div>
 
     <!-- Studios Content -->
     <div id="studios-content" class="tab-content">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Studio Card 1 -->
-            <a href="{{ url('/talent') }}" class="block group">
+
+            @foreach ( $companies as $company )
+            <!-- Studio Card -->
+            <a href="{{ url('/talent/company/' . $company->slug) }}" class="block group">
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 transition-all duration-200 hover:shadow-md hover:border-purple-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
                             <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center">
-                                <x-application-logo class="w-7 h-7" /> 
+                                <x-application-logo class="w-7 h-7" />
                             </div>
                             <div class="ml-3">
-                                <h3 class="font-semibold text-gray-800">Padma Studio</h3>
-                                <p class="text-sm text-gray-500">Tokyo, Japan</p>
+                                <h3 class="font-semibold text-gray-800">{{ $company->company_name }}</h3>
+                                <p class="text-sm text-gray-500">{{ $company->country }}</p>
                             </div>
                         </div>
                         <button class="text-purple-600 relative z-10" onclick="event.preventDefault();">
@@ -46,31 +53,23 @@
                     <div class="space-y-3">
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-500">Role:</span>
-                            <span class="text-purple-600 font-medium">Character Designer</span>
+                            <span class="text-purple-600 font-medium">{{ $company->companyTalent->where('talent_id', auth()->id())->first()->job_role ?? 'Not Assigned' }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-500">Projects Completed:</span>
-                            <span class="text-gray-800">24</span>
+                            <span class="text-gray-500">Company Type:</span>
+                            <span class="text-gray-800">{{ $company->company_type }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-500">Avg. Completion Time:</span>
-                            <span class="text-gray-800">3.2 days</span>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="text-gray-500">Performance:</span>
-                                <span class="text-gray-800">92%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-purple-500 h-2 rounded-full" style="width: 92%"></div>
-                            </div>
+                            <span class="text-gray-500">Contact Person:</span>
+                            <span class="text-gray-800">{{ $company->contact_person_name }}</span>
                         </div>
                     </div>
                 </div>
             </a>
+            @endforeach
 
             <!-- Studio Card 2 -->
-            <a href="" class="block group">
+            {{-- <a href="" class="block group">
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 transition-all duration-200 hover:shadow-md hover:border-purple-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
@@ -113,7 +112,7 @@
                         </div>
                     </div>
                 </div>
-            </a>
+            </a> --}}
 
             <!-- Join New Studio Card -->
             <a href="" class="block group">
@@ -134,60 +133,42 @@
     <!-- Current Tasks Content -->
     <div id="current-tasks-content" class="tab-content hidden">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Task Card Example -->
+            @forelse($projects as $project)
+            <!-- Task Card -->
             <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-semibold text-gray-900 text-base">Character Design for 'Mystic Warriors'</h3>
-                    <span class="px-2 py-1 text-xs font-medium bg-red-50 text-red-700 rounded">High</span>
+                    <h3 class="font-semibold text-gray-900 text-base">{{ $project->project_name }}</h3>
+                    <span class="px-2 py-1 text-xs font-medium bg-yellow-50 text-yellow-700 rounded">Waiting</span>
                 </div>
 
-                <p class="text-sm text-gray-600 mb-4">Create concept art for the main protagonist with detailed expressions and poses.</p>
+                <p class="text-sm text-gray-600 mb-4">{{ $project->description }}</p>
 
                 <div class="space-y-2">
                     <div class="flex justify-between items-center text-sm">
                         <span class="text-gray-500">Studio:</span>
-                        <span class="ml-2 text-gray-900">Manga Masters</span>
+                        <span class="ml-2 text-gray-900">{{ $project->company->company_name }}</span>
                     </div>
                     <div class="flex justify-between items-center text-sm">
                         <span class="text-gray-500">Deadline:</span>
-                        <span class="ml-2 text-gray-900">May 21, 2025</span>
+                        <span class="ml-2 text-gray-900">{{ $project->deadline ? $project->deadline->format('M d, Y') : 'Not set' }}</span>
                     </div>
                 </div>
 
                 <div class="mt-4 flex items-center justify-between">
                     <div class="flex items-center">
-                        <span class="inline-block w-2 h-2 bg-purple-500 rounded-full"></span>
-                        <span class="ml-2 text-sm text-gray-600">In Progress</span>
+                        <span class="inline-block w-2 h-2 bg-yellow-500 rounded-full"></span>
+                        <span class="ml-2 text-sm text-gray-600">Waiting for Talent</span>
                     </div>
-                    <button class="px-4 py-2 text-sm text-purple-600 bg-purple-100 rounded-md hover:text-purple-700 font-medium">View Details</button>
+                    <a href="{{ url('/talent/project/' . $project->id) }}" class="px-4 py-2 text-sm text-purple-600 bg-purple-100 rounded-md hover:text-purple-700 font-medium">Apply Project</a>
                 </div>
             </div>
-
-            <!-- Task Card Example -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-semibold text-gray-900 text-base">Character Design for 'Mystic Warriors'</h3>
-                    <span class="px-2 py-1 text-xs font-medium bg-red-50 text-red-700 rounded">High</span>
+            @empty
+            <div class="col-span-full">
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 text-center">
+                    <p class="text-gray-500">No waiting projects found.</p>
                 </div>
-                <p class="text-sm text-gray-600 mb-4">Create concept art for the main protagonist with detailed expressions and poses.</p>
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500">Studio:</span>
-                        <span class="ml-2 text-gray-900">Manga Masters</span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500">Deadline:</span>
-                        <span class="ml-2 text-gray-900">May 21, 2025</span>
-                    </div>
-                    <div class="mt-4 flex items-center justify-between">
-                        <div class="flex items-center">
-                            <span class="inline-block w-2 h-2 bg-purple-500 rounded-full"></span>
-                            <span class="ml-2 text-sm text-gray-600">In Progress</span>
-                        </div>
-                        <button class="px-4 py-2 text-sm text-purple-600 bg-purple-100 rounded-md hover:text-purple-700 font-medium">View Details</button>
-                    </div>  
-                </div>
-            </div>  
+            </div>
+            @endforelse
         </div>
     </div>
 </div>

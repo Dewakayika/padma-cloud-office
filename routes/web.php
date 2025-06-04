@@ -29,13 +29,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         } elseif (Auth::user()->role === 'company') {
             return redirect()->route('company#index');
         } elseif (Auth::user()->role === 'talent'){
-            return redirect()->route('talent#index');
+            return redirect()->route('talent.landing.page');
         } else {
             return redirect('/');
         }
     })->name('home');
 });
-
 
 // SuperAdmin Routes
 Route::prefix('superadmin')->middleware(['auth', 'superadmin'])->group(function () {
@@ -90,17 +89,15 @@ Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
 
     // Add this new route for sending invitations
     Route::post('/company/invite-user', [CompanyController::class, 'inviteUserByEmail'])->name('company.invite.user');
-
 });
 
 // Talent Routes
 Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
-    Route::get('/', [TalentController::class, 'index'])->name('talent#index');
-    Route::get('/landing-page', [TalentController::class, 'landingPage'])->name('talent.landing.page');
+    Route::get('/', [TalentController::class, 'index'])->name('talent.landing.page');
+    Route::get('/company/{slug}', [TalentController::class, 'detailCompany'])->name('[talent#company');
     Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage.projects');
     Route::get('/project-detail', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
     Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
-    
     Route::get('/e-wallet', [TalentController::class, 'eWallet'])->name('talent.e-wallet');
     Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
 });
