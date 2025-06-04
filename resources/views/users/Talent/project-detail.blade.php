@@ -2,6 +2,36 @@
 @section('title', $project->project_name . ' Detail')
 @section('meta_description', $project->project_name . ' Project Detail Page')
 
+@php
+    // Common text styles
+    $headingText = 'text-xl font-semibold text-gray-900 dark:text-white';
+    $subHeadingText = 'text-base font-medium text-gray-900 dark:text-white';
+    $labelText = 'text-sm font-medium text-gray-500 dark:text-gray-400';
+    $valueText = 'text-base text-gray-900 dark:text-white';
+    $mutedText = 'text-sm text-gray-500 dark:text-gray-400';
+
+    // Common container styles
+    $cardContainer = 'bg-white dark:bg-gray-800 rounded-lg shadow';
+    $cardPadding = 'p-6';
+    $cardSpacing = 'mt-6';
+
+    // Common button styles
+    $primaryButton = 'inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700';
+    $secondaryButton = 'inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700';
+
+    $badgeBase = 'px-3 py-1 text-xs text-white rounded-full';
+    $badgeBlue = $badgeBase . ' bg-blue-500';
+    $badgeGreen = $badgeBase . ' bg-green-500';
+    $badgeYellow = $badgeBase . ' bg-yellow-500';
+    $badgeRed = $badgeBase . ' bg-red-500';
+
+    // Common layout styles
+    $gridContainer = 'grid grid-cols-1 lg:grid-cols-3 gap-6';
+    $gridInfo = 'grid grid-cols-2 gap-x-8 gap-y-4';
+    $flexContainer = 'flex items-center space-x-4';
+    $flexBetween = 'flex justify-between items-center';
+@endphp
+
 @section('content')
 <div class="sm:ml-64">
     <div class="py-4 space-y-6">
@@ -13,14 +43,13 @@
             <img src="{{ asset('images/banner.jpg')}}" alt="Project Banner" class="w-full h-full object-cover opacity-50">
             <div class="absolute inset-0 bg-black bg-opacity-70"></div>
             <div class="absolute inset-0 flex items-center justify-between px-6">
-                <div class="flex items-center space-x-4">
+                <div class="{{ $flexContainer }}">
                     {{-- <div class="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
                         <img src="{{ $project->company->logo_url ?? 'https://webtoons-static.pstatic.net/image/favicon/favicon.ico' }}" alt="{{ $project->projectType->project_name ?? 'Project' }}" class="w-12 h-12 object-contain">
                     </div> --}}
                     <div>
                         <h1 class="text-2xl font-bold text-white">{{ $project->project_name }}</h1>
                         <h1 class="text-sm font-bold text-white">{{ $project->projectType->project_name }}</h1>
-
                     </div>
                 </div>
                 <div class="text-center">
@@ -31,22 +60,12 @@
 
                          @if ($project->status === 'project assign')
                              <div class="grid grid-cols-4 gap-4" id="elapsed-timer">
+                                 @foreach(['days', 'hours', 'minutes', 'seconds'] as $unit)
                                  <div class="text-center">
-                                     <div class="text-3xl font-bold text-white" id="days">00</div>
-                                     <div class="text-sm text-blue-500 font-medium">DAY</div>
+                                     <div class="text-3xl font-bold text-white" id="{{ $unit }}">00</div>
+                                     <div class="text-sm text-purple-500 font-medium">{{ strtoupper($unit) }}</div>
                                  </div>
-                                 <div class="text-center">
-                                     <div class="text-3xl font-bold text-white" id="hours">00</div>
-                                     <div class="text-sm text-blue-500 font-medium">HOUR</div>
-                                 </div>
-                                 <div class="text-center">
-                                     <div class="text-3xl font-bold text-white" id="minutes">00</div>
-                                     <div class="text-sm text-blue-500 font-medium">MIN</div>
-                                 </div>
-                                 <div class="text-center">
-                                     <div class="text-3xl font-bold text-white" id="seconds">00</div>
-                                     <div class="text-sm text-blue-500 font-medium">SEC</div>
-                                 </div>
+                                 @endforeach
                              </div>
                               <div class="text-sm font-medium text-white mt-1">Time Elapsed</div>
                          @elseif ($project->status === 'done')
@@ -61,39 +80,36 @@
         </div>
 
         {{-- Project Information and Status Section --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="{{ $gridContainer }}">
             {{-- Project Information --}}
             <div class="lg:col-span-2">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
-                    <div class="p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Project Information</h2>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+                <div class="{{ $cardContainer }}">
+                    <div class="{{ $cardPadding }}">
+                        <h2 class="{{ $headingText }} mb-6">Project Information</h2>
+                        <div class="{{ $gridInfo }}">
+                            @php
+                                $infoItems = [
+                                    'Project Name' => $project->project_name,
+                                    'Last Update' => $project->updated_at->format('D, d M Y'),
+                                    'QC Talent' => $project->assignedQcAgent->name ?? 'Not Assigned',
+                                    'Project Finish Date' => $project->finish_date ? $project->finish_date->format('D, d M Y') : 'Not finish yet',
+                                    'Project Assign Date' => $assignTimestamp ? \Carbon\Carbon::parse($assignTimestamp)->format('D, d M Y') : 'Not Assigned Yet',
+                                ];
+                            @endphp
+
+                            @foreach($infoItems as $label => $value)
                             <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Project Name:</p>
-                                <p class="text-base text-gray-900 dark:text-white">{{ $project->project_name }}</p>
+                                <p class="{{ $labelText }}">{{ $label }}:</p>
+                                <p class="{{ $valueText }}">{{ $value }}</p>
                             </div>
+                            @endforeach
+
                             <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Update:</p>
-                                <p class="text-base text-gray-900 dark:text-white">{{ $project->updated_at->format('D, d M Y') }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">QC Talent:</p>
-                                <p class="text-base text-gray-900 dark:text-white">{{ $project->assignedQcAgent->name ?? 'Not Assigned' }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Project Finish Date:</p>
-                                <p class="text-base text-gray-900 dark:text-white">{{ $project->finish_date ? $project->finish_date->format('D, d M Y') : 'Not finish yet' }}</p>
-                            </div>
-                             <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Project Assign Date:</p>
-                                 <p class="text-base text-gray-900 dark:text-white">{{ $assignTimestamp ? \Carbon\Carbon::parse($assignTimestamp)->format('D, d M Y') : 'Not Assigned Yet' }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Project File:</p>
+                                <p class="{{ $labelText }}">Project File:</p>
                                 @if ($project->project_file)
                                     <a href="{{ Storage::url($project->project_file) }}" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300" target="_blank">Download File</a>
                                 @else
-                                    <span class="text-gray-500 dark:text-gray-400">No file available</span>
+                                    <span class="{{ $mutedText }}">No file available</span>
                                 @endif
                             </div>
                         </div>
@@ -101,9 +117,17 @@
                 </div>
 
                 {{-- Project Records --}}
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow mt-6">
-                    <div class="p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Project Records</h2>
+                <div class="{{ $cardContainer }} {{ $cardSpacing }}">
+                    <div class="{{ $cardPadding }}">
+                        <div class="{{ $flexBetween }} mb-6">
+                            <h2 class="{{ $headingText }} mb-6">Project Records</h2>
+                            <button type="button" class="{{ $secondaryButton }}">
+                                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                </svg>
+                                Submit Project Draf
+                            </button>
+                        </div>
                         @if($project->projectLogs->count() > 0)
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -111,37 +135,41 @@
                                         <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             <th class="px-4 py-3">Project Stage</th>
                                             <th class="px-4 py-3">Updated Date</th>
-                                            <th class="px-4 py-3">Panel</th>
-                                            <th class="px-4 py-3">Project File</th>
-                                            <th class="px-4 py-3">QC Message</th>
+                                            <th class="px-4 py-3">Draft Submission</th>
                                             <th class="px-4 py-3">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                         @foreach($project->projectLogs as $log)
                                         <tr>
-                                            <td class="px-4 py-3">{{ $log->status }}</td>
-                                            <td class="px-4 py-3">{{ $log->timestamp->format('D, d M Y') }}</td>
-                                            <td class="px-4 py-3">{{ $log->user->name ?? 'System' }}</td>
                                             <td class="px-4 py-3">
-                                                 @if ($log->project_file_url ?? null)
-                                                     <a href="{{ $log->project_file_url }}" class="px-3 py-1 text-xs text-white bg-blue-500 rounded-full" target="_blank">PROJECT FILE</a>
-                                                 @else
-                                                     -
-                                                 @endif
+                                            @if ($log->status === 'waiting talent')
+                                                <span class="{{ $badgeYellow }}">WAITING TALENT</span>
+                                            @elseif ($log->status === 'project assign')
+                                                <span class="{{ $badgeBlue }}">PROJECT ASSIGN</span>
+                                            @elseif($log->status === 'qc')
+                                                <span class="{{ $badgeYellow }}">REVIEW PROJECT</span>
+                                            @elseif ($log->status === 'done')
+                                                 <span class="{{ $badgeGreen }}">SHARE PROJECT</span>
+                                            @else
+                                                -
+                                            @endif
                                             </td>
+                                            <td class="px-4 py-3">{{ $log->timestamp->format('D, d M Y') }}</td>
                                             <td class="px-4 py-3">
-                                                @if ($log->qc_message ?? null)
-                                                    <span class="px-3 py-1 text-xs text-white bg-green-500 rounded-full cursor-pointer">OPEN MESSAGE</span>
+                                                @if ($log->status === 'draf')
+                                                    <span class="{{ $badgeYellow }}">PROJECT DRAF SUBMISSION</span>
+                                                @elseif ($log->status === 'qc')
+                                                     <span class="{{ $badgeBlue }}">SHARE PROJECT</span>
                                                 @else
                                                     -
                                                 @endif
                                             </td>
                                             <td class="px-4 py-3">
-                                                @if ($log->status === 'Needs Review')
-                                                    <span class="px-3 py-1 text-xs text-white bg-yellow-500 rounded-full">REVIEW PROJECT</span>
-                                                @elseif ($log->status === 'Completed')
-                                                     <span class="px-3 py-1 text-xs text-white bg-blue-500 rounded-full">SHARE PROJECT</span>
+                                                @if ($log->status === 'draf')
+                                                    <span class="{{ $badgeYellow }}">SHARE INFO</span>
+                                                @elseif ($log->status === 'qc')
+                                                     <span class="{{ $badgeBlue }}">OPEN QC MESSAGE</span>
                                                 @else
                                                     -
                                                 @endif
@@ -152,18 +180,18 @@
                                 </table>
                             </div>
                         @else
-                            <div class="text-center text-gray-500 dark:text-gray-400">No project records available yet.</div>
+                            <div class="text-center {{ $mutedText }}">No project records available yet.</div>
                         @endif
                     </div>
                 </div>
 
                 {{-- Project Revision --}}
-                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow mt-6">
-                    <div class="p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Project Revision</h2>
+                <div class="{{ $cardContainer }} {{ $cardSpacing }}">
+                    <div class="{{ $cardPadding }}">
+                        <div class="{{ $flexBetween }} mb-6">
+                            <h2 class="{{ $headingText }}">Project Revision</h2>
                             @if ($project->status === 'revision needed')
-                                <button type="button" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700">
+                                <button type="button" class="{{ $primaryButton }}">
                                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                         <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                                     </svg>
@@ -171,9 +199,11 @@
                                 </button>
                             @endif
                         </div>
-                         @php
-                             $revisionLogs = $project->projectLogs->filter(fn($log) => str_contains(strtolower($log->status), 'revise'));
-                         @endphp
+
+                        @php
+                            $revisionLogs = $project->projectLogs->filter(fn($log) => str_contains(strtolower($log->status), 'revise'));
+                        @endphp
+
                         @if($revisionLogs->count() > 0)
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -194,15 +224,15 @@
                                             <td class="px-4 py-3">{{ $log->user->name ?? 'System' }}</td>
                                             <td class="px-4 py-3">
                                                  @if ($log->message ?? null)
-                                                    <span class="px-3 py-1 text-xs text-white bg-green-500 rounded-full cursor-pointer">OPEN MESSAGE</span>
+                                                    <span class="{{ $badgeGreen }} cursor-pointer">OPEN MESSAGE</span>
                                                  @else
                                                     -
                                                  @endif
                                             </td>
                                             <td class="px-4 py-3">
                                                  <div class="flex space-x-2">
-                                                    <span class="px-3 py-1 text-xs text-white bg-yellow-500 rounded-full cursor-pointer">EDIT</span>
-                                                    <span class="px-3 py-1 text-xs text-white bg-red-500 rounded-full cursor-pointer">DELETE</span>
+                                                    <span class="{{ $badgeYellow }} cursor-pointer">EDIT</span>
+                                                    <span class="{{ $badgeRed }} cursor-pointer">DELETE</span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -210,35 +240,38 @@
                                     </tbody>
                                 </table>
                             </div>
-                         @else
-                              <div class="text-center text-gray-500 dark:text-gray-400">No revision history available yet.</div>
-                         @endif
+                        @else
+                            <div class="text-center {{ $mutedText }}">No revision history available yet.</div>
+                        @endif
                     </div>
                 </div>
             </div>
 
             {{-- Project Status Timeline --}}
             <div class="lg:col-span-1">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Project Status</h2>
-                    <h3 class="text-lg text-gray-700 dark:text-gray-300 mb-6">{{ $project->project_name }}</h3>
+                <div class="{{ $cardContainer }} {{ $cardPadding }}">
+                    <h2 class="{{ $headingText }} mb-2">Project Status</h2>
+                    <h3 class="{{ $subHeadingText }} mb-6">{{ $project->project_name }}</h3>
 
                     @if($project->projectLogs->count() > 0)
-                         <div class="relative">
+                        <div class="relative">
                             <div class="absolute left-4 h-full w-0.5 bg-gray-200 dark:bg-gray-700"></div>
 
-                             @foreach($project->projectLogs->sortBy('timestamp') as $log)
+                            @foreach($project->projectLogs->sortBy('timestamp') as $log)
                                 @php
                                     $colorClass = 'bg-gray-100 dark:bg-gray-700';
                                     $dotColorClass = 'bg-gray-500';
 
-                                    if (str_contains(strtolower($log->status), 'assign')) {
+                                    if (str_contains(strtolower($log->status), 'project assign')) {
                                         $colorClass = 'bg-blue-100 dark:bg-blue-900/30';
                                         $dotColorClass = 'bg-blue-500 dark:bg-blue-400';
-                                    } elseif (str_contains(strtolower($log->status), 'qc')) {
-                                         $colorClass = 'bg-orange-100 dark:bg-orange-900/30';
+                                    } elseif (str_contains(strtolower($log->status), 'draf')){
+                                        $colorClass = 'bg-orange-100 dark:bg-orange-900/30';
                                         $dotColorClass = 'bg-orange-500 dark:bg-orange-400';
-                                    } elseif (str_contains(strtolower($log->status), 'submitted') || str_contains(strtolower($log->status), 'completed')) {
+                                    }elseif (str_contains(strtolower($log->status), 'qc')) {
+                                        $colorClass = 'bg-orange-100 dark:bg-orange-900/30';
+                                        $dotColorClass = 'bg-orange-500 dark:bg-orange-400';
+                                    } elseif (str_contains(strtolower($log->status), 'done') || str_contains(strtolower($log->status), 'done')) {
                                         $colorClass = 'bg-green-100 dark:bg-green-900/30';
                                         $dotColorClass = 'bg-green-500 dark:bg-green-400';
                                     } elseif (str_contains(strtolower($log->status), 'revision') || str_contains(strtolower($log->status), 'needed')) {
@@ -251,14 +284,14 @@
                                         <div class="w-4 h-4 {{ $dotColorClass }} rounded-full"></div>
                                     </div>
                                     <div class="ml-4">
-                                        <h4 class="text-base font-medium text-gray-900 dark:text-white">{{ $log->status }}</h4>
-                                        <p class="text-sm text-gray-500">{{ $log->timestamp->format('D, d M Y | H:i A') }}</p>
+                                        <h4 class="{{ $subHeadingText }}">{{ $log->status }}</h4>
+                                        <p class="{{ $mutedText }}">{{ $log->timestamp->format('D, d M Y | H:i A') }}</p>
                                     </div>
                                 </div>
-                             @endforeach
+                            @endforeach
                         </div>
                     @else
-                        <div class="text-center text-gray-500 dark:text-gray-400">No status history available yet.</div>
+                        <div class="text-center {{ $mutedText }}">No status history available yet.</div>
                     @endif
                 </div>
             </div>
@@ -286,12 +319,12 @@
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-             if (document.getElementById('days')) {
-                 document.getElementById('days').innerHTML = String(days).padStart(2, '0');
-                 document.getElementById('hours').innerHTML = String(hours).padStart(2, '0');
-                 document.getElementById('minutes').innerHTML = String(minutes).padStart(2, '0');
-                 document.getElementById('seconds').innerHTML = String(seconds).padStart(2, '0');
-             }
+            if (document.getElementById('days')) {
+                document.getElementById('days').innerHTML = String(days).padStart(2, '0');
+                document.getElementById('hours').innerHTML = String(hours).padStart(2, '0');
+                document.getElementById('minutes').innerHTML = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').innerHTML = String(seconds).padStart(2, '0');
+            }
         }
 
         function formatElapsedTime(distance) {
@@ -304,8 +337,7 @@
             if (days > 0) parts.push(`${days}d`);
             if (hours > 0) parts.push(`${hours}h`);
             if (minutes > 0) parts.push(`${minutes}m`);
-             if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
-
+            if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
 
             return parts.join(' ');
         }
@@ -320,31 +352,31 @@
             }, 1000);
 
         } else if (projectStatus === 'done' && assignTimestamp && doneTimestamp) {
-             const startTime = new Date(assignTimestamp).getTime();
-             const finishTime = new Date(doneTimestamp).getTime();
-             const totalElapsed = finishTime - startTime;
+            const startTime = new Date(assignTimestamp).getTime();
+            const finishTime = new Date(doneTimestamp).getTime();
+            const totalElapsed = finishTime - startTime;
 
-             if (totalTimeTakenDisplay) {
-                 totalTimeTakenDisplay.innerHTML = formatElapsedTime(totalElapsed);
-             }
-             if (elapsedTimerDisplay) {
-                 elapsedTimerDisplay.style.display = 'none';
-             }
+            if (totalTimeTakenDisplay) {
+                totalTimeTakenDisplay.innerHTML = formatElapsedTime(totalElapsed);
+            }
+            if (elapsedTimerDisplay) {
+                elapsedTimerDisplay.style.display = 'none';
+            }
 
         } else {
-             if (elapsedTimerDisplay) {
-                 elapsedTimerDisplay.style.display = 'none';
-             }
-              if (totalTimeTakenDisplay) {
-                 totalTimeTakenDisplay.style.display = 'none';
-              }
+            if (elapsedTimerDisplay) {
+                elapsedTimerDisplay.style.display = 'none';
+            }
+            if (totalTimeTakenDisplay) {
+                totalTimeTakenDisplay.style.display = 'none';
+            }
         }
 
-         window.addEventListener('beforeunload', function() {
-             if (timerInterval) {
-                 clearInterval(timerInterval);
-             }
-         });
+        window.addEventListener('beforeunload', function() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+        });
     }
 </script>
 @endpush

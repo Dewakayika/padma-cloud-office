@@ -233,6 +233,11 @@ class TalentController extends Controller
         // The $id variable now holds the Project model instance.
         $project = $id; // Assign the bound Project model to a variable named $project for clarity
 
+        // Check if the authenticated user is the assigned talent for this project
+        if ($project->assignedTalent && $project->assignedTalent->id !== auth()->id()) {
+            abort(403, 'You are not authorized to view this project.');
+        }
+
         // Eager load relationships, including sorting logs by timestamp
         $project->load(['company', 'projectType', 'assignedTalent', 'assignedQcAgent', 'projectLogs' => function($query) {
             $query->orderBy('timestamp');
@@ -245,13 +250,6 @@ class TalentController extends Controller
         // Find the timestamp for the 'done' status (if completed)
         $doneLog = $project->projectLogs->where('status', 'done')->last();
         $doneTimestamp = $doneLog ? $doneLog->timestamp->toISOString() : null;
-
-
-        // You might want to add a check here to ensure the authenticated talent
-        // is assigned to this project before showing details.
-        // if ($project->talent !== Auth::id()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
 
         return view('users.Talent.project-detail', compact('project', 'assignTimestamp', 'doneTimestamp'));
     }
