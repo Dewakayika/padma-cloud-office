@@ -67,13 +67,38 @@ class User extends Authenticatable
         ];
     }
 
-    public function company(): HasOne
+    public function company()
     {
-        return $this->hasOne(Company::class);
+        return $this->hasMany(Company::class);
     }
 
-    public function talent(): HasOne
+    public function talent()
     {
         return $this->hasOne(Talent::class);
+    }
+
+    public function project()
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function projectType()
+    {
+        return $this->hasMany(ProjectType::class);
+    }
+
+    public function projectLogs()
+    {
+        return $this->hasMany(ProjectLog::class);
+    }
+
+    public function projectsSop()
+    {
+        return $this->hasMany(ProjectSop::class);
+    }
+
+    public function companyTalent()
+    {
+        return $this->hasMany(CompanyTalent::class, 'talent_id');
     }
 }

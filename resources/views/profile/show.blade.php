@@ -5,16 +5,17 @@
 
 
 @section('content')
-
+<div class="sm:p-4 sm:ml-64 dark:bg-gray-900 min-h-screen">
+    <div class="py-4 md:p-4">
     <div>
-        <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+        <div class="max-w-7xl lg:ml-64 sm:mx-3 mx-auto py-10 lg:px-8">
             @if (Laravel\Fortify\Features::canUpdateProfileInformation())
                 @livewire('profile.update-profile-information-form')
 
                 <x-section-border />
             @endif
 
-            @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords()))
+            @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords())) 
                 <div class="mt-10 sm:mt-0">
                     @livewire('profile.update-password-form')
                 </div>
@@ -43,4 +44,6 @@
             @endif
         </div>
     </div>
+    </div>
+</div>
 @endsection
