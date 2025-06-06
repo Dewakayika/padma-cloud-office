@@ -101,6 +101,7 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/e-wallet', [TalentController::class, 'eWallet'])->name('talent.e-wallet');
     Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
     Route::post('/talent/project/{id}', [TalentController::class, 'applyProject'])->name('talent.projects.apply');
+    Route::post('/projects/{project}/records', [TalentController::class, 'storeProjectRecord'])->name('talent.project-records.store');
 });
 
 // Add this new route for invitation acceptance

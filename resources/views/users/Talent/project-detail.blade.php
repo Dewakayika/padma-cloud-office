@@ -29,6 +29,8 @@
     $badgeGreen = $badgeBase . ' bg-green-500 dark:bg-green-600';
     $badgeYellow = $badgeBase . ' bg-yellow-500 dark:bg-yellow-600';
     $badgeRed = $badgeBase . ' bg-red-500 dark:bg-red-600';
+    $badgeGray = $badgeBase . ' bg-gray-500 dark:bg-gray-600';
+
 
     // Common layout styles
     $gridContainer = 'grid grid-cols-1 lg:grid-cols-3 gap-6';
@@ -47,6 +49,21 @@
     <div class="py-4 space-y-6">
         {{-- Breadcrumb Navigation --}}
         <x-breadscrums/>
+        @if(session('success'))
+        <x-alert type="success" :message="session('success')" />
+        @endif
+
+        @if(session('error'))
+            <x-alert type="error" :message="session('error')" />
+        @endif
+
+        @if(session('warning'))
+            <x-alert type="warning" :message="session('warning')" />
+        @endif
+
+        @if(session('info'))
+            <x-alert type="info" :message="session('info')" />
+        @endif
 
         {{-- Project Banner with Timer --}}
         <div class="relative rounded-lg overflow-hidden h-48">
@@ -68,8 +85,15 @@
                          data-assign-timestamp="{{ $assignTimestamp }}"
                          data-done-timestamp="{{ $doneTimestamp }}">
 
-                         @if ($project->status === 'project assign')
-                             <div class="grid grid-cols-4 gap-4" id="elapsed-timer">
+                        @php
+                            $activeStatuses = ['project assign', 'qc', 'draf', 'revision'];
+                            $isTimerActive = $project->status !== 'done' && $assignTimestamp;
+                        @endphp
+
+                        @if ($isTimerActive)
+                             <div class="grid grid-cols-4 gap-4" id="elapsed-timer"
+                                  data-assign-timestamp="{{ $assignTimestamp }}"
+                                  data-done-timestamp="{{ $doneTimestamp }}">
                                  @foreach(['days', 'hours', 'minutes', 'seconds'] as $unit)
                                  <div class="text-center">
                                      <div class="text-3xl font-bold {{ $whiteText }}" id="{{ $unit }}">00</div>
@@ -77,13 +101,12 @@
                                  </div>
                                  @endforeach
                              </div>
-                              <div class="text-sm font-medium {{ $whiteText }} mt-1">Time Elapsed</div>
-                         @elseif ($project->status === 'done')
+                        @elseif ($project->status === 'done')
                             <div id="total-time-taken" class="text-lg font-bold text-green-500 dark:text-green-400"></div>
-                            <div class="text-sm font-medium {{ $whiteText }} mt-1">Total Time Taken</div>
-                         @else
-                             <div class="text-lg font-bold text-yellow-400 dark:text-yellow-300">Project Not Assigned Yet</div>
-                         @endif
+                            <div class="text-sm font-medium {{ $whiteText }} mt-1">Project Completed</div>
+                        @else
+                            <div class="text-lg font-bold text-yellow-400 dark:text-yellow-300">Project Not Started</div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -131,12 +154,19 @@
                     <div class="{{ $cardPadding }}">
                         <div class="{{ $flexBetween }} mb-6">
                             <h2 class="{{ $headingText }}">Project Records</h2>
-                            <button type="button" class="{{ $secondaryButton }}">
-                                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                                </svg>
-                                Submit Project Draf
-                            </button>
+                            <div x-data="{ open: false }">
+                                <a @click="open = true"
+                                   class="{{ $secondaryButton }} cursor-pointer">
+                                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                    </svg>
+                                   Submit Project Draf
+                                </a>
+                                <!-- Modal -->
+                                <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                    @include('components.project-record.modal', ['projectData' => $project])
+                                </div>
+                            </div>
                         </div>
                         @if($project->projectLogs->count() > 0)
                             <div class="overflow-x-auto">
@@ -154,7 +184,7 @@
                                         <tr>
                                             <td class="{{ $tableCell }}">
                                             @if ($log->status === 'waiting talent')
-                                                <span class="{{ $badgeYellow }}">WAITING TALENT</span>
+                                                <span class="{{ $badgeGray }}">WAITING TALENT</span>
                                             @elseif ($log->status === 'project assign')
                                                 <span class="{{ $badgeBlue }}">PROJECT ASSIGN</span>
                                             @elseif($log->status === 'qc')
@@ -170,15 +200,15 @@
                                                 @if ($log->status === 'draf')
                                                     <span class="{{ $badgeYellow }}">PROJECT DRAF SUBMISSION</span>
                                                 @elseif ($log->status === 'qc')
-                                                     <span class="{{ $badgeBlue }}">SHARE PROJECT</span>
+                                                     <span class="{{ $badgeBlue }}">PROJECT DRAF SUBMISSION</span>
                                                 @else
                                                     -
                                                 @endif
                                             </td>
                                             <td class="{{ $tableCell }}">
-                                                @if ($log->status === 'draf')
+                                                @if ($log->status === 'qc')
                                                     <span class="{{ $badgeYellow }} cursor-pointer hover:opacity-90">SHARE INFO</span>
-                                                @elseif ($log->status === 'qc')
+                                                @elseif ($log->status === 'draf')
                                                      <span class="{{ $badgeBlue }} cursor-pointer hover:opacity-90">OPEN QC MESSAGE</span>
                                                 @else
                                                     -
@@ -268,37 +298,52 @@
                             <div class="{{ $timelineLine }}"></div>
 
                             @foreach($project->projectLogs->sortBy('timestamp') as $log)
-                                @php
-                                    $colorClass = 'bg-gray-100 dark:bg-gray-700';
-                                    $dotColorClass = 'bg-gray-500 dark:bg-gray-400';
+                            @php
+                                $colorClass = 'bg-gray-100 dark:bg-gray-700';
+                                $dotColorClass = 'bg-gray-500 dark:bg-gray-400';
 
-                                    if (str_contains(strtolower($log->status), 'project assign')) {
-                                        $colorClass = 'bg-blue-100 dark:bg-blue-900/30';
-                                        $dotColorClass = 'bg-blue-500 dark:bg-blue-400';
-                                    } elseif (str_contains(strtolower($log->status), 'draf')){
-                                        $colorClass = 'bg-orange-100 dark:bg-orange-900/30';
-                                        $dotColorClass = 'bg-orange-500 dark:bg-orange-400';
-                                    }elseif (str_contains(strtolower($log->status), 'qc')) {
-                                        $colorClass = 'bg-orange-100 dark:bg-orange-900/30';
-                                        $dotColorClass = 'bg-orange-500 dark:bg-orange-400';
-                                    } elseif (str_contains(strtolower($log->status), 'done') || str_contains(strtolower($log->status), 'done')) {
-                                        $colorClass = 'bg-green-100 dark:bg-green-900/30';
-                                        $dotColorClass = 'bg-green-500 dark:bg-green-400';
-                                    } elseif (str_contains(strtolower($log->status), 'revision') || str_contains(strtolower($log->status), 'needed')) {
-                                        $colorClass = 'bg-red-100 dark:bg-red-900/30';
-                                        $dotColorClass = 'bg-red-500 dark:bg-red-400';
-                                    }
-                                @endphp
-                                <div class="relative flex items-center mb-8">
-                                    <div class="{{ $timelineDot }} {{ $colorClass }}">
-                                        <div class="w-4 h-4 {{ $dotColorClass }} rounded-full"></div>
-                                    </div>
-                                    <div class="{{ $timelineContent }}">
-                                        <h4 class="{{ $subHeadingText }}">{{ $log->status }}</h4>
-                                        <p class="{{ $mutedText }}">{{ $log->timestamp->format('D, d M Y | H:i A') }}</p>
-                                    </div>
+                                $status = strtolower($log->status);
+
+                                if (str_contains($status, 'project assign')) {
+                                    $colorClass = 'bg-blue-100 dark:bg-blue-900/30';
+                                    $dotColorClass = 'bg-blue-500 dark:bg-blue-400';
+                                    $displayText = 'Project Assigned';
+                                } elseif (str_contains($status, 'draf')) {
+                                    $colorClass = 'bg-orange-100 dark:bg-orange-900/30';
+                                    $dotColorClass = 'bg-orange-500 dark:bg-orange-400';
+                                    $displayText = 'Draft In Progress';
+                                } elseif (str_contains($status, 'qc')) {
+                                    $colorClass = 'bg-orange-100 dark:bg-orange-900/30';
+                                    $dotColorClass = 'bg-orange-500 dark:bg-orange-400';
+                                    $displayText = 'Quality Check';
+                                } elseif (str_contains($status, 'done')) {
+                                    $colorClass = 'bg-green-100 dark:bg-green-900/30';
+                                    $dotColorClass = 'bg-green-500 dark:bg-green-400';
+                                    $displayText = 'Completed';
+                                } elseif (str_contains($status, 'revision') || str_contains($status, 'needed')) {
+                                    $colorClass = 'bg-red-100 dark:bg-red-900/30';
+                                    $dotColorClass = 'bg-red-500 dark:bg-red-400';
+                                    $displayText = 'Revision Needed';
+                                } else {
+                                    $colorClass = 'bg-gray-100 dark:bg-gray-800/30';
+                                    $dotColorClass = 'bg-gray-500 dark:bg-gray-400';
+                                    $displayText = ucfirst($log->status);
+                                }
+                            @endphp
+
+                            <div class="relative flex items-center mb-8">
+                                <div class="{{ $timelineDot }} {{ $colorClass }}">
+                                    <div class="w-4 h-4 {{ $dotColorClass }} rounded-full"></div>
                                 </div>
-                            @endforeach
+                                <div class="{{ $timelineContent }}">
+                                    <h4 class="{{ $subHeadingText }}">{{ $displayText }}</h4>
+                                    <p class="{{ $mutedText }}">
+                                        {{ $log->timestamp->setTimezone(session('timezone', config('app.timezone')))->format('D, d M Y | h:i A') }}
+                                    </p>
+                                </div>
+                            </div>
+                        @endforeach
+
                         </div>
                     @else
                         <div class="text-center {{ $mutedText }}">No status history available yet.</div>
@@ -312,81 +357,41 @@
 
 @push('scripts')
 <script>
-    const projectTimerArea = document.getElementById('project-timer-area');
+    document.addEventListener('DOMContentLoaded', function() {
+        const timerElement = document.getElementById('elapsed-timer');
+        if (!timerElement) return;
 
-    if (projectTimerArea) {
-        const projectStatus = projectTimerArea.getAttribute('data-project-status');
-        const assignTimestamp = projectTimerArea.getAttribute('data-assign-timestamp');
-        const doneTimestamp = projectTimerArea.getAttribute('data-done-timestamp');
-        const elapsedTimerDisplay = document.getElementById('elapsed-timer');
-        const totalTimeTakenDisplay = document.getElementById('total-time-taken');
+        const assignTimestamp = timerElement.dataset.assignTimestamp;
+        const doneTimestamp = timerElement.dataset.doneTimestamp;
 
-        let timerInterval = null;
+        if (assignTimestamp) {
+            const startDate = new Date(assignTimestamp);
 
-        function updateTimerDisplay(distance) {
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            function updateTimer() {
+                const now = new Date();
+                const diff = now - startDate;
 
-            if (document.getElementById('days')) {
-                document.getElementById('days').innerHTML = String(days).padStart(2, '0');
-                document.getElementById('hours').innerHTML = String(hours).padStart(2, '0');
-                document.getElementById('minutes').innerHTML = String(minutes).padStart(2, '0');
-                document.getElementById('seconds').innerHTML = String(seconds).padStart(2, '0');
+                // Calculate time units
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                // Update the display
+                document.getElementById('days').textContent = String(days).padStart(2, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+
+                // If project is not done, continue updating
+                if (!doneTimestamp) {
+                    setTimeout(updateTimer, 1000); // Update every second
+                }
             }
+
+            // Start the timer
+            updateTimer();
         }
-
-        function formatElapsedTime(distance) {
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            let parts = [];
-            if (days > 0) parts.push(`${days}d`);
-            if (hours > 0) parts.push(`${hours}h`);
-            if (minutes > 0) parts.push(`${minutes}m`);
-            if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
-
-            return parts.join(' ');
-        }
-
-        if (projectStatus === 'project assign' && assignTimestamp) {
-            const startTime = new Date(assignTimestamp).getTime();
-
-            timerInterval = setInterval(function() {
-                const now = new Date().getTime();
-                const elapsed = now - startTime;
-                updateTimerDisplay(elapsed);
-            }, 1000);
-
-        } else if (projectStatus === 'done' && assignTimestamp && doneTimestamp) {
-            const startTime = new Date(assignTimestamp).getTime();
-            const finishTime = new Date(doneTimestamp).getTime();
-            const totalElapsed = finishTime - startTime;
-
-            if (totalTimeTakenDisplay) {
-                totalTimeTakenDisplay.innerHTML = formatElapsedTime(totalElapsed);
-            }
-            if (elapsedTimerDisplay) {
-                elapsedTimerDisplay.style.display = 'none';
-            }
-
-        } else {
-            if (elapsedTimerDisplay) {
-                elapsedTimerDisplay.style.display = 'none';
-            }
-            if (totalTimeTakenDisplay) {
-                totalTimeTakenDisplay.style.display = 'none';
-            }
-        }
-
-        window.addEventListener('beforeunload', function() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-            }
-        });
-    }
+    });
 </script>
 @endpush

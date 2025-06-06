@@ -1,6 +1,6 @@
 @props(['id' => null, 'project' => null])
 
-<div class="bg-white dark:bg-gray-900 w-full max-w-md mx-auto ">
+<div class="p-6 bg-white dark:bg-gray-900 w-full rounded-lg max-w-md mx-auto ">
     <div class="mb-6 text-center">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Are you sure to apply this project?</h2>
         <p class="text-sm text-gray-600 dark:text-gray-300 text-center whitespace-normal">

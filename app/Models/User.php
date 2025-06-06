@@ -101,4 +101,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(CompanyTalent::class, 'talent_id');
     }
+
+    /**
+     * Get the project records where the user is the company user.
+     */
+    public function companyProjectRecords()
+    {
+        return $this->hasMany(ProjectRecord::class, 'user_id');
+    }
+
+    /**
+     * Get the project records where the user is the talent.
+     */
+    public function talentProjectRecords()
+    {
+        return $this->hasMany(ProjectRecord::class, 'talent_id');
+    }
+
+    /**
+     * Get the project records where the user is the QC.
+     */
+    public function qcProjectRecords()
+    {
+        return $this->hasMany(ProjectRecord::class, 'qc_id');
+    }
 }
