@@ -88,7 +88,7 @@
                         <img 
                             src="{{ asset('images/hero-section.png') }}" 
                             alt="Dashboard preview"
-                            class="w-[90%] h-auto object-cover rounded-2xl"
+                            class="w-full h-auto object-cover rounded-2xl"
                         >
                     </div>
                 </div>
@@ -139,6 +139,120 @@
                     </div>
                 </div>
             </div>
+
+
+            <!-- Explore Our Workflow Section -->
+            <section class="bg-white text-black py-40 px-8">
+                <div class="max-w-7xl mx-auto">
+                    <!-- Heading -->
+                    <div class="mb-20">
+                    <h2 class="text-4xl font-extrabold leading-tight">Explore Our Workflows</h2>
+                    <p class="mt-4 text-gray-400 max-w-xl">
+                        From multi-layer approvals to automated tracking, Padma Cloud Office adapts to your business needs with intuitive tools you already know.
+                    </p>
+                    </div>
+
+                    <!-- Cards Wrapper -->
+                    <div class="flex space-x-6 overflow-x-auto pb-6">
+                    <!-- Card 1 -->
+                    <div class="flex-shrink-0 bg-gray-800 rounded-xl overflow-hidden w-80 relative">
+                        <img src="{{ asset('images/hero-section.png') }}" alt="Workflow 1" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                        <h3 class="text-lg font-semibold mb-2 text-white">Register Your Team</h3>
+                        <div class="flex flex-wrap gap-2 text-sm text-white">
+                            <p>Create your organization’s workspace and invite your team in under 5 minutes.</p>    
+                        </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="flex-shrink-0 bg-gray-800 rounded-xl overflow-hidden w-80 relative">
+                        <img src="{{ asset('images/hero-section.png') }}" alt="Workflow 2" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                        <h3 class="text-lg font-semibold mb-2 text-white">Setup Roles & Access</h3>
+                        <div class="flex flex-wrap gap-2 text-sm text-white">
+                            <p>Assign roles, set permissions, and organize teams based on your workflow.</p>
+                        </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="flex-shrink-0 bg-gray-800 rounded-xl overflow-hidden w-80 relative">
+                        <img src="{{ asset('images/hero-section.png') }}" alt="Workflow 3" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                        <h3 class="text-lg font-semibold mb-2 text-white">Manage Everything</h3>
+                        <div class="flex flex-wrap gap-2 text-sm text-white">
+                            <p>Track tasks, approvals, leave requests, and more – all in one place.</p>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- Arrows -->
+                    <div class="mt-6 flex justify-end gap-4">
+                    <button class="w-10 h-10 flex items-center justify-center border border-gray-600 rounded-full hover:bg-gray-700">
+                        <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button class="w-10 h-10 flex items-center justify-center border border-gray-600 rounded-full hover:bg-gray-700">
+                        <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Testimonials Section -->
+            <section class="py-24 bg-white dark:bg-gray-900 mb-40">
+                <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+                    <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-12">What Our Clients Say</h2>
+                    <div class="grid md:grid-cols-2 gap-10">
+                        <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-xl shadow">
+                            <p class="text-lg text-gray-700 dark:text-gray-300">“Padma Cloud Office helped us cut our admin overhead by 50%. It’s intuitive and powerful.”</p>
+                            <p class="mt-4 font-semibold text-gray-900 dark:text-white">— Maya Putri, HR Manager</p>
+                        </div>
+                        <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-xl shadow">
+                            <p class="text-lg text-gray-700 dark:text-gray-300">“A one-stop solution for managing employees, tasks, and resources. Love the UI!”</p>
+                            <p class="mt-4 font-semibold text-gray-900 dark:text-white">— Dwi Santosa, Office Manager</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="py-24 bg-gradient-to-r from-red-600 to-black text-white text-center">
+                <div class="max-w-4xl mx-auto px-6">
+                    <h2 class="text-3xl font-extrabold">Ready to streamline your office?</h2>
+                    <p class="mt-4 text-lg">Start your free trial today. No credit card required.</p>
+                    <a href="{{ route('register') }}" class="mt-8 inline-block bg-white text-black font-semibold px-6 py-3 rounded-md shadow-lg hover:bg-gray-200 transition">Get Started Now</a>
+                </div>
+            </section>
+
+            <section class="bg-white dark:bg-gray-800 py-20 mt-40">
+                <div class="max-w-6xl mx-auto text-center px-6">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Try Padma Cloud Office Instantly</h2>
+                    <p class="mt-4 text-gray-600 dark:text-gray-400">Experience how it works — no login required.</p>
+                    <div class="mt-10">
+                    <iframe src="/demo" class="w-full h-[500px] rounded-xl shadow-lg border border-gray-300"></iframe>
+                    </div>
+                </div>
+                </section>
+
+            
         </main>
+        <footer class="bg-black dark:bg-gray-900 text-white dark:text-gray-400 py-8">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center">
+                        <p>&copy; {{ date('Y') }} Padma Cloud Office. All rights reserved.</p>
+                        <div class="flex space-x-4 mt-4 md:mt-0">
+                            <a href="#" class="hover:text-gray-900 dark:hover:text-white">Privacy</a>
+                            <a href="#" class="hover:text-gray-900 dark:hover:text-white">Terms</a>
+                            <a href="#" class="hover:text-gray-900 dark:hover:text-white">Contact</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
     </body>
 </html>
