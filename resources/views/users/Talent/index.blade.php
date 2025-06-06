@@ -21,6 +21,22 @@
                 </div>
             </div>
 
+            @if(session('success'))
+            <x-alert type="success" :message="session('success')" />
+            @endif
+
+            @if(session('error'))
+                <x-alert type="error" :message="session('error')" />
+            @endif
+
+            @if(session('warning'))
+                <x-alert type="warning" :message="session('warning')" />
+            @endif
+
+            @if(session('info'))
+                <x-alert type="info" :message="session('info')" />
+            @endif
+
             {{-- Statistics Cards --}}
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {{-- On Going Project --}}
@@ -136,10 +152,17 @@
                                             {{ $offer->talent_qc ? $offer->talent_qc->name : 'Not Assigned' }}
                                         </td> --}}
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <a href="{{ url('/talent/project/' . $offer->id) }}"
-                                               class="inline-flex items-center px-2 py-1 text-xs font-medium text-center text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
-                                                Apply Project
-                                            </a>
+                                            <div x-data="{ open: false }">
+                                                <a @click="open = true"
+                                                   class="inline-flex items-center px-2 py-1 text-xs font-medium text-center text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 cursor-pointer">
+                                                    Apply Project
+                                                </a>
+                                                <!-- Modal -->
+                                                <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                                    {{-- return competitons data --}}
+                                                    @include('components.apply-modal', ['project' => $offer]  )
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                     @endforeach
@@ -264,11 +287,11 @@
                                     {{ $project->project_volume }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    {{ $project->User ? $project->User->name : 'Not Assigned' }}
+                                    {{ $project->assignedQcAgent->name ? $project->assignedQcAgent->name : 'Not Assigned' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        @if($project->status === 'in_progress')
+                                        @if($project->status === 'project assign')
                                             bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300
                                         @elseif($project->status === 'qc')
                                             bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300
@@ -283,7 +306,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <a href="{{ url('/talent/project/' . $project->id) }}"
+                                    <a href="{{ route('talent.project.detail', $project->id) }}"
                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-center text-white bg-purple-700 rounded-lg hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800">
                                         Detail
                                     </a>

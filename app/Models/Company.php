@@ -65,5 +65,12 @@ class Company extends Model
         return $this->hasMany(CompanyTalent::class);
     }
 
+    /**
+     * Get the project records for the company.
+     */
+    public function projectRecords()
+    {
+        return $this->hasMany(ProjectRecord::class);
+    }
 
 }

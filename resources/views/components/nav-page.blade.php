@@ -32,7 +32,7 @@
             <!-- Right side - Icons -->
             <div class="flex items-center space-x-3">
                 <!-- E-Wallet -->
-                <button type="button" onclick="window.location.href='{{ route('talent.e-wallet') }}'" 
+                <button type="button" onclick="window.location.href='{{ route('talent.e-wallet') }}'"
                     class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.e-wallet') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">E-Wallet</span>
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -42,7 +42,7 @@
                 </button>
 
                 <!-- Analytics -->
-                <button type="button" onclick="window.location.href='{{ route('talent.statistic') }}'" 
+                <button type="button" onclick="window.location.href='{{ route('talent.statistic') }}'"
                     class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.statistic') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">Analytics</span>
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -52,7 +52,7 @@
                 </button>
 
                 <!-- Documentation -->
-                <button type="button" onclick="window.location.href=''" 
+                <button type="button" onclick="window.location.href=''"
                     class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.documentation') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">Documentation</span>
                     <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -64,7 +64,7 @@
                 </button>
 
                 <!-- Notifications -->
-                <button type="button" onclick="window.location.href=''" 
+                <button type="button" onclick="window.location.href=''"
                     class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.notifications') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">View notifications</span>
                     <div class="relative">
@@ -79,7 +79,7 @@
                 </button>
 
                 <!-- Settings -->
-                <button type="button" onclick="window.location.href=''" 
+                <button type="button" onclick="window.location.href=''"
                     class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.settings') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">Settings</span>
                     <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

@@ -96,13 +96,16 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/', [TalentController::class, 'index'])->name('talent.landing.page');
     Route::get('/company/{slug}', [TalentController::class, 'detailCompany'])->name('[talent#company');
     Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage.projects');
-    Route::get('/project-detail', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
+    Route::get('/project-detail/{id}', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
     Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
     Route::get('/e-wallet', [TalentController::class, 'eWallet'])->name('talent.e-wallet');
     Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
+    Route::post('/talent/project/{id}', [TalentController::class, 'applyProject'])->name('talent.projects.apply');
+    Route::post('/projects/{project}/records', [TalentController::class, 'storeProjectRecord'])->name('talent.project-records.store');
 });
 
 // Add this new route for invitation acceptance
 Route::get('/register/{token}', [RegisteredUserController::class, 'showInvitationRegistrationForm'])->middleware('guest')->name('register.invitation');
 Route::post('/register/store', [RegisteredUserController::class, 'store'])->middleware('guest')->name('register.invitation.store');
+
 
