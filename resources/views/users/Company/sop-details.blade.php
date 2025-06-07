@@ -26,11 +26,11 @@
             <x-breadscrums/>
 
             {{-- Project Type Header --}}
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-2xl font-semibold text-gray-900">{{ $projectType->project_name }}</h1>
-                        <p class="text-gray-600 mt-1">Project Rate: ${{ number_format($projectType->project_rate, 2) }}</p>
+                        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $projectType->project_name }}</h1>
+                        <p class="text-gray-600 dark:text-gray-400 mt-1">Project Rate: ${{ number_format($projectType->project_rate, 2) }}</p>
                     </div>
                     <div>
                         <button type="button" id="add-sop-button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
@@ -44,33 +44,33 @@
             </div>
 
             {{-- SOP List --}}
-            <div class="bg-white rounded-lg shadow-sm">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
                 <div class="p-6">
-                    <h2 class="text-xl font-semibold mb-4">Standard Operating Procedures</h2>
+                    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Standard Operating Procedures</h2>
 
                     @if($sops->isEmpty())
                         <div class="text-center py-8">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">No SOPs</h3>
-                            <p class="mt-1 text-sm text-gray-500">Get started by creating a new SOP.</p>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No SOPs</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new SOP.</p>
                         </div>
                     @else
                         <div class="space-y-4">
                             @foreach($sops as $sop)
-                                <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                                <div class="border dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
                                     <div class="flex justify-between items-start">
                                         <div class="flex-1">
-                                            <h3 class="text-lg font-medium text-gray-900">SOP Formula</h3>
-                                            <p class="mt-1 text-gray-600 whitespace-pre-wrap">{{ $sop->sop_formula }}</p>
+                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">SOP Formula</h3>
+                                            <p class="mt-1 text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ $sop->sop_formula }}</p>
 
                                             @if($sop->description)
-                                                <h4 class="mt-3 text-sm font-medium text-gray-900">Description</h4>
-                                                <p class="mt-1 text-gray-600 whitespace-pre-wrap">{{ $sop->description }}</p>
+                                                <h4 class="mt-3 text-sm font-medium text-gray-900 dark:text-white">Description</h4>
+                                                <p class="mt-1 text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ $sop->description }}</p>
                                             @endif
 
-                                            <div class="mt-2 text-sm text-gray-500">
+                                            <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                                 Created by {{ $sop->user->name }} on {{ $sop->created_at->format('M d, Y') }}
                                             </div>
                                         </div>
@@ -102,7 +102,7 @@
 <div id="sop-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden" aria-hidden="true">
     <div class="fixed inset-0 z-10 overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+            <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                 <div class="absolute right-0 top-0 pr-4 pt-4">
                     <button type="button" class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none" onclick="closeModal()">
                         <span class="sr-only">Close</span>
@@ -114,19 +114,19 @@
 
                 <div class="sm:flex sm:items-start">
                     <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                        <h3 class="text-lg font-semibold leading-6 text-gray-900" id="modal-title">Add New SOP</h3>
+                        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white" id="modal-title">Add New SOP</h3>
                         <form id="sop-form" action="{{ route('company.project.sop.store') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="project_type_id" value="{{ $projectType->id }}">
                             <input type="hidden" name="sop_id" id="sop_id">
 
                             <div class="mb-4">
-                                <label for="sop_formula" class="block text-sm font-medium text-gray-700">SOP Formula</label>
+                                <label for="sop_formula" class="block text-sm font-medium text-gray-700 dark:text-gray-400">SOP Formula</label>
                                 <textarea name="sop_formula" id="sop_formula" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                             </div>
 
                             <div class="mb-4">
-                                <label for="description" class="block text-sm font-medium text-gray-700">Description (Optional)</label>
+                                <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Description (Optional)</label>
                                 <textarea name="description" id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                             </div>
 
@@ -134,7 +134,7 @@
                                 <button type="submit" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">
                                     Save
                                 </button>
-                                <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto" onclick="closeModal()">
+                                <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto" onclick="closeModal()">
                                     Cancel
                                 </button>
                             </div>
