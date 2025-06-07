@@ -26,7 +26,7 @@
                     </select>
                 </div>
                 {{-- Export Button --}}
-                <button type="button" class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">
+                <button type="button" class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800">
                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
@@ -37,33 +37,33 @@
 
         {{-- Tab Navigation --}}
         <div class="">
-            <nav class="relative flex space-x-8 border-b border-[#E5E7EB]" aria-label="Tabs">
-                <button 
-                    @click="activeTab = 'overview'" 
+            <nav class="relative flex space-x-8 border-b border-gray-200 dark:border-gray-700" aria-label="Tabs">
+                <button
+                    @click="activeTab = 'overview'"
                     class="text-sm transition-colors duration-200 pb-4 relative"
-                    :class="{ 'text-black font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-black': activeTab === 'overview',
-                             'text-[#6B7280]': activeTab !== 'overview' }">
+                    :class="{ 'text-gray-900 dark:text-white font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-gray-900 dark:after:bg-white': activeTab === 'overview',
+                             'text-gray-500 dark:text-gray-400': activeTab !== 'overview' }">
                     Overview
                 </button>
-                <button 
-                    @click="activeTab = 'performance'" 
+                <button
+                    @click="activeTab = 'performance'"
                     class="text-sm transition-colors duration-200 pb-4 relative"
-                    :class="{ 'text-black font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-black': activeTab === 'performance',
-                             'text-[#6B7280]': activeTab !== 'performance' }">
+                    :class="{ 'text-gray-900 dark:text-white font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-gray-900 dark:after:bg-white': activeTab === 'performance',
+                             'text-gray-500 dark:text-gray-400': activeTab !== 'performance' }">
                     Performance
                 </button>
-                <button 
-                    @click="activeTab = 'financial'" 
+                <button
+                    @click="activeTab = 'financial'"
                     class="text-sm transition-colors duration-200 pb-4 relative"
-                    :class="{ 'text-black font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-black': activeTab === 'financial',
-                             'text-[#6B7280]': activeTab !== 'financial' }">
+                    :class="{ 'text-gray-900 dark:text-white font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-gray-900 dark:after:bg-white': activeTab === 'financial',
+                             'text-gray-500 dark:text-gray-400': activeTab !== 'financial' }">
                     Financial
                 </button>
-                <button 
-                    @click="activeTab = 'quality'" 
+                <button
+                    @click="activeTab = 'quality'"
                     class="text-sm transition-colors duration-200 pb-4 relative"
-                    :class="{ 'text-black font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-black': activeTab === 'quality',
-                             'text-[#6B7280]': activeTab !== 'quality' }">
+                    :class="{ 'text-gray-900 dark:text-white font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-gray-900 dark:after:bg-white': activeTab === 'quality',
+                             'text-gray-500 dark:text-gray-400': activeTab !== 'quality' }">
                     Quality
                 </button>
             </nav>
@@ -76,73 +76,73 @@
                 {{-- Statistics Cards --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {{-- Total Projects Card --}}
-                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm dark:shadow-gray-700/50">
                         <div class="flex flex-col">
                             <div class="flex items-center justify-between mb-2">
-                                <div class="p-2 bg-purple-100 rounded-lg">
-                                    <svg class="w-6 h-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                                     </svg>
                                 </div>
                             </div>
-                            <h2 class="text-sm font-medium text-gray-500">Total Projects</h2>
+                            <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Projects</h2>
                             <div class="mt-1 flex items-baseline justify-between">
-                                <p class="text-2xl font-semibold text-gray-900">27</p>
-                                <p class="text-sm text-green-600 font-medium">+12% from last period</p>
+                                <p class="text-2xl font-semibold text-gray-900 dark:text-white">27</p>
+                                <p class="text-sm text-green-600 dark:text-green-400 font-medium">+12% from last period</p>
                             </div>
                         </div>
                     </div>
 
                     {{-- Avg. Completion Time Card --}}
-                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm dark:shadow-gray-700/50">
                         <div class="flex flex-col">
                             <div class="flex items-center justify-between mb-2">
-                                <div class="p-2 bg-purple-100 rounded-lg">
-                                    <svg class="w-6 h-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
                                     </svg>
                                 </div>
                             </div>
-                            <h2 class="text-sm font-medium text-gray-500">Avg. Completion Time</h2>
+                            <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Avg. Completion Time</h2>
                             <div class="mt-1 flex items-baseline justify-between">
-                                <p class="text-2xl font-semibold text-gray-900">3.8 days</p>
-                                <p class="text-sm text-red-600 font-medium">-8% from last period</p>
+                                <p class="text-2xl font-semibold text-gray-900 dark:text-white">3.8 days</p>
+                                <p class="text-sm text-red-600 dark:text-red-400 font-medium">-8% from last period</p>
                             </div>
                         </div>
                     </div>
 
                     {{-- Client Satisfaction Card --}}
-                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm dark:shadow-gray-700/50">
                         <div class="flex flex-col">
                             <div class="flex items-center justify-between mb-2">
-                                <div class="p-2 bg-purple-100 rounded-lg">
-                                    <svg class="w-6 h-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
                                     </svg>
                                 </div>
                             </div>
-                            <h2 class="text-sm font-medium text-gray-500">Client Satisfaction</h2>
+                            <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Client Satisfaction</h2>
                             <div class="mt-1 flex items-baseline justify-between">
-                                <p class="text-2xl font-semibold text-gray-900">4.8/5</p>
-                                <p class="text-sm text-green-600 font-medium">+0.3 from last period</p>
+                                <p class="text-2xl font-semibold text-gray-900 dark:text-white">4.8/5</p>
+                                <p class="text-sm text-green-600 dark:text-green-400 font-medium">+0.3 from last period</p>
                             </div>
                         </div>
                     </div>
 
                     {{-- Revenue Card --}}
-                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm dark:shadow-gray-700/50">
                         <div class="flex flex-col">
                             <div class="flex items-center justify-between mb-2">
-                                <div class="p-2 bg-purple-100 rounded-lg">
-                                    <svg class="w-6 h-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                             </div>
-                            <h2 class="text-sm font-medium text-gray-500">Revenue</h2>
+                            <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Revenue</h2>
                             <div class="mt-1 flex items-baseline justify-between">
-                                <p class="text-2xl font-semibold text-gray-900">$12,450</p>
-                                <p class="text-sm text-green-600 font-medium">+15% from last period</p>
+                                <p class="text-2xl font-semibold text-gray-900 dark:text-white">$12,450</p>
+                                <p class="text-sm text-green-600 dark:text-green-400 font-medium">+15% from last period</p>
                             </div>
                         </div>
                     </div>
@@ -597,7 +597,7 @@
                     {{-- Monthly Revenue Trend --}}
                     <div class="bg-white rounded-lg p-6 shadow-sm">
                         <h3 class="text-sm font-medium text-gray-900 mb-4">Monthly Revenue Trend</h3>
-                        
+
                         {{-- Chart Container --}}
                         <div class="mb-6" style="height: 200px;">
                             <canvas id="revenueChart"></canvas>
@@ -760,9 +760,9 @@
         </div>
     </div>
 </div>
-@endsection
 
-@push('scripts')
+
+
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
@@ -1031,4 +1031,4 @@ document.addEventListener('alpine:init', () => {
     }, 100);
 });
 </script>
-@endpush
+@endsection

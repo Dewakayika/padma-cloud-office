@@ -5,10 +5,10 @@
 @section('content')
 
 
-     <div class="p-2 md:p-4 sm:ml-64">
-        <div class="p-2 md:p-4">
+     <div class="md:p-4 sm:ml-64">
+        <div class="py-4 md:p-4">
 
-            <div class="container mx-auto p-4">
+            <div class="container mx-auto">
                 <!-- Tab Navigation -->
                 <div class="border-b border-gray-200 mb-6">
                     <nav class="-mb-px flex space-x-8" aria-label="Tabs">

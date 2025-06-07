@@ -76,4 +76,17 @@ class Project extends Model
     {
         return $this->belongsTo(\App\Models\User::class, 'qc_agent');
     }
+
+    /**
+     * Get the project records for the project.
+     */
+    public function projectRecords()
+    {
+        return $this->hasMany(ProjectRecord::class);
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(ProjectLog::class);
+    }
 }

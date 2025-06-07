@@ -8,10 +8,13 @@ use App\Models\Company;
 use App\Models\Project;
 use App\Models\ProjectLog;
 use App\Models\ProjectType;
+use App\Models\ProjectSop;
+use App\Models\ProjectRecord;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TalentController extends Controller
 {
@@ -98,37 +101,45 @@ class TalentController extends Controller
 
         // Score Card Data
         $onGoingProjects = Project::where('company_id', $company->id)
-            ->whereIn('status', ['in_progress', 'qc', 'revision'])
+            ->where('talent', $user->id)
+            ->whereIn('status', ['project assign', 'draf', 'qc', 'revision'])
             ->count();
 
         $projectQC = Project::where('company_id', $company->id)
+            ->where('talent', $user->id)
             ->where('status', 'qc')
             ->count();
 
         $projectThisMonth = Project::where('company_id', $company->id)
+            ->where('talent', $user->id)
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->count();
 
         $totalProjects = Project::where('company_id', $company->id)
+            ->where('talent', $user->id)
             ->where('status', 'completed')
             ->count();
 
         // Project Status Counts
         $projectAssign = Project::where('company_id', $company->id)
-            ->where('status', 'in_progress')
+            ->where('talent', $user->id)
+            ->where('status', 'project assign')
             ->count();
 
         $projectQCStatus = Project::where('company_id', $company->id)
+            ->where('talent', $user->id)
             ->where('status', 'qc')
             ->count();
 
         $projectRevision = Project::where('company_id', $company->id)
+            ->where('talent', $user->id)
             ->where('status', 'revision')
             ->count();
 
         $projectDone = Project::where('company_id', $company->id)
-            ->where('status', 'completed')
+            ->where('talent', $user->id)
+            ->where('status', 'done')
             ->count();
 
         // Project Offers (waiting talent)
@@ -139,12 +150,14 @@ class TalentController extends Controller
 
         // All Projects
         $allProjects = Project::where('company_id', $company->id)
+            ->where('talent', $user->id)
             ->where('status', '!=', 'waiting talent')
             ->with(['projectType', 'User'])
             ->paginate(5);
 
         // Top 5 Last Updated Projects
         $recentProjects = Project::where('company_id', $company->id)
+            ->where('talent', $user->id)
             ->orderBy('updated_at', 'desc')
             ->take(5)
             ->get();
@@ -172,12 +185,12 @@ class TalentController extends Controller
         // Base query for projects
         $query = Project::whereHas('company', function($query) use ($user) {
             $query->whereHas('companyTalent', function($q) use ($user) {
-                $q->where('talent_id', $user->id);
+                $q->where('talent', $user->id);
             });
         })->with(['projectType', 'User']);
 
         // Status filtering
-        $status = $request->get('status', 'all');
+        $status = $request->get('status', ['project assign', 'draf', 'qc', 'revision', 'done']);
         switch ($status) {
             case 'ongoing':
                 $query->whereIn('status', ['project assign', 'draft']);
@@ -224,36 +237,55 @@ class TalentController extends Controller
     /**
      * Display the project detail page for a talent.
      *
-     * @param  \App\Models\Project  $id // Laravel will bind the Project model based on the {id} route parameter
+     * @param  \App\Models\Project  $id
      * @return \Illuminate\View\View|\Illuminate\Http\Response
      */
     public function projectDetail(Project $id)
     {
         // Laravel's route model binding will automatically find the Project by the {id} from the route
-        // The $id variable now holds the Project model instance.
-        $project = $id; // Assign the bound Project model to a variable named $project for clarity
+        $project = $id;
+
+        // Debug output
+        \Log::info('Project Status:', ['status' => $project->status]);
+
+        // Check if the authenticated user is the assigned talent for this project
+        if ($project->assignedTalent && $project->assignedTalent->id !== auth()->id()) {
+            abort(403, 'You are not authorized to view this project.');
+        }
 
         // Eager load relationships, including sorting logs by timestamp
         $project->load(['company', 'projectType', 'assignedTalent', 'assignedQcAgent', 'projectLogs' => function($query) {
             $query->orderBy('timestamp');
         }]);
 
-        // Find the timestamp for the 'project assign' status
-        $assignLog = $project->projectLogs->firstWhere('status', 'project assign');
+        // Get SOP list based on project type and company
+        $sopList = ProjectSop::where('project_type_id', $project->project_type_id)
+            ->where('company_id', $project->company_id)
+            ->get();
+
+        // Get project records
+        $projectRecords = ProjectRecord::where('project_id', $project->id)
+            ->with(['talent', 'qc'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Find the timestamp for the initial project assignment
+        $assignLog = $project->projectLogs->first(function($log) {
+            return $log->status === 'project assign';
+        });
         $assignTimestamp = $assignLog ? $assignLog->timestamp->toISOString() : null;
 
         // Find the timestamp for the 'done' status (if completed)
         $doneLog = $project->projectLogs->where('status', 'done')->last();
         $doneTimestamp = $doneLog ? $doneLog->timestamp->toISOString() : null;
 
-
-        // You might want to add a check here to ensure the authenticated talent
-        // is assigned to this project before showing details.
-        // if ($project->talent !== Auth::id()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
-
-        return view('users.Talent.project-detail', compact('project', 'assignTimestamp', 'doneTimestamp'));
+        return view('users.Talent.project-detail', compact(
+            'project',
+            'assignTimestamp',
+            'doneTimestamp',
+            'sopList',
+            'projectRecords'
+        ));
     }
 
     public function report()
@@ -301,5 +333,78 @@ class TalentController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Successfully applied for the project!'); // Redirect back to the dashboard or project list
+    }
+
+    /**
+     * Store a new project record.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Project  $project
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function storeProjectRecord(Request $request, Project $project)
+    {
+        $request->validate([
+            'project_link' => ['required', 'url'],
+            'passed_sops' => ['required', 'string'],
+        ]);
+
+        // Check if the authenticated user is the assigned talent
+        if ($project->talent !== auth()->id()) {
+            abort(403, 'You are not authorized to create records for this project.');
+        }
+
+        // Get all SOPs for this project type and company
+        $requiredSops = ProjectSop::where('project_type_id', $project->project_type_id)
+            ->where('company_id', $project->company_id)
+            ->pluck('id')
+            ->toArray();
+
+        // Get passed SOPs from request
+        $passedSops = array_map('intval', explode(',', $request->passed_sops));
+
+        // Check if all required SOPs are passed
+        if (count(array_diff($requiredSops, $passedSops)) > 0) {
+            return redirect()->back()->with('error', 'All SOPs must be passed before saving.');
+        }
+
+        try {
+            // Start database transaction
+            DB::beginTransaction();
+
+            // Create the project record
+            $projectRecord = ProjectRecord::create([
+                'user_id' => auth()->id(),
+                'company_id' => $project->company_id,
+                'project_id' => $project->id,
+                'talent_id' => auth()->id(),
+                'status' => 'qc',
+                'project_link' => $request->project_link,
+                'qc_message' => 'All SOPs passed: ' . implode(', ', $passedSops),
+            ]);
+
+            // Create project log entry
+            ProjectLog::create([
+                'user_id' => auth()->id(),
+                'project_id' => $project->id,
+                'company_id' => $project->company_id,
+                'talent_id' => auth()->id(),
+                'timestamp' => now(),
+                'status' => 'qc',
+                'message' => 'Project record created with all SOPs passed'
+            ]);
+
+            $project->update([
+                'status' => 'qc',
+                'talent' => auth()->id()
+            ]);
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Project record created successfully with all SOPs passed.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to create project record. Please try again.');
+        }
     }
 }

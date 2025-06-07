@@ -287,11 +287,11 @@
                                     {{ $project->project_volume }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    {{ $project->User ? $project->User->name : 'Not Assigned' }}
+                                    {{ $project->assignedQcAgent->name ? $project->assignedQcAgent->name : 'Not Assigned' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        @if($project->status === 'in_progress')
+                                        @if($project->status === 'project assign')
                                             bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300
                                         @elseif($project->status === 'qc')
                                             bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300

@@ -50,45 +50,30 @@ Route::prefix('superadmin')->middleware(['auth', 'superadmin'])->group(function 
 });
 
 // Company Routes
-Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
-    Route::get('/', [CompanyController::class, 'index'])->name('company#index');
-    Route::get('/company/dashboard', [CompanyController::class, 'index'])->name('company.dashboard');
-
-    // User Management Routes
-    Route::get('/company/users', [CompanyController::class, 'usersOverview'])->name('company.users');
-    Route::get('/company/user/{slug}', [CompanyController::class, 'detailUser'])->name('company.user.detail');
-
-    // Project Management Routes
-    Route::post('/company/project/store', [CompanyController::class, 'storeProject'])->name('company.project.store');
-    Route::put('/company/project/{id}/edit', [CompanyController::class, 'editProject'])->name('company.project.edit');
-    Route::delete('/company/project/{id}/delete', [CompanyController::class, 'deleteProject'])->name('company.project.delete');
+Route::middleware(['auth', 'company'])->group(function () {
+    Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
+    Route::get('/company/projects', [CompanyController::class, 'manageProjects'])->name('company.manage.projects');
+    Route::get('/company/statistics', [CompanyController::class, 'statistics'])->name('company.statistics');
+    Route::get('/company/settings', [CompanyController::class, 'companySettings'])->name('company.settings');
+    Route::get('/company/manage-talents', [CompanyController::class, 'manageTalents'])->name('company.manage.talents');
+    Route::get('/company/talent/{id}', [CompanyController::class, 'talentDetail'])->name('company.talent.detail');
     Route::get('/company/project/{slug}', [CompanyController::class, 'detailProject'])->name('company.project.detail');
-    Route::get('/company/projects', [CompanyController::class, 'projectOverview'])->name('company.projects');
-
-    // Company Settings
-    Route::get('/settings', [CompanyController::class, 'companySettings'])->name('company.settings');
-    Route::post('/company/project-type/store', [CompanyController::class, 'storeProjectType'])->name('company.projectType.store');
-    Route::delete('/company/project-type/{id}/edit', [CompanyController::class, 'editProjectType'])->name('company.project.type.edit');
-    Route::delete('/company/project-type/{id}/destroy', [CompanyController::class, 'destroyProjectType'])->name('company.project.type.destroy');
-
-    // Project SOP Routes
-    Route::get('/project-sops/{projectTypeId}', [CompanyController::class, 'getProjectSops'])->name('company.project.sops.get');
-    Route::post('/project-sop/store', [CompanyController::class, 'storeProjectSop'])->name('company.project.sop.store');
-    Route::get('/project-type/{id}/sops', [CompanyController::class, 'showProjectTypeSops'])->name('company.project.type.sops');
-    Route::get('/project-sop/{id}', [CompanyController::class, 'getSop'])->name('company.project.sop.get');
-    Route::put('/project-sop/{id}', [CompanyController::class, 'updateSop'])->name('company.project.sop.update');
-    Route::delete('/project-sop/{id}', [CompanyController::class, 'deleteSop'])->name('company.project.sop.delete');
-
-    // SOP Routes
-    Route::get('/company/project-type/{id}/sop-form', [CompanyController::class, 'getSopForm'])->name('company.project.type.sop.form');
-    Route::post('/company/project-sop/store', [CompanyController::class, 'storeProjectSop'])->name('company.project.sop.store');
+    Route::get('/company/user/{slug}', [CompanyController::class, 'detailUser'])->name('company.user.detail');
+    Route::get('/company/users', [CompanyController::class, 'usersOverview'])->name('company.users.overview');
+    Route::get('/company/project-overview', [CompanyController::class, 'projectOverview'])->name('company.project.overview');
+    Route::post('/company/project', [CompanyController::class, 'storeProject'])->name('company.project.store');
+    Route::post('/company/project/{id}', [CompanyController::class, 'editProject'])->name('company.project.edit');
+    Route::delete('/company/project/{id}', [CompanyController::class, 'deleteProject'])->name('company.project.delete');
+    Route::post('/company/project-type', [CompanyController::class, 'storeProjectType'])->name('company.project.type.store');
+    Route::get('/company/project-type/{id}/edit', [CompanyController::class, 'editProjectType'])->name('company.project.type.edit');
+    Route::delete('/company/project-type/{id}', [CompanyController::class, 'destroyProjectType'])->name('company.project.type.destroy');
+    Route::post('/company/invite', [CompanyController::class, 'inviteUserByEmail'])->name('company.invite.user');
     Route::get('/company/project-type/{id}/sops', [CompanyController::class, 'showProjectTypeSops'])->name('company.project.type.sops');
-    Route::get('/company/project-sop/{id}', [CompanyController::class, 'getSop'])->name('company.project.sop.get');
-    Route::put('/company/project-sop/{id}', [CompanyController::class, 'updateSop'])->name('company.project.sop.update');
-    Route::delete('/company/project-sop/{id}', [CompanyController::class, 'deleteSop'])->name('company.project.sop.delete');
-
-    // Add this new route for sending invitations
-    Route::post('/company/invite-user', [CompanyController::class, 'inviteUserByEmail'])->name('company.invite.user');
+    Route::get('/company/project-type/{projectTypeId}/sops', [CompanyController::class, 'getProjectSops'])->name('company.project.type.sops.get');
+    Route::post('/company/project-sop', [CompanyController::class, 'storeProjectSop'])->name('company.project.sop.store');
+    Route::get('/company/sop/{id}', [CompanyController::class, 'getSop'])->name('company.sop.get');
+    Route::put('/company/sop/{id}', [CompanyController::class, 'updateSop'])->name('company.sop.update');
+    Route::delete('/company/sop/{id}', [CompanyController::class, 'deleteSop'])->name('company.sop.delete');
 });
 
 // Talent Routes
@@ -101,6 +86,7 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/e-wallet', [TalentController::class, 'eWallet'])->name('talent.e-wallet');
     Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
     Route::post('/talent/project/{id}', [TalentController::class, 'applyProject'])->name('talent.projects.apply');
+    Route::post('/projects/{project}/records', [TalentController::class, 'storeProjectRecord'])->name('talent.project-records.store');
 });
 
 // Add this new route for invitation acceptance
