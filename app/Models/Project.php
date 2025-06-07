@@ -84,4 +84,9 @@ class Project extends Model
     {
         return $this->hasMany(ProjectRecord::class);
     }
+
+    public function logs()
+    {
+        return $this->hasMany(ProjectLog::class);
+    }
 }

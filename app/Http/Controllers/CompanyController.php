@@ -74,65 +74,121 @@ class CompanyController extends Controller
     {
         $user = auth()->user();
         $company = Company::where('user_id', $user->id)->first();
-        $companyId = Company::where('user_id', auth()->id())->value('id');
 
-        // Fetch counts for "On Going Projects" based on status for the authenticated company
-        $projectCounts = Project::where('company_id', $companyId)
-            ->select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
-
-        // Prepare counts with default values if a status has no projects
-        $onGoingProjects = [
-            'waiting talent' => $projectCounts['waiting talent'] ?? 0,
-            'project assign' => $projectCounts['project assign'] ?? 0,
-            'Project QC ' => $projectCounts['Project QC'] ?? 0,
-            'Revision' => $projectCounts['Revision'] ?? 0,
-            'Done' => $projectCounts['Done'] ?? 0,
-        ];
-
-        // Fetch monthly project statistics for the current year for the authenticated company
-        $currentYear = date('Y');
-        $monthlyProjects = Project::where('company_id', $companyId)
-            ->whereYear('start_date', $currentYear)
-            ->select(DB::raw('MONTH(start_date) as month'), DB::raw('count(*) as count'))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get()
-            ->pluck('count', 'month')
-            ->toArray();
-
-        // Prepare data for the chart (full year, 0 if no projects in a month)
-        $chartData = [];
-        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        for ($i = 1; $i <= 12; $i++) {
-            $chartData[] = $monthlyProjects[$i] ?? 0;
+        if (!$company) {
+            return redirect()->route('home')->with('error', 'Company not found.');
         }
 
-        // Fetch the list of projects for the authenticated company with pagination
-        $projects = Project::where('company_id', $companyId)
-                ->with('qcAgent')
-                ->orderBy('created_at', 'desc')
-                ->paginate(5);
+        // Get filter parameters
+        $year = request('year', date('Y'));
+        $projectType = request('project_type');
 
-        // New Project Fields
-        $projectTypes = ProjectType::where('company_id', $companyId)->get();
-        $talents = CompanyTalent::where('job_role', 'talent')
-                ->where('company_id', $companyId)
-                ->with('user')
-                ->get();
+        // Base query function to apply filters
+        $baseQuery = function($query) use ($year, $projectType) {
+            $query->whereYear('created_at', $year);
+            if ($projectType) {
+                $query->where('project_type_id', $projectType);
+            }
+        };
 
-        return view('users.Company.index', [
-            'user' => auth()->user(),
-            'onGoingProjects' => $onGoingProjects,
-            'monthlyProjectData' => $chartData,
-            'chartLabels' => $months,
-            'projects' => $projects,
-            'projectTypes' => $projectTypes,
-            'talents' => $talents,
-            'company' => $company
-        ]);
+        // Calculate average serving time with filters
+        $averageServingTime = ProjectLog::calculateAverageServingTime(
+            $user->id,
+            $company->id,
+            $year,
+            $projectType
+        );
+
+        // Get monthly completion stats with filters
+        $monthlyStats = ProjectLog::getMonthlyCompletionStats(
+            $company->id,
+            $year,
+            $projectType
+        );
+
+        // Get on-going projects with filters
+        $onGoingProjects = Project::where('company_id', $company->id)
+            ->where('status', 'on-going')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        // Get total projects with filters
+        $totalProjects = Project::where('company_id', $company->id)
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        // Get total volume with filters
+        $totalVolume = Project::where('company_id', $company->id)
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->sum('project_volume');
+
+        // Get project types for the company
+        $projectTypes = ProjectType::where('company_id', $company->id)->get();
+
+        // Get talents for the company
+        $talents = User::whereHas('companyTalent', function($query) use ($company) {
+            $query->where('company_id', $company->id)
+                  ->where('job_role', 'talent');
+        })->get();
+
+        // Get projects with pagination and filters
+        $projects = Project::where('company_id', $company->id)
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->when($year, function($query) use ($year) {
+                $query->whereYear('created_at', $year);
+            })
+            ->with(['projectType', 'qcAgent'])
+            ->latest()
+            ->paginate(10);
+
+        // Get project type statistics for each month
+        if (!$projectType) {
+            $projectTypeStats = Project::where('company_id', $company->id)
+                ->whereYear('created_at', $year)
+                ->where('status', 'done')
+                ->selectRaw('MONTH(created_at) as month, project_type_id, COUNT(*) as count')
+                ->groupBy('month', 'project_type_id')
+                ->get()
+                ->groupBy('month');
+
+            // Initialize monthly stats array with all months
+            $monthlyStatsArray = [];
+            for ($month = 1; $month <= 12; $month++) {
+                $monthlyStatsArray[$month] = [
+                    'count' => $monthlyStats[$month] ?? 0,
+                    'types' => []
+                ];
+            }
+
+            // Merge project type stats into monthly stats
+            foreach ($projectTypeStats as $month => $stats) {
+                $monthlyStatsArray[$month]['types'] = $stats->mapWithKeys(function($item) {
+                    return [$item->project_type_id => $item->count];
+                })->toArray();
+            }
+
+            $monthlyStats = $monthlyStatsArray;
+        }
+
+        return view('users.Company.index', compact(
+            'company',
+            'averageServingTime',
+            'monthlyStats',
+            'onGoingProjects',
+            'totalProjects',
+            'totalVolume',
+            'projects',
+            'projectTypes',
+            'talents'
+        ));
     }
 
     // Store Project
@@ -760,6 +816,108 @@ class CompanyController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to delete SOP: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function statistics()
+    {
+        $user = auth()->user();
+        $company = Company::where('user_id', $user->id)->first();
+
+        if (!$company) {
+            return redirect()->route('home')->with('error', 'Company not found.');
+        }
+
+        // Get filter parameters
+        $year = request('year', date('Y'));
+        $projectType = request('project_type');
+
+        // Get project types for the company
+        $projectTypes = ProjectType::where('company_id', $company->id)
+            ->select('id', 'project_name', 'project_rate')
+            ->get();
+
+        // Get monthly completion stats with filters
+        $monthlyStats = ProjectLog::getMonthlyCompletionStats(
+            $company->id,
+            $year,
+            $projectType
+        );
+
+        // Get project type statistics
+        $projectTypeStats = Project::where('company_id', $company->id)
+            ->whereYear('created_at', $year)
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->selectRaw('project_type_id, COUNT(*) as total_projects, SUM(project_volume) as total_volume')
+            ->groupBy('project_type_id')
+            ->with('projectType')
+            ->get();
+
+        // Get status distribution
+        $statusDistribution = Project::where('company_id', $company->id)
+            ->whereYear('created_at', $year)
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->get();
+
+        // Get average completion time by project type
+        $completionTimeByType = ProjectLog::where('project_logs.company_id', $company->id)
+            ->whereYear('project_logs.timestamp', $year)
+            ->where('project_logs.status', 'done')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->whereHas('project', function($q) use ($projectType) {
+                    $q->where('project_type_id', $projectType);
+                });
+            })
+            ->join('projects', 'project_logs.project_id', '=', 'projects.id')
+            ->selectRaw('projects.project_type_id, AVG(TIMESTAMPDIFF(MINUTE, project_logs.created_at, project_logs.timestamp)) as avg_time')
+            ->groupBy('projects.project_type_id')
+            ->with('project.projectType')
+            ->get()
+            ->keyBy('project_type_id');
+
+        // Get talent statistics
+        $talentStats = ProjectLog::where('project_logs.company_id', $company->id)
+            ->whereYear('project_logs.timestamp', $year)
+            ->when($projectType, function($query) use ($projectType) {
+                $query->whereHas('project', function($q) use ($projectType) {
+                    $q->where('project_type_id', $projectType);
+                });
+            })
+            ->join('users', 'project_logs.user_id', '=', 'users.id')
+            ->join('company_talent', function($join) use ($company) {
+                $join->on('users.id', '=', 'company_talent.talent_id')
+                    ->where('company_talent.company_id', '=', $company->id);
+            })
+            ->selectRaw('
+                users.id,
+                users.name,
+                company_talent.job_role,
+                COUNT(CASE WHEN project_logs.status = "done" THEN 1 END) as completed_projects,
+                COUNT(CASE WHEN project_logs.status = "pending" THEN 1 END) as pending_projects,
+                COUNT(CASE WHEN project_logs.status = "in_progress" THEN 1 END) as in_progress_projects,
+                AVG(CASE WHEN project_logs.status = "done"
+                    THEN TIMESTAMPDIFF(MINUTE, project_logs.created_at, project_logs.timestamp)
+                    END) as avg_completion_time
+            ')
+            ->groupBy('users.id', 'users.name', 'company_talent.job_role')
+            ->get();
+
+        return view('users.Company.statistics', compact(
+            'company',
+            'year',
+            'projectType',
+            'projectTypes',
+            'projectTypeStats',
+            'monthlyStats',
+            'statusDistribution',
+            'completionTimeByType',
+            'talentStats'
+        ));
     }
 
 }

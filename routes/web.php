@@ -53,6 +53,7 @@ Route::prefix('superadmin')->middleware(['auth', 'superadmin'])->group(function 
 Route::prefix('company')->middleware(['auth', 'company'])->group(function () {
     Route::get('/', [CompanyController::class, 'index'])->name('company#index');
     Route::get('/company/dashboard', [CompanyController::class, 'index'])->name('company.dashboard');
+    Route::get('/statistics', [CompanyController::class, 'statistics'])->name('company.statistics');
 
     // User Management Routes
     Route::get('/company/users', [CompanyController::class, 'usersOverview'])->name('company.users');
