@@ -14,6 +14,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+// Register Portal
+Route::get('/register', function () {
+    return view('auth.register-portal');
+})->name('register');
+
 // Register Company
 Route::get('/register/company', [CompanyController::class, 'create'])->name('company.register');
 Route::post('/register/company', [CompanyController::class, 'store'])->name('company.register.store');
