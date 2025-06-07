@@ -70,7 +70,7 @@
                         group {{ Request::is('company/settings') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                         <svg class="shrink-0 w-6 h-6 transition duration-75
                         {{ Request::is('company/settings') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 2.25c-.621 0-1.125.504-1.125 1.125v.548a7.496 7.496 0 00-2.371.974l-.388-.388a1.125 1.125 0 00-1.59 0l-.795.795a1.125 1.125 0 000 1.59l.388.388a7.496 7.496 0 00-.974 2.371H3.375A1.125 1.125 0 002.25 11.25v1.5c0 .621.504 1.125 1.125 1.125h.548a7.496 7.496 0 00.974 2.371l-.388.388a1.125 1.125 0 000 1.59l.795.795a1.125 1.125 0 001.59 0l.388-.388a7.496 7.496 0 002.371.974v.548c0 .621.504 1.125 1.125 1.125h1.5c.621 0 1.125-.504 1.125-1.125v-.548a7.496 7.496 0 002.371-.974l.388.388a1.125 1.125 0 001.59 0l.795-.795a1.125 1.125 0 000-1.59l-.388-.388a7.496 7.496 0 00.974-2.371h.548c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-.548a7.496 7.496 0 00-.974-2.371l.388-.388a1.125 1.125 0 000-1.59l-.795-.795a1.125 1.125 0 00-1.59 0l-.388.388a7.496 7.496 0 00-2.371-.974v-.548c0-.621-.504-1.125-1.125-1.125h-1.5zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" />
                         </svg>
                         <span class="ml-3">General Settings</span>
                     </a>
@@ -94,7 +94,7 @@
                         group {{ Request::is('company/projects') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                         <svg class="shrink-0 w-6 h-6 transition duration-75
                         {{ Request::is('company/projects') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3a.75.75 0 00-.75.75V6H6.75A2.25 2.25 0 004.5 8.25v9A2.25 2.25 0 006.75 19.5h10.5a2.25 2.25 0 002.25-2.25v-9A2.25 2.25 0 0017.25 6H15V3.75a.75.75 0 00-.75-.75h-4.5zM9 6h6V3.75a.75.75 0 00-.75-.75h-4.5a.75.75 0 00-.75.75V6z" />    
                         </svg>
                         <span class="ml-3">Manage Project</span>
                     </a>
@@ -106,13 +106,14 @@
                         group {{ Request::is('company/manage-talents') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                         <svg class="shrink-0 w-6 h-6 transition duration-75
                         {{ Request::is('company/manage-talents') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
+  <path stroke-linecap="round" stroke-linejoin="round" d="M6 20v-1a6 6 0 0112 0v1" />
                         </svg>
                         <span class="ml-3">Manage Talent</span>
                     </a>
                 </li>
 
-                <li>
+                <!-- <li>
                     <a href="{{ url('/company/settings') }}"
                        class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
                    group {{ Request::is('company/settings') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
@@ -122,7 +123,7 @@
                         </svg>
                         <span class="ml-3">Report</span>
                     </a>
-                </li>
+                </li> -->
 
 
             @elseif(Auth::user()->role == 'talent')

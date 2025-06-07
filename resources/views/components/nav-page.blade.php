@@ -1,4 +1,4 @@
-<nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-100 px-3">
+<nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-100 px-3 dark:bg-gray-800 dark:border-gray-700">
     <div class="px-4 py-2.5">
         <div class="flex items-center justify-between">
             <!-- Left side - Brand -->
@@ -13,27 +13,15 @@
                     </svg>
                 </button>
                 <a href="{{ route('talent.landing.page') }}" class="flex items-center ml-2 lg:ml-0">
-                    <span class="text-xl font-semibold text-black">Padma Cloud Office</span>
+                    <span class="text-xl font-semibold text-black dark:text-white">Padma Cloud Office</span>
                 </a>
             </div>
-
-            <!-- Center - Search Bar
-            <div class="flex-1 max-w-2xl mx-4 lg:mx-8">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <input type="search" class="w-full p-2.5 pl-10 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-purple-500 focus:border-purple-500" placeholder="Search...">
-                </div>
-            </div> -->
 
             <!-- Right side - Icons -->
             <div class="flex items-center space-x-3">
                 <!-- E-Wallet -->
                 <button type="button" onclick="window.location.href='{{ route('talent.e-wallet') }}'"
-                    class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.e-wallet') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
+                    class="relative p-2 text-gray-500 dark:text-white rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.e-wallet') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">E-Wallet</span>
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -43,7 +31,7 @@
 
                 <!-- Analytics -->
                 <button type="button" onclick="window.location.href='{{ route('talent.statistic') }}'"
-                    class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.statistic') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
+                    class="relative p-2 text-gray-500 dark:text-white rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.statistic') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">Analytics</span>
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M5 5v14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -53,7 +41,7 @@
 
                 <!-- Documentation -->
                 <button type="button" onclick="window.location.href=''"
-                    class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.documentation') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
+                    class="relative p-2 text-gray-500 dark:text-white rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.documentation') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">Documentation</span>
                     <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -65,7 +53,7 @@
 
                 <!-- Notifications -->
                 <button type="button" onclick="window.location.href=''"
-                    class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.notifications') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
+                    class="relative p-2 text-gray-500 dark:text-white rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.notifications') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">View notifications</span>
                     <div class="relative">
                         <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -80,7 +68,7 @@
 
                 <!-- Settings -->
                 <button type="button" onclick="window.location.href=''"
-                    class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.settings') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
+                    class="relative p-2 text-gray-500 dark:text-white rounded-lg  hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.settings') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }}">
                     <span class="sr-only">Settings</span>
                     <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />

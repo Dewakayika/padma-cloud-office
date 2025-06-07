@@ -27,7 +27,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         if (Auth::user()->role === 'superadmin') {
             return redirect()->route('superadmin#index');
         } elseif (Auth::user()->role === 'company') {
-            return redirect()->route('company#index');
+            return redirect()->route('company.index');
         } elseif (Auth::user()->role === 'talent'){
             return redirect()->route('talent.landing.page');
         } else {

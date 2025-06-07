@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg p-4">
+<div class="bg-white rounded-lg p-6 dark:bg-gray-800 dark:text-white">
 
     <div class="flex items-center mb-6">
         <div class="rounded-full bg-green-100 p-3 mr-3">
@@ -10,12 +10,12 @@
 
         </div>
         <div>
-            <h1 class="text-2xl font-semibold">Project Setup</h1>
-            <p class="text-gray-600">Settings Up your project type with base price</p></p>
+            <h1 class="text-xl font-semibold">Project Setup</h1>
+            <p class="text-gray-600 dark:text-gray-400">Settings Up your project type with base price</p></p>
         </div>
     </div>
 
-    <form id="add-project-type-form" class="border rounded-lg p-4" action="{{ route('company.project.store') }}" method="POST">
+    <form id="add-project-type-form" class="border rounded-lg p-6 dark:bg-gray-900 dark:text-white dark:border-gray-800" action="{{ route('company.project.store') }}" method="POST">
         @csrf
         <h3 class="text-lg font-semibold mb-4 flex items-center">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
@@ -26,12 +26,12 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-                <label for="project_name" class="block text-sm font-medium text-gray-700">Project Name</label>
-                <input type="text" name="project_name" id="project_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                <label for="project_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Name</label>
+                <input type="text" name="project_name" id="project_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-800">
             </div>
             <div>
-                <label for="project_rate" class="block text-sm font-medium text-gray-700">Project Rate</label>
-                <input type="number" name="project_rate" id="project_rate" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" step="0.01">
+                <label for="project_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 ">Project Rate</label>
+                <input type="number" name="project_rate" id="project_rate" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-800" step="0.01">
             </div>
         </div>
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md">Add Project Type</button>
@@ -43,10 +43,10 @@
 
         {{-- Existing project types list --}}
         @forelse ($projectTypes as $projectType)
-            <div class="bg-gray-100 p-3 rounded-md mb-3 flex justify-between items-center">
+            <div class="bg-gray-100 p-3 px-6 rounded-md mb-3 flex justify-between items-center dark:bg-gray-900 dark:text-white dark:border-gray-800">
                 <div>
                     <p class="font-semibold">{{ $projectType->project_name }}</p>
-                    <p class="text-gray-600 text-sm">Rate: {{ $projectType->project_rate }}</p>
+                    <p class="text-gray-600 text-sm dark:text-gray-400">Rate: {{ $projectType->project_rate }}</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <a href="{{ route('company.project.type.edit', $projectType->id) }}" class="text-blue-600 hover:text-blue-900 text-sm">Edit</a>
@@ -58,7 +58,7 @@
                 </div>
             </div>
         @empty
-            <p class="text-gray-600">No project types added yet.</p>
+            <p class="text-gray-600 dark:text-gray-400">No project types added yet.</p>
         @endforelse
 
         <div class="mt-4">

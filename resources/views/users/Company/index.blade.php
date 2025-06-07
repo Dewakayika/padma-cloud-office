@@ -330,11 +330,11 @@
         const projectTypes = @json($projectTypes);
         const currentProjectType = @json(request('project_type'));
 
-        // Check if dark mode is enabled
-        const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        // Detect dark mode based on Tailwind's 'dark' class on <html>
+        const isDarkMode = document.documentElement.classList.contains('dark');
 
         // Create array for all months
-        const allMonths = Array.from({length: 12}, (_, i) => {
+        const allMonths = Array.from({ length: 12 }, (_, i) => {
             const month = i + 1;
             return {
                 month: month,
@@ -342,20 +342,20 @@
             };
         });
 
-        // iOS-style gradients for different project types
+        // iOS-style gradients
         const gradients = {};
         const colors = isDarkMode ? [
-            { start: 'rgba(10, 132, 255, 0.9)', end: 'rgba(10, 132, 255, 0.5)' },    // iOS Blue (Dark)
-            { start: 'rgba(48, 209, 88, 0.9)', end: 'rgba(48, 209, 88, 0.5)' },      // iOS Green (Dark)
-            { start: 'rgba(255, 159, 10, 0.9)', end: 'rgba(255, 159, 10, 0.5)' },    // iOS Orange (Dark)
-            { start: 'rgba(255, 69, 58, 0.9)', end: 'rgba(255, 69, 58, 0.5)' },      // iOS Red (Dark)
-            { start: 'rgba(191, 90, 242, 0.9)', end: 'rgba(191, 90, 242, 0.5)' }     // iOS Purple (Dark)
+            { start: 'rgba(10, 132, 255, 0.9)', end: 'rgba(10, 132, 255, 0.5)' },
+            { start: 'rgba(48, 209, 88, 0.9)', end: 'rgba(48, 209, 88, 0.5)' },
+            { start: 'rgba(255, 159, 10, 0.9)', end: 'rgba(255, 159, 10, 0.5)' },
+            { start: 'rgba(255, 69, 58, 0.9)', end: 'rgba(255, 69, 58, 0.5)' },
+            { start: 'rgba(191, 90, 242, 0.9)', end: 'rgba(191, 90, 242, 0.5)' }
         ] : [
-            { start: 'rgba(0, 122, 255, 0.8)', end: 'rgba(0, 122, 255, 0.4)' },      // iOS Blue
-            { start: 'rgba(52, 199, 89, 0.8)', end: 'rgba(52, 199, 89, 0.4)' },      // iOS Green
-            { start: 'rgba(255, 149, 0, 0.8)', end: 'rgba(255, 149, 0, 0.4)' },      // iOS Orange
-            { start: 'rgba(255, 59, 48, 0.8)', end: 'rgba(255, 59, 48, 0.4)' },      // iOS Red
-            { start: 'rgba(175, 82, 222, 0.8)', end: 'rgba(175, 82, 222, 0.4)' }     // iOS Purple
+            { start: 'rgba(0, 122, 255, 0.8)', end: 'rgba(0, 122, 255, 0.4)' },
+            { start: 'rgba(52, 199, 89, 0.8)', end: 'rgba(52, 199, 89, 0.4)' },
+            { start: 'rgba(255, 149, 0, 0.8)', end: 'rgba(255, 149, 0, 0.4)' },
+            { start: 'rgba(255, 59, 48, 0.8)', end: 'rgba(255, 59, 48, 0.4)' },
+            { start: 'rgba(175, 82, 222, 0.8)', end: 'rgba(175, 82, 222, 0.4)' }
         ];
 
         projectTypes.forEach((type, index) => {
@@ -365,15 +365,13 @@
             gradients[type.id] = gradient;
         });
 
-        // Prepare datasets based on whether a project type is selected
         let datasets;
         if (currentProjectType) {
-            // Single dataset for selected project type
             datasets = [{
                 label: 'Completed Projects',
                 data: allMonths.map(item => item.count),
                 backgroundColor: gradients[currentProjectType] || gradients[projectTypes[0]?.id],
-                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.2)',
+                borderColor: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
                 borderWidth: 1,
                 borderRadius: 12,
                 barThickness: 20,
@@ -381,7 +379,6 @@
                 minBarLength: 4
             }];
         } else {
-            // Multiple datasets for all project types
             datasets = projectTypes.map(type => ({
                 label: type.project_name,
                 data: allMonths.map(item => {
@@ -389,7 +386,7 @@
                     return typeStats[type.id] || 0;
                 }),
                 backgroundColor: gradients[type.id],
-                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.2)',
+                borderColor: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
                 borderWidth: 1,
                 borderRadius: 12,
                 barThickness: 20,
@@ -422,7 +419,7 @@
                         grid: {
                             display: true,
                             drawBorder: false,
-                            color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                            color: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                             lineWidth: 1,
                             drawTicks: false
                         },
@@ -430,9 +427,9 @@
                             stepSize: 1,
                             font: {
                                 size: 13,
-                                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+                                family: 'Figtree'
                             },
-                            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                            color: isDarkMode ? '#FFFFFF' : '#000000',
                             padding: 10
                         }
                     },
@@ -445,9 +442,9 @@
                         ticks: {
                             font: {
                                 size: 13,
-                                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+                                family: 'Figtree'
                             },
-                            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                            color: isDarkMode ? '#FFFFFF' : '#000000',
                             padding: 10
                         }
                     }
@@ -462,18 +459,18 @@
                             padding: 20,
                             font: {
                                 size: 13,
-                                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+                                family: 'Figtree'
                             },
-                            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                            color: isDarkMode ? '#FFFFFF' : '#000000',
                             usePointStyle: true,
                             pointStyle: 'circle'
                         }
                     },
                     tooltip: {
-                        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.95)',
-                        titleColor: isDarkMode ? '#fff' : '#000',
-                        bodyColor: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : '#666',
-                        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                        backgroundColor: isDarkMode ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.95)',
+                        titleColor: isDarkMode ? '#FFFFFF' : '#000000',
+                        bodyColor: isDarkMode ? 'rgba(255,255,255,0.7)' : '#666666',
+                        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                         borderWidth: 1,
                         padding: 12,
                         cornerRadius: 10,
@@ -495,13 +492,21 @@
             }
         });
 
-        // Listen for dark mode changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            // Reload the page to update the chart colors
-            window.location.reload();
+        // OPTIONAL: Detect class change for dark/light mode if toggling dynamically (not just via system preference)
+        const observer = new MutationObserver(() => {
+            const currentDark = document.documentElement.classList.contains('dark');
+            if (currentDark !== isDarkMode) {
+                window.location.reload();
+            }
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
         });
     });
 </script>
+
 @endpush
 
 @endsection
