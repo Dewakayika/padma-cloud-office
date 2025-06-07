@@ -74,6 +74,16 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::get('/company/sop/{id}', [CompanyController::class, 'getSop'])->name('company.sop.get');
     Route::put('/company/sop/{id}', [CompanyController::class, 'updateSop'])->name('company.sop.update');
     Route::delete('/company/sop/{id}', [CompanyController::class, 'deleteSop'])->name('company.sop.delete');
+
+    // Project Management Routes
+    Route::get('/company/manage/projects', [CompanyController::class, 'manageProjects'])->name('company.manage.projects');
+    Route::get('/company/project/{slug}', [CompanyController::class, 'detailProject'])->name('company.project.detail');
+    Route::post('/company/project/{project}/qc', [CompanyController::class, 'storeQcReview'])->name('company.project.qc.store');
+    Route::post('/company/project/{project}/revise', [CompanyController::class, 'storeProjectRevision'])->name('company.project.revise');
+    Route::post('/projects/{project}/complete', [CompanyController::class, 'completeProject'])->name('company.project.complete');
+
+    // Feedback routes
+    Route::post('/projects/{project}/feedback/company', [CompanyController::class, 'storeCompanyFeedback'])->name('company.project.feedback');
 });
 
 // Talent Routes
@@ -87,6 +97,9 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
     Route::post('/talent/project/{id}', [TalentController::class, 'applyProject'])->name('talent.projects.apply');
     Route::post('/projects/{project}/records', [TalentController::class, 'storeProjectRecord'])->name('talent.project-records.store');
+
+    // Feedback routes
+    Route::post('/projects/{project}/feedback/talent', [CompanyController::class, 'storeTalentFeedback'])->name('talent.project.feedback');
 });
 
 // Add this new route for invitation acceptance
