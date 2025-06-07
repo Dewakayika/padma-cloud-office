@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
             $table->foreignId('talent_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('qc_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->enum('status', ['project assign', 'draft', 'qc', 'revision', 'done']);
+            $table->enum('status', ['project assign', 'draf', 'qc', 'revision', 'done']);
             $table->text('qc_message');
             $table->string('project_link');
             $table->timestamps();

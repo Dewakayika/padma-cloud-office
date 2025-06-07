@@ -33,19 +33,19 @@
                 {{-- Project Status Tabs --}}
                 <div class="inline-flex rounded-lg shadow-sm">
                     <a href="{{ route('company.manage.projects', array_merge(request()->query(), ['status' => 'all'])) }}"
-                       class="px-4 py-2 text-sm font-medium {{ request('status', 'all') == 'all' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                       class="px-4 py-2 text-sm font-medium {{ request('status', 'all') == 'all' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-gray-700' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         All Projects
                     </a>
                     <a href="{{ route('company.manage.projects', array_merge(request()->query(), ['status' => 'ongoing'])) }}"
-                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'ongoing' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'ongoing' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-gray-700' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         Ongoing
                     </a>
                     <a href="{{ route('company.manage.projects', array_merge(request()->query(), ['status' => 'qc'])) }}"
-                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'qc' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'qc' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-gray-700' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         QC
                     </a>
                     <a href="{{ route('company.manage.projects', array_merge(request()->query(), ['status' => 'completed'])) }}"
-                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'completed' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'completed' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-gray-700' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         Completed
                     </a>
                 </div>
@@ -65,11 +65,11 @@
                                 <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Name A-Z</option>
                                 <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Name Z-A</option>
                             </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <!-- <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                                 <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                                 </svg>
-                            </div>
+                            </div> -->
                         </div>
                     </form>
                 </div>
@@ -126,7 +126,7 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <a href="{{ route('talent.project.detail', $project->id) }}"
+                                            <a href="{{ route('company.project.detail', $project->id . '-' . Str::slug($project->project_name)) }}"
                                                class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">
                                                 Details
                                             </a>

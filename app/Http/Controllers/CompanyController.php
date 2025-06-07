@@ -12,6 +12,8 @@ use App\Models\ProjectType;
 use App\Models\Invitation;
 use App\Mail\UserInvitation;
 use App\Models\ProjectSop;
+use App\Models\ProjectRecord;
+use App\Models\Feedback;
 
 
 use Illuminate\Support\Facades\Hash;
@@ -92,8 +94,8 @@ class CompanyController extends Controller
             }
         };
 
-        // Calculate average serving time with filters
-        $averageServingTime = ProjectLog::calculateAverageServingTime(
+        // Calculate average completion time with filters
+        $averageCompletionTime = ProjectLog::calculateAverageCompletionTime(
             $user->id,
             $company->id,
             $year,
@@ -109,7 +111,42 @@ class CompanyController extends Controller
 
         // Get on-going projects with filters
         $onGoingProjects = Project::where('company_id', $company->id)
-            ->where('status', 'on-going')
+            ->where('status', ['waiting talent', 'draf', 'qc', 'revision'])
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $waitingTalent = Project::where('company_id', $company->id)
+            ->where('status', 'waiting talent')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $QC = Project::where('company_id', $company->id)
+            ->where('status', 'qc')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $draft = Project::where('company_id', $company->id)
+            ->where('status', 'draf')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $revision = Project::where('company_id', $company->id)
+            ->where('status', 'revision')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $done = Project::where('company_id', $company->id)
+            ->where('status', 'done')
             ->when($projectType, function($query) use ($projectType) {
                 $query->where('project_type_id', $projectType);
             })
@@ -181,14 +218,19 @@ class CompanyController extends Controller
 
         return view('users.Company.index', compact(
             'company',
-            'averageServingTime',
+            'averageCompletionTime',
             'monthlyStats',
             'onGoingProjects',
             'totalProjects',
             'totalVolume',
             'projects',
             'projectTypes',
-            'talents'
+            'talents',
+            'waitingTalent',
+            'QC',
+            'draft',
+            'revision',
+            'done'
         ));
     }
 
@@ -320,25 +362,94 @@ class CompanyController extends Controller
     // Detail Project
     public function detailProject($slug)
     {
-        try {
+
             // Find the project by slug
             $id = explode('-', $slug)[0];
-            $project = Project::findOrFail($id);
+            $project = Project::with([
+                'projectType',
+                'assignedQcAgent',
+                'projectLogs' => function($query) {
+                    $query->orderBy('timestamp', 'asc');
+                },
+                'projectRecords' => function($query) {
+                    $query->orderBy('created_at', 'asc');
+                },
+                'user',
+                'company'
+            ])->findOrFail($id);
 
-            // Get project logs with related dataE
-            $projectLogs = $project->projectLogs()
-                ->with(['user', 'talent', 'talentQc'])
-                ->orderBy('created_at', 'desc')
+            // Get the company
+            $company = Company::where('user_id', auth()->id())->first();
+
+            if (!$company || $project->company_id !== $company->id) {
+                return redirect()->route('company.manage.projects')
+                    ->with('error', 'Project not found or unauthorized access.');
+            }
+
+            // Get assign and done timestamps
+            $assignTimestamp = $project->projectLogs
+                ->where('status', 'project assign')
+                ->first()?->timestamp;
+
+            $doneTimestamp = $project->projectLogs
+                ->where('status', 'done')
+                ->first()?->timestamp;
+
+            // Calculate total time if project is done
+            if ($project->status === 'done' && $assignTimestamp && $doneTimestamp) {
+                $totalTime = $assignTimestamp->diffInSeconds($doneTimestamp);
+                $days = floor($totalTime / (24 * 3600));
+                $hours = floor(($totalTime % (24 * 3600)) / 3600);
+                $minutes = floor(($totalTime % 3600) / 60);
+                $seconds = $totalTime % 60;
+
+                $project->total_time = [
+                    'days' => $days,
+                    'hours' => $hours,
+                    'minutes' => $minutes,
+                    'seconds' => $seconds,
+                    'total_seconds' => $totalTime,
+                    'start_date' => $assignTimestamp,
+                    'end_date' => $doneTimestamp
+                ];
+            }
+
+            // Get project records
+            $projectRecords = $project->projectRecords()
+                ->with(['talent', 'qc'])
+                ->orderBy('created_at', 'asc')
                 ->get();
 
-            return view('users.Company.project-detail', [
-                'project' => $project,
-                'projectLogs' => $projectLogs
-            ]);
+            // Add status timeline data
+            $project->status_timeline = $project->projectLogs->map(function($log) {
+                return [
+                    'status' => $log->status,
+                    'timestamp' => $log->timestamp,
+                    'user' => $log->user->name ?? 'System',
+                    'message' => $log->message
+                ];
+            });
 
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to load project details: ' . $e->getMessage());
-        }
+            // Feedback logic
+            $currentUser = auth()->user();
+            $companyFeedbackExists = Feedback::where('project_id', $project->id)
+                ->where('from_user_id', $currentUser->id)
+                ->where('role', 'company')
+                ->exists();
+            $talentFeedbackExists = Feedback::where('project_id', $project->id)
+                ->where('from_user_id', $currentUser->id)
+                ->where('role', 'talent')
+                ->exists();
+
+            return view('users.Company.company-project-detail', compact(
+                'project',
+                'assignTimestamp',
+                'doneTimestamp',
+                'projectRecords',
+                'companyFeedbackExists',
+                'talentFeedbackExists'
+            ));
+
     }
 
     // Project Overview List
@@ -837,14 +948,7 @@ class CompanyController extends Controller
             ->select('id', 'project_name', 'project_rate')
             ->get();
 
-        // Get monthly completion stats with filters
-        $monthlyStats = ProjectLog::getMonthlyCompletionStats(
-            $company->id,
-            $year,
-            $projectType
-        );
-
-        // Get project type statistics
+        // Project Type Stats
         $projectTypeStats = Project::where('company_id', $company->id)
             ->whereYear('created_at', $year)
             ->when($projectType, function($query) use ($projectType) {
@@ -855,7 +959,28 @@ class CompanyController extends Controller
             ->with('projectType')
             ->get();
 
-        // Get status distribution
+        // Monthly Completion Trend
+        $monthlyStats = ProjectLog::where('company_id', $company->id)
+            ->where('status', 'done')
+            ->whereYear('timestamp', $year)
+            ->when($projectType, function($query) use ($projectType) {
+                $query->whereHas('project', function($q) use ($projectType) {
+                    $q->where('project_type_id', $projectType);
+                });
+            })
+            ->selectRaw('MONTH(timestamp) as month, COUNT(*) as count')
+            ->groupBy('month')
+            ->pluck('count', 'month')
+            ->toArray();
+        // Fill missing months with 0
+        for ($i = 1; $i <= 12; $i++) {
+            if (!isset($monthlyStats[$i])) {
+                $monthlyStats[$i] = 0;
+            }
+        }
+        ksort($monthlyStats);
+
+        // Project Status Distribution
         $statusDistribution = Project::where('company_id', $company->id)
             ->whereYear('created_at', $year)
             ->when($projectType, function($query) use ($projectType) {
@@ -865,48 +990,88 @@ class CompanyController extends Controller
             ->groupBy('status')
             ->get();
 
-        // Get average completion time by project type
-        $completionTimeByType = ProjectLog::where('project_logs.company_id', $company->id)
-            ->whereYear('project_logs.timestamp', $year)
-            ->where('project_logs.status', 'done')
-            ->when($projectType, function($query) use ($projectType) {
-                $query->whereHas('project', function($q) use ($projectType) {
+        // Average Completion Time by Project Type
+        $completionTimeByType = ProjectType::where('company_id', $company->id)
+            ->with(['projects' => function($q) use ($year, $projectType) {
+                $q->where('status', 'done')
+                  ->whereYear('created_at', $year);
+                if ($projectType) {
                     $q->where('project_type_id', $projectType);
-                });
-            })
-            ->join('projects', 'project_logs.project_id', '=', 'projects.id')
-            ->selectRaw('projects.project_type_id, AVG(TIMESTAMPDIFF(MINUTE, project_logs.created_at, project_logs.timestamp)) as avg_time')
-            ->groupBy('projects.project_type_id')
-            ->with('project.projectType')
+                }
+                $q->with(['projectLogs' => function($logQ) {
+                    $logQ->orderBy('timestamp', 'asc');
+                }]);
+            }])
             ->get()
-            ->keyBy('project_type_id');
+            ->map(function($type) {
+                $totalSeconds = 0;
+                $count = 0;
+                foreach ($type->projects as $project) {
+                    $assignLog = $project->projectLogs->firstWhere('status', 'project assign');
+                    $doneLog = $project->projectLogs->firstWhere('status', 'done');
+                    if ($assignLog && $doneLog) {
+                        $start = \Carbon\Carbon::parse($assignLog->timestamp);
+                        $end = \Carbon\Carbon::parse($doneLog->timestamp);
+                        $duration = $end->diffInSeconds($start);
+                        if ($duration > 0) {
+                            $totalSeconds += $duration;
+                            $count++;
+                        }
+                    }
+                }
+                return [
+                    'name' => $type->project_name,
+                    'avg_time' => $count ? round($totalSeconds / $count / 60, 2) : 0 // in minutes
+                ];
+            });
 
-        // Get talent statistics
-        $talentStats = ProjectLog::where('project_logs.company_id', $company->id)
-            ->whereYear('project_logs.timestamp', $year)
-            ->when($projectType, function($query) use ($projectType) {
-                $query->whereHas('project', function($q) use ($projectType) {
-                    $q->where('project_type_id', $projectType);
-                });
+        // Talent Performance
+        $talentStats = User::whereHas('companyTalent', function($query) use ($company) {
+                $query->where('company_id', $company->id);
             })
-            ->join('users', 'project_logs.user_id', '=', 'users.id')
-            ->join('company_talent', function($join) use ($company) {
-                $join->on('users.id', '=', 'company_talent.talent_id')
-                    ->where('company_talent.company_id', '=', $company->id);
-            })
-            ->selectRaw('
-                users.id,
-                users.name,
-                company_talent.job_role,
-                COUNT(CASE WHEN project_logs.status = "done" THEN 1 END) as completed_projects,
-                COUNT(CASE WHEN project_logs.status = "pending" THEN 1 END) as pending_projects,
-                COUNT(CASE WHEN project_logs.status = "in_progress" THEN 1 END) as in_progress_projects,
-                AVG(CASE WHEN project_logs.status = "done"
-                    THEN TIMESTAMPDIFF(MINUTE, project_logs.created_at, project_logs.timestamp)
-                    END) as avg_completion_time
-            ')
-            ->groupBy('users.id', 'users.name', 'company_talent.job_role')
-            ->get();
+            ->with(['companyTalent' => function($query) use ($company) {
+                $query->where('company_id', $company->id);
+            }])
+            ->get()
+            ->map(function($talent) use ($company, $year, $projectType) {
+                $completed = Project::where('talent', $talent->id)
+                    ->where('company_id', $company->id)
+                    ->where('status', 'done')
+                    ->when($projectType, function($query) use ($projectType) {
+                        $query->where('project_type_id', $projectType);
+                    })
+                    ->whereYear('created_at', $year)
+                    ->get();
+
+                $inProgress = Project::where('talent', $talent->id)
+                    ->where('company_id', $company->id)
+                    ->whereIn('status', ['project assign', 'draft', 'qc', 'revision'])
+                    ->when($projectType, function($query) use ($projectType) {
+                        $query->where('project_type_id', $projectType);
+                    })
+                    ->whereYear('created_at', $year)
+                    ->count();
+
+                $completionTimes = $completed->map(function($project) {
+                    $assignLog = $project->projectLogs->firstWhere('status', 'project assign');
+                    $doneLog = $project->projectLogs->firstWhere('status', 'done');
+                    if ($assignLog && $doneLog) {
+                        $start = \Carbon\Carbon::parse($assignLog->timestamp);
+                        $end = \Carbon\Carbon::parse($doneLog->timestamp);
+                        return $end->diffInSeconds($start);
+                    }
+                    return null;
+                })->filter();
+
+                $avgCompletionTime = $completionTimes->count() ? $completionTimes->sum() / $completionTimes->count() : 0;
+
+                return (object)[
+                    'name' => $talent->name,
+                    'completed_projects' => $completed->count(),
+                    'in_progress_projects' => $inProgress,
+                    'avg_completion_time' => $avgCompletionTime / 60 // in minutes
+                ];
+            });
 
         return view('users.Company.statistics', compact(
             'company',
@@ -1207,6 +1372,232 @@ class CompanyController extends Controller
             return redirect()->route('company.manage.talents')
                 ->with('error', 'Failed to load talent details: ' . $e->getMessage());
         }
+    }
+
+    public function storeQcReview(Request $request, Project $project)
+    {
+        try {
+            // Validate the request
+            $validated = $request->validate([
+                'qc_status' => 'required|in:approved,revision,rejected',
+                'passed_sops' => 'required|string',
+                'qc_message' => 'required|string',
+                'project_link' => 'required|url'
+            ]);
+
+            // Check if the user is the assigned QC agent
+            if (!$project->assignedQcAgent || $project->assignedQcAgent->id !== auth()->id()) {
+                return redirect()->back()->with('error', 'You are not authorized to submit QC review for this project.');
+            }
+
+            // Create project record
+            $projectRecord = ProjectRecord::create([
+                'user_id' => auth()->id(),
+                'project_link' => $validated['project_link'],
+                'project_id' => $project->id,
+                'talent_id' => $project->talent,
+                'company_id' => $project->company_id,
+                'qc_id' => auth()->id(),
+                'qc_status' => 'draf',
+                'passed_sops' => $validated['passed_sops'],
+                'qc_message' => $validated['qc_message']
+            ]);
+
+            // Update project status based on QC status
+            $project->update([
+                'status' => 'draf',
+                'project_link' => $validated['project_link']
+            ]);
+
+            // Create project log
+            ProjectLog::create([
+                'user_id' => auth()->id(),
+                'project_id' => $project->id,
+                'talent_qc_id' => auth()->id(),
+                'talent_id' => $project->talent,
+                'company_id' => $project->company_id,
+                'status' => 'draf',
+                'timestamp' => now(),
+            ]);
+
+            return redirect()->back()->with('success', 'QC review submitted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to submit QC review: ' . $e->getMessage());
+        }
+    }
+
+    public function storeProjectRevision(Request $request, Project $project)
+    {
+        try {
+            // Validate the request
+            $validated = $request->validate([
+                'project_link' => 'required|url',
+                'revise_message' => 'required|string',
+            ]);
+
+            // Check if the user is the assigned QC agent
+            if (!$project->assignedQcAgent || $project->assignedQcAgent->id !== auth()->id()) {
+                return redirect()->back()->with('error', 'You are not authorized to submit revision for this project.');
+            }
+
+            // Create project record
+            $projectRecord = ProjectRecord::create([
+                'user_id' => auth()->id(),
+                'project_link' => $validated['project_link'],
+                'project_id' => $project->id,
+                'talent_id' => $project->talent,
+                'company_id' => $project->company_id,
+                'qc_id' => auth()->id(),
+                'status' => 'revision',
+                'qc_message' => $validated['revise_message']
+            ]);
+
+            // Update project status
+            $project->update([
+                'status' => 'revision',
+                'project_link' => $validated['project_link']
+            ]);
+
+            // Create project log
+            ProjectLog::create([
+                'user_id' => auth()->id(),
+                'project_id' => $project->id,
+                'talent_qc_id' => auth()->id(),
+                'talent_id' => $project->talent,
+                'company_id' => $project->company_id,
+                'status' => 'revision',
+                'timestamp' => now(),
+                'message' => $validated['revise_message']
+            ]);
+
+            return redirect()->back()->with('success', 'Project revision submitted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to submit project revision: ' . $e->getMessage());
+        }
+    }
+
+    public function completeProject(Request $request, Project $project)
+    {
+        try {
+            // Validate the request
+            $validated = $request->validate([
+                'completion_message' => 'nullable|string|max:1000',
+            ]);
+
+            // Get the user's company
+            $userCompany = Company::where('user_id', auth()->id())->first();
+
+            // Check if the user is authorized to complete this project
+            if (!$userCompany || $project->company_id !== $userCompany->id) {
+                return redirect()->back()->with('error', 'You are not authorized to complete this project.');
+            }
+
+            // Check if project is in draft status
+            if ($project->status !== 'draf') {
+                return redirect()->back()->with('error', 'Only draft projects can be marked as done.');
+            }
+
+            // Get the latest project record
+            $latestRecord = $project->projectRecords()->latest()->first();
+
+            // Create new project record
+            $projectRecord = ProjectRecord::create([
+                'user_id' => auth()->id(),
+                'project_link' => $latestRecord ? $latestRecord->project_link : $project->project_link,
+                'project_id' => $project->id,
+                'talent_id' => $project->talent,
+                'company_id' => $project->company_id,
+                'qc_id' => $project->qc_agent,
+                'status' => 'done',
+                'qc_message' => $validated['completion_message'] ?? 'Project marked as completed'
+            ]);
+
+            // Update project status
+            $project->update([
+                'status' => 'done',
+                'finish_date' => now()
+            ]);
+
+            // Create project log with done status
+            ProjectLog::create([
+                'user_id' => auth()->id(),
+                'project_id' => $project->id,
+                'talent_qc_id' => $project->qc_agent,
+                'talent_id' => $project->talent,
+                'company_id' => $project->company_id,
+                'status' => 'done',
+                'timestamp' => now(),
+                'message' => $validated['completion_message'] ?? 'Project marked as completed'
+            ]);
+
+            return redirect()->back()->with('success', 'Project has been marked as completed successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to complete project: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Store feedback from company to talent
+     */
+    public function storeCompanyFeedback(Request $request, Project $project)
+    {
+        $user = auth()->user();
+        // Only allow if user is company and project is done
+        if ($user->role !== 'company' || $project->status !== 'done') {
+            return redirect()->back()->with('error', 'Unauthorized or project not completed.');
+        }
+        // Prevent duplicate feedback
+        $existing = Feedback::where('project_id', $project->id)
+            ->where('from_user_id', $user->id)
+            ->where('role', 'company')
+            ->first();
+        if ($existing) {
+            return redirect()->back()->with('error', 'Feedback already submitted.');
+        }
+        $request->validate([
+            'feedback_text' => 'required|string|max:2000',
+        ]);
+        Feedback::create([
+            'project_id' => $project->id,
+            'from_user_id' => $user->id,
+            'to_user_id' => $project->talent,
+            'role' => 'company',
+            'feedback_text' => $request->feedback_text,
+        ]);
+        return redirect()->back()->with('success', 'Feedback submitted for talent.');
+    }
+
+    /**
+     * Store feedback from talent to project
+     */
+    public function storeTalentFeedback(Request $request, Project $project)
+    {
+        $user = auth()->user();
+        // Only allow if user is talent and project is done
+        if ($user->role !== 'talent' || $project->status !== 'done' || $project->talent != $user->id) {
+            return redirect()->back()->with('error', 'Unauthorized or project not completed.');
+        }
+        // Prevent duplicate feedback
+        $existing = Feedback::where('project_id', $project->id)
+            ->where('from_user_id', $user->id)
+            ->where('role', 'talent')
+            ->first();
+        if ($existing) {
+            return redirect()->back()->with('error', 'Feedback already submitted.');
+        }
+        $request->validate([
+            'feedback_text' => 'required|string|max:2000',
+            'project_rate' => 'required|integer|min:1|max:5',
+        ]);
+        Feedback::create([
+            'project_id' => $project->id,
+            'from_user_id' => $user->id,
+            'to_user_id' => null,
+            'role' => 'talent',
+            'feedback_text' => $request->feedback_text,
+            'project_rate' => $request->project_rate,
+        ]);
+        return redirect()->back()->with('success', 'Feedback and rating submitted for project.');
     }
 
 }

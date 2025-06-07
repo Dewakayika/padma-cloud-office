@@ -11,11 +11,11 @@
             <div class="container mx-auto">
                 <!-- Tab Navigation -->
                 <div class="border-b border-gray-200 mb-6">
-                    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600" aria-current="page">Project Settings</button>
-                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">SOP Settings</button>
-                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Team Settings</button>
-                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Billing Settings</button>
+                    <nav class="-mb-px flex space-x-8 dark:text-white" aria-label="Tabs">
+                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600 dark:text-white" aria-current="page">Project Settings</button>
+                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-white hover:text-gray-700 hover:border-gray-300 ">SOP Settings</button>
+                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-white hover:text-gray-700 hover:border-gray-300 ">Team Settings</button>
+                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-white hover:text-gray-700 hover:border-gray-300 ">Billing Settings</button>
                     </nav>
                 </div>
 
@@ -54,8 +54,8 @@
 
                     <!-- Billing Settings Content -->
                     <div id="billing-settings" class="hidden">
-                        <h2 class="text-xl font-semibold mb-4">Billing Settings</h2>
-                        <p>Content for Billing Settings will go here.</p>
+                        <h2 class="text-xl font-semibold mb-4 dark:text-white">Billing Settings</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Content for Billing Settings will go here.</p>
                     </div>
                 </div>
 

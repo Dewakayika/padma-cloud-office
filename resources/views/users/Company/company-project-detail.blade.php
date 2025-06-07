@@ -42,6 +42,9 @@
     $timelineLine = 'absolute left-4 h-full w-0.5 bg-gray-200 dark:bg-gray-700';
     $timelineDot = 'flex items-center justify-center w-8 h-8 rounded-full z-10';
     $timelineContent = 'ml-4';
+
+    $role = auth()->user()->role;
+    $feedbackExists = $role === 'company' ? $companyFeedbackExists : $talentFeedbackExists;
 @endphp
 
 @section('content')
@@ -87,7 +90,7 @@
 
                         @php
                             $activeStatuses = ['project assign', 'qc', 'draf', 'revision'];
-                            $isTimerActive = $project->status !== 'done' && $assignTimestamp;
+                            $isTimerActive = in_array($project->status, $activeStatuses) && $assignTimestamp;
                         @endphp
 
                         @if ($isTimerActive)
@@ -101,9 +104,33 @@
                                  </div>
                                  @endforeach
                              </div>
-                        @elseif ($project->status === 'done')
-                            <div id="total-time-taken" class="text-lg font-bold text-green-500 dark:text-green-400"></div>
-                            <div class="text-sm font-medium {{ $whiteText }} mt-1">Project Completed</div>
+                        @elseif ($project->status === 'done' && $assignTimestamp && $doneTimestamp)
+                            <div class="grid grid-cols-4 gap-4" id="total-time-taken">
+                                @php
+                                    $totalTime = $assignTimestamp->diffInSeconds($doneTimestamp);
+                                    $days = floor($totalTime / (24 * 3600));
+                                    $hours = floor(($totalTime % (24 * 3600)) / 3600);
+                                    $minutes = floor(($totalTime % 3600) / 60);
+                                    $seconds = $totalTime % 60;
+                                @endphp
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-white dark:text-white">{{ str_pad($days, 2, '0', STR_PAD_LEFT) }}</div>
+                                    <div class="text-sm text-purple-500 dark:text-purple-400 font-medium">DAYS</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-white dark:text-white">{{ str_pad($hours, 2, '0', STR_PAD_LEFT) }}</div>
+                                    <div class="text-sm text-purple-500 dark:text-purple-400 font-medium">HOURS</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-white dark:text-white">{{ str_pad($minutes, 2, '0', STR_PAD_LEFT) }}</div>
+                                    <div class="text-sm text-purple-500 dark:text-purple-400 font-medium">MINUTES</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-white dark:text-white">{{ str_pad($seconds, 2, '0', STR_PAD_LEFT) }}</div>
+                                    <div class="text-sm text-purple-500 dark:text-purple-400 font-medium">SECONDS</div>
+                                </div>
+                            </div>
+                            <div class="text-sm font-medium {{ $whiteText }} mt-1">Total Time Consumed</div>
                         @else
                             <div class="text-lg font-bold text-yellow-400 dark:text-yellow-300">Project Not Started</div>
                         @endif
@@ -154,18 +181,49 @@
                     <div class="{{ $cardPadding }}">
                         <div class="{{ $flexBetween }} mb-6">
                             <h2 class="{{ $headingText }}">Project Records</h2>
-                            <div x-data="{ open: false }">
-                                <a @click="open = true"
-                                   class="{{ $secondaryButton }} cursor-pointer">
-                                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                                    </svg>
-                                   Submit Project Draf
-                                </a>
-                                <!-- Modal -->
-                                <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                    @include('components.project-record.modal', ['projectData' => $project])
-                                </div>
+                            <div class="flex space-x-3">
+                                @if($project->assignedQcAgent && $project->assignedQcAgent->id === auth()->id())
+                                    <div x-data="{ open: false }">
+                                        <button @click="open = true" type="button" class="{{ $secondaryButton }}">
+                                            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                            </svg>
+                                            Submit Project QC
+                                        </button>
+                                        <!-- QC Modal -->
+                                        <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                            <x-project-record.qc-modal :project="$project" />
+                                        </div>
+                                    </div>
+                                @else
+                                    <div x-data="{ open: false }">
+                                        <button @click="open = true" type="button" class="{{ $secondaryButton }}">
+                                            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                            </svg>
+                                            Submit Project Draft
+                                        </button>
+                                        <!-- Draft Modal -->
+                                        <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                            <x-project-record.modal :project="$project" />
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if ($project->status === 'draf')
+                                    <div x-data="{ open: false }">
+                                        <button @click="open = true" type="button" class="{{ $primaryButton }}">
+                                            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                            </svg>
+                                            Add Revision
+                                        </button>
+                                        <!-- Revision Modal -->
+                                        <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                            <x-project-record.revise-modal :project="$project" />
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                         @if($project->projectLogs->count() > 0)
@@ -176,7 +234,7 @@
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Project Stage</th>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Updated Date</th>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Draft Submission</th>
-                                            <th class="{{ $tableHeader }} {{ $tableCell }}">QC Message</th>
+                                            <th class="{{ $tableHeader }} {{ $tableCell }}">QC/ Revise Message</th>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Action</th>
                                         </tr>
                                     </thead>
@@ -193,8 +251,12 @@
                                                 <span class="{{ $badgeBlue }}">PROJECT ASSIGN</span>
                                             @elseif($log->status === 'qc')
                                                 <span class="{{ $badgeYellow }}">PROJECT IN REVIEW </span>
+                                            @elseif($log->status === 'draf')
+                                                <span class="{{ $badgeBlue }}">DRAFT SUBMITTED</span>
+                                            @elseif($log->status === 'revision')
+                                                <span class="{{ $badgeRed }}">REVISION</span>
                                             @elseif ($log->status === 'done')
-                                                 <span class="{{ $badgeGreen }}">SHARE PROJECT</span>
+                                                 <span class="{{ $badgeGreen }}">COMPLETED</span>
                                             @else
                                                 -
                                             @endif
@@ -202,9 +264,11 @@
                                             <td class="{{ $tableCell }}">{{ $log->timestamp->format('D, d M Y') }}</td>
                                             <td class="{{ $tableCell }}">
                                                 @if ($log->status === 'draf' && $projectRecord)
-                                                    <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $BadgeBlue }}">Project Draf Submission</a>
+                                                    <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $badgeBlue }}">Project Draf Submission</a>
                                                 @elseif ($log->status === 'qc' && $projectRecord)
                                                     <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $badgeBlue }}">View Project Link</a>
+                                                @elseif ($log->status === 'done' && $projectRecord)
+                                                    <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $badgeBlue }}">Final Project Link</a>
                                                 @else
                                                     -
                                                 @endif
@@ -213,7 +277,11 @@
                                                 @if ($log->status === 'qc' && $projectRecord)
                                                     <span> - </span>
                                                 @elseif ($log->status === 'draf' && $projectRecord)
-                                                    <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $badgeBlue }}">View Project Link</a>
+                                                    <button onclick="showMessage('QC Message', '{{ addslashes($projectRecord->qc_message) }}', '{{ addslashes((string)($projectRecord->qc?->name ?? $projectRecord->talent?->name ?? $projectRecord->user?->name ?? 'Unknown')) }}', '{{ $projectRecord->status }}')" class="{{ $badgeBlue }}">Open QC Message</button>
+                                                @elseif ($log->status === 'revision' && $projectRecord)
+                                                    <button onclick="showMessage('Revision Message', '{{ addslashes($projectRecord->qc_message) }}', '{{ addslashes((string)($projectRecord->qc?->name ?? $projectRecord->talent?->name ?? $projectRecord->user?->name ?? 'Unknown')) }}', '{{ $projectRecord->status }}')" class="{{ $badgeBlue }}">Open Revision Message</button>
+                                                @elseif ($log->status === 'done' && $projectRecord)
+                                                    <button onclick="showMessage('Completion Message', '{{ addslashes($projectRecord->qc_message) }}', '{{ addslashes((string)($projectRecord->qc?->name ?? $projectRecord->talent?->name ?? $projectRecord->user?->name ?? 'Unknown')) }}', '{{ $projectRecord->status }}')" class="{{ $badgeBlue }}">Open Completed Message</button>
                                                 @else
                                                     -
                                                 @endif
@@ -223,6 +291,10 @@
                                                     <span class="{{ $badgeGreen }} cursor-pointer hover:opacity-90" onclick="shareInfo('{{ $project->project_name }}', '{{ $project->projectType->project_name }}', '{{ $project->assignedQcAgent->name ?? "Not Assigned" }}', '{{ $projectRecord->project_link }}', 'Draft Submission')">Share Update</span>
                                                 @elseif ($log->status === 'qc' && $projectRecord)
                                                     <span class="{{ $badgeGreen }} cursor-pointer hover:opacity-90" onclick="shareInfo('{{ $project->project_name }}', '{{ $project->projectType->project_name }}', '{{ $project->assignedQcAgent->name ?? "Not Assigned" }}', '{{ $projectRecord->project_link }}', 'Quality Check')">Share Update</span>
+                                                @elseif ($log->status === 'revision' && $projectRecord)
+                                                    <span class="{{ $badgeGreen }} cursor-pointer hover:opacity-90" onclick="shareInfo('{{ $project->project_name }}', '{{ $project->projectType->project_name }}', '{{ $project->assignedQcAgent->name ?? "Not Assigned" }}', '{{ $projectRecord->project_link }}', 'Revision')">Share Update</span>
+                                                @elseif ($log->status === 'done' && $projectRecord)
+                                                    <span class="{{ $badgeGreen }} cursor-pointer hover:opacity-90" onclick="shareInfo('{{ $project->project_name }}', '{{ $project->projectType->project_name }}', '{{ $project->assignedQcAgent->name ?? "Not Assigned" }}', '{{ $projectRecord->project_link }}', 'Completed')">Share Update</span>
                                                 @else
                                                     -
                                                 @endif
@@ -239,17 +311,23 @@
                 </div>
 
                 {{-- Project Revision --}}
-                <div class="{{ $cardContainer }} {{ $cardSpacing }}">
+                {{-- <div class="{{ $cardContainer }} {{ $cardSpacing }}">
                     <div class="{{ $cardPadding }}">
                         <div class="{{ $flexBetween }} mb-6">
                             <h2 class="{{ $headingText }}">Project Revision</h2>
-                            @if ($project->status === 'revision needed')
-                                <button type="button" class="{{ $primaryButton }}">
-                                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                                    </svg>
-                                    Add Revision
-                                </button>
+                            @if ($project->status === 'draf')
+                                <div x-data="{ open: false }">
+                                    <button @click="open = true" type="button" class="{{ $primaryButton }}">
+                                        <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                        </svg>
+                                        Add Revision
+                                    </button>
+                                    <!-- Modal -->
+                                    <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                        <x-project-record.revise-modal :project="$project" />
+                                    </div>
+                                </div>
                             @endif
                         </div>
 
@@ -297,7 +375,7 @@
                             <div class="text-center {{ $mutedText }}">No revision history available yet.</div>
                         @endif
                     </div>
-                </div>
+                </div> --}}
             </div>
 
             {{-- Project Status Timeline --}}
@@ -322,9 +400,9 @@
                                     $dotColorClass = 'bg-blue-500 dark:bg-blue-400';
                                     $displayText = 'Project Assigned';
                                 } elseif (str_contains($status, 'draf')) {
-                                    $colorClass = 'bg-orange-100 dark:bg-orange-900/30';
-                                    $dotColorClass = 'bg-orange-500 dark:bg-orange-400';
-                                    $displayText = 'Draft In Progress';
+                                    $colorClass = 'bg-blue-100 dark:bg-blue-900/30';
+                                    $dotColorClass = 'bg-blue-500 dark:bg-blue-400';
+                                    $displayText = 'Draft Submitted';
                                 } elseif (str_contains($status, 'qc')) {
                                     $colorClass = 'bg-orange-100 dark:bg-orange-900/30';
                                     $dotColorClass = 'bg-orange-500 dark:bg-orange-400';
@@ -366,6 +444,45 @@
         </div>
     </div>
 </div>
+
+@if($project->status === 'draf')
+    <div class="fixed bottom-6 right-6 z-50">
+        <div x-data="{ open: false }">
+            <button @click="open = true" type="button" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 transition-all duration-200 transform hover:scale-105">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                <span>Make it Done</span>
+            </button>
+
+            <!-- Confirmation Modal -->
+            <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Confirm Project Completion</h3>
+                    <p class="text-gray-600 mb-6">Are you sure you want to mark this project as done? This action cannot be undone.</p>
+
+                    <form action="{{ route('company.project.complete', $project->id) }}" method="POST">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="completion_message" class="block text-sm font-medium text-gray-700 mb-2">Completion Message (Optional)</label>
+                            <textarea name="completion_message" id="completion_message" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                        </div>
+
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" @click="open = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Confirm Completion
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 @endsection
 
 @push('scripts')
@@ -376,12 +493,14 @@
 
         const assignTimestamp = timerElement.dataset.assignTimestamp;
         const doneTimestamp = timerElement.dataset.doneTimestamp;
+        const projectStatus = document.getElementById('project-timer-area').dataset.projectStatus;
 
         if (assignTimestamp) {
             const startDate = new Date(assignTimestamp);
+            let endDate = doneTimestamp ? new Date(doneTimestamp) : null;
 
             function updateTimer() {
-                const now = new Date();
+                const now = endDate || new Date();
                 const diff = now - startDate;
 
                 // Calculate time units
@@ -397,7 +516,7 @@
                 document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
 
                 // If project is not done, continue updating
-                if (!doneTimestamp) {
+                if (!endDate) {
                     setTimeout(updateTimer, 1000); // Update every second
                 }
             }
@@ -407,11 +526,22 @@
         }
     });
 
-    function shareInfo(projectName, projectType, qcName, projectLink, status) {
+    function showMessage(title, message, sender, status) {
+        window.dispatchEvent(new CustomEvent('open-message-modal', {
+            detail: {
+                title: title,
+                message: message,
+                sender: sender,
+                status: status
+            }
+        }));
+    }
+
+    function shareInfo(projectName, projectType, qcAgent, projectLink, status) {
         const whatsappMessage = `*Project Information*
         Project Name: ${projectName}
         Project Type: ${projectType}
-        Project QC Name: ${qcName}
+        Project QC Name: ${qcAgent}
         Project Link: ${projectLink}
         Status: ${status}`;
 
@@ -424,3 +554,8 @@
     }
 </script>
 @endpush
+
+<!-- Message Modal Component -->
+<x-project-record.message-modal />
+
+<x-feedback-modal :project="$project" :role="$role" :feedback-exists="$feedbackExists" />

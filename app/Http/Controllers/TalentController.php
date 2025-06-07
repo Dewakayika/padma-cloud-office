@@ -10,6 +10,7 @@ use App\Models\ProjectLog;
 use App\Models\ProjectType;
 use App\Models\ProjectSop;
 use App\Models\ProjectRecord;
+use App\Models\Feedback;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -279,12 +280,23 @@ class TalentController extends Controller
         $doneLog = $project->projectLogs->where('status', 'done')->last();
         $doneTimestamp = $doneLog ? $doneLog->timestamp->toISOString() : null;
 
-        return view('users.Talent.project-detail', compact(
+        // Feedback logic
+        $currentUser = auth()->user();
+        $talentFeedbackExists = Feedback::where('project_id', $project->id)
+            ->where('from_user_id', $currentUser->id)
+            ->where('role', 'talent')
+            ->exists();
+
+        $role = auth()->user()->role;
+        $feedbackExists = $role === 'company' ? $companyFeedbackExists : $talentFeedbackExists;
+
+        return view('users.Talent.talent-project-detail', compact(
             'project',
             'assignTimestamp',
             'doneTimestamp',
             'sopList',
-            'projectRecords'
+            'projectRecords',
+            'talentFeedbackExists'
         ));
     }
 
