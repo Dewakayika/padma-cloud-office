@@ -176,11 +176,15 @@
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Project Stage</th>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Updated Date</th>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Draft Submission</th>
+                                            <th class="{{ $tableHeader }} {{ $tableCell }}">QC Message</th>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class="{{ $tableDivider }}">
                                         @foreach($project->projectLogs as $log)
+                                        @php
+                                            $projectRecord = $project->projectRecords->where('created_at', '<=', $log->timestamp)->last();
+                                        @endphp
                                         <tr>
                                             <td class="{{ $tableCell }}">
                                             @if ($log->status === 'waiting talent')
@@ -188,7 +192,7 @@
                                             @elseif ($log->status === 'project assign')
                                                 <span class="{{ $badgeBlue }}">PROJECT ASSIGN</span>
                                             @elseif($log->status === 'qc')
-                                                <span class="{{ $badgeYellow }}">REVIEW PROJECT</span>
+                                                <span class="{{ $badgeYellow }}">PROJECT IN REVIEW </span>
                                             @elseif ($log->status === 'done')
                                                  <span class="{{ $badgeGreen }}">SHARE PROJECT</span>
                                             @else
@@ -197,19 +201,28 @@
                                             </td>
                                             <td class="{{ $tableCell }}">{{ $log->timestamp->format('D, d M Y') }}</td>
                                             <td class="{{ $tableCell }}">
-                                                @if ($log->status === 'draf')
-                                                    <span class="{{ $badgeYellow }}">PROJECT DRAF SUBMISSION</span>
-                                                @elseif ($log->status === 'qc')
-                                                     <span class="{{ $badgeBlue }}">PROJECT DRAF SUBMISSION</span>
+                                                @if ($log->status === 'draf' && $projectRecord)
+                                                    <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $BadgeBlue }}">Project Draf Submission</a>
+                                                @elseif ($log->status === 'qc' && $projectRecord)
+                                                    <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $badgeBlue }}">View Project Link</a>
                                                 @else
                                                     -
                                                 @endif
                                             </td>
                                             <td class="{{ $tableCell }}">
-                                                @if ($log->status === 'qc')
-                                                    <span class="{{ $badgeYellow }} cursor-pointer hover:opacity-90">SHARE INFO</span>
-                                                @elseif ($log->status === 'draf')
-                                                     <span class="{{ $badgeBlue }} cursor-pointer hover:opacity-90">OPEN QC MESSAGE</span>
+                                                @if ($log->status === 'qc' && $projectRecord)
+                                                    <span> - </span>
+                                                @elseif ($log->status === 'draf' && $projectRecord)
+                                                    <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $badgeBlue }}">View Project Link</a>
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                            <td class="{{ $tableCell }}">
+                                                @if ($log->status === 'draf' && $projectRecord)
+                                                    <span class="{{ $badgeGreen }} cursor-pointer hover:opacity-90" onclick="shareInfo('{{ $project->project_name }}', '{{ $project->projectType->project_name }}', '{{ $project->assignedQcAgent->name ?? "Not Assigned" }}', '{{ $projectRecord->project_link }}', 'Draft Submission')">Share Update</span>
+                                                @elseif ($log->status === 'qc' && $projectRecord)
+                                                    <span class="{{ $badgeGreen }} cursor-pointer hover:opacity-90" onclick="shareInfo('{{ $project->project_name }}', '{{ $project->projectType->project_name }}', '{{ $project->assignedQcAgent->name ?? "Not Assigned" }}', '{{ $projectRecord->project_link }}', 'Quality Check')">Share Update</span>
                                                 @else
                                                     -
                                                 @endif
@@ -393,5 +406,21 @@
             updateTimer();
         }
     });
+
+    function shareInfo(projectName, projectType, qcName, projectLink, status) {
+        const whatsappMessage = `*Project Information*
+        Project Name: ${projectName}
+        Project Type: ${projectType}
+        Project QC Name: ${qcName}
+        Project Link: ${projectLink}
+        Status: ${status}`;
+
+        // Create WhatsApp share URL
+        const encodedMessage = encodeURIComponent(whatsappMessage);
+        const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+
+        // Open WhatsApp in new tab
+        window.open(whatsappUrl, '_blank');
+    }
 </script>
 @endpush

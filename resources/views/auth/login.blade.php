@@ -26,7 +26,7 @@
         <div class="flex-1 flex items-center justify-center p-12 bg-gray-100">
             <div class="w-full max-w-md">
                 <div class="text-center mb-8">
-                    <h1 class="text-2xl font-semibold text-gray-900">Company Login</h1>
+                    <h1 class="text-2xl font-semibold text-gray-900">Padma Cloud Office Login</h1>
                 </div>
 
                 <x-validation-errors class="mb-4" />
