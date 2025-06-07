@@ -67,7 +67,7 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/company/project-type', [CompanyController::class, 'storeProjectType'])->name('company.project.type.store');
     Route::get('/company/project-type/{id}/edit', [CompanyController::class, 'editProjectType'])->name('company.project.type.edit');
     Route::delete('/company/project-type/{id}', [CompanyController::class, 'destroyProjectType'])->name('company.project.type.destroy');
-    Route::post('/company/invite', [CompanyController::class, 'inviteUserByEmail'])->name('company.invite');
+    Route::post('/company/invite', [CompanyController::class, 'inviteUserByEmail'])->name('company.invite.user');
     Route::get('/company/project-type/{id}/sops', [CompanyController::class, 'showProjectTypeSops'])->name('company.project.type.sops');
     Route::get('/company/project-type/{projectTypeId}/sops', [CompanyController::class, 'getProjectSops'])->name('company.project.type.sops.get');
     Route::post('/company/project-sop', [CompanyController::class, 'storeProjectSop'])->name('company.project.sop.store');
