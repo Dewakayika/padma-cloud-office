@@ -8,14 +8,18 @@
             onclick="switchTab('studios')"
             id="studios-tab"
             class="px-6 py-3 text-sm font-medium border-b-2 transition-colors duration-200"
-            :class="activeTab === 'studios' ? 'text-gray-600 border-purple-500' : 'text-gray-400 border-transparent hover:text-gray-600'">
+            :class="activeTab === 'studios' 
+                ? 'text-gray-600 dark:text-white border-purple-500 dark:border-purple-400' 
+                : 'text-gray-400 dark:text-gray-400 border-transparent hover:text-gray-600 dark:hover:text-gray-300'">
             Studios
         </button>
         <button
             onclick="switchTab('current-tasks')"
             id="current-tasks-tab"
             class="px-6 py-3 text-sm font-medium border-b-2 transition-colors duration-200 relative"
-            :class="activeTab === 'current-tasks' ? 'text-gray-600 border-purple-500' : 'text-gray-400 border-transparent hover:text-gray-600'">
+            :class="activeTab === 'current-tasks' 
+                ? 'text-gray-600 dark:text-white border-purple-500 dark:border-purple-400' 
+                : 'text-gray-400 dark:text-white border-transparent hover:text-gray-600 dark:hover:text-gray-300'">
             Available Task
             @if($projects->count() > 0)
             <span class="absolute -top-1 -right-1 bg-purple-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -32,15 +36,15 @@
             @foreach ( $companies as $company )
             <!-- Studio Card -->
             <a href="{{ url('/talent/company/' . $company->slug) }}" class="block group">
-                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 transition-all duration-200 hover:shadow-md hover:border-purple-100">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-all duration-200 hover:shadow-md hover:border-purple-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
                             <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center">
                                 <x-application-logo class="w-7 h-7" />
                             </div>
                             <div class="ml-3">
-                                <h3 class="font-semibold text-gray-800">{{ $company->company_name }}</h3>
-                                <p class="text-sm text-gray-500">{{ $company->country }}</p>
+                                <h3 class="font-semibold text-gray-800 dark:text-white">{{ $company->company_name }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $company->country }}</p>
                             </div>
                         </div>
                         <button class="text-purple-600 relative z-10" onclick="event.preventDefault();">
@@ -52,16 +56,16 @@
 
                     <div class="space-y-3">
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-500">Role:</span>
+                            <span class="text-gray-500 dark:text-gray-400">Role:</span>
                             <span class="text-purple-600 font-medium">{{ $company->companyTalent->where('talent_id', auth()->id())->first()->job_role ?? 'Not Assigned' }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-500">Company Type:</span>
-                            <span class="text-gray-800">{{ $company->company_type }}</span>
+                            <span class="text-gray-500 dark:text-gray-400">Company Type:</span>
+                            <span class="text-gray-800 dark:text-white">{{ $company->company_type }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-500">Contact Person:</span>
-                            <span class="text-gray-800">{{ $company->contact_person_name }}</span>
+                            <span class="text-gray-500 dark:text-gray-400">Contact Person:</span>
+                            <span class="text-gray-800 dark:text-white">{{ $company->contact_person_name }}</span>
                         </div>
                     </div>
                 </div>
@@ -70,7 +74,7 @@
 
             <!-- Studio Card 2 -->
             {{-- <a href="" class="block group">
-                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 transition-all duration-200 hover:shadow-md hover:border-purple-100">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-all duration-200 hover:shadow-md hover:border-purple-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
                             <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -116,14 +120,14 @@
 
             <!-- Join New Studio Card -->
             <a href="" class="block group">
-                <div class="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-6 flex items-center justify-center transition-all duration-200 hover:bg-gray-100 hover:border-purple-300">
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 p-6 flex items-center justify-center transition-all duration-200 hover:bg-gray-100 hover:border-purple-300">
                     <div class="text-center">
                         <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
                         </div>
-                        <h3 class="text-gray-800 font-medium">Join New Studio</h3>
+                        <h3 class="text-gray-800 dark:text-white font-medium">Join New Studio</h3>
                     </div>
                 </div>
             </a>
@@ -135,29 +139,29 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse($projects as $project)
             <!-- Task Card -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-semibold text-gray-900 text-base">{{ $project->project_name }}</h3>
+                    <h3 class="font-semibold text-gray-900 dark:text-white text-base">{{ $project->project_name }}</h3>
                     <span class="px-2 py-1 text-xs font-medium bg-yellow-50 text-yellow-700 rounded">Waiting</span>
                 </div>
 
-                <p class="text-sm text-gray-600 mb-4">{{ $project->description }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{{ $project->description }}</p>
 
                 <div class="space-y-2">
                     <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500">Studio:</span>
-                        <span class="ml-2 text-gray-900">{{ $project->company->company_name }}</span>
+                        <span class="text-gray-500 dark:text-gray-400">Studio:</span>
+                        <span class="ml-2 text-gray-900 dark:text-white">{{ $project->company->company_name }}</span>
                     </div>
                     <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500">Deadline:</span>
-                        <span class="ml-2 text-gray-900">{{ $project->deadline ? $project->deadline->format('M d, Y') : 'Not set' }}</span>
+                        <span class="text-gray-500 dark:text-gray-400">Deadline:</span>
+                        <span class="ml-2 text-gray-900 dark:text-white">{{ $project->deadline ? $project->deadline->format('M d, Y') : 'Not set' }}</span>
                     </div>
                 </div>
 
                 <div class="mt-4 flex items-center justify-between">
                     <div class="flex items-center">
                         <span class="inline-block w-2 h-2 bg-yellow-500 rounded-full"></span>
-                        <span class="ml-2 text-sm text-gray-600">Waiting for Talent</span>
+                        <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Waiting for Talent</span>
                     </div>
                     {{-- <a href="{{ url('/talent/project/' . $project->id) }}" class="px-4 py-2 text-sm text-purple-600 bg-purple-100 rounded-md hover:text-purple-700 font-medium">Apply Project</a> --}}
                     <div x-data="{ open: false }">
@@ -176,8 +180,8 @@
             </div>
             @empty
             <div class="col-span-full">
-                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 text-center">
-                    <p class="text-gray-500">No waiting projects found.</p>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-100 dark:border-gray-700 text-center">
+                    <p class="text-gray-500 dark:text-gray-400">No waiting projects found.</p>
                 </div>
             </div>
             @endforelse
@@ -216,17 +220,18 @@
         // Update active tab
         activeTab = tabId;
 
-        // Update tab buttons
+       // Update tab buttons
         document.querySelectorAll('button[id$="-tab"]').forEach(button => {
             if (button.id === `${tabId}-tab`) {
-                button.classList.remove('text-gray-400', 'border-transparent');
-                button.classList.add('text-gray-600', 'border-purple-500');
+                // Active state
+                button.classList.remove('text-gray-400', 'border-transparent', 'dark:text-gray-400');
+                button.classList.add('text-gray-600', 'border-purple-500', 'dark:text-gray-300', 'dark:border-purple-400');
             } else {
-                button.classList.remove('text-gray-600', 'border-purple-500');
-                button.classList.add('text-gray-400', 'border-transparent');
+                // Inactive state
+                button.classList.remove('text-gray-600', 'border-purple-500', 'dark:text-gray-300', 'dark:border-purple-400');
+                button.classList.add('text-gray-400', 'border-transparent', 'dark:text-gray-400');
             }
         });
-
         // Update content visibility
         document.querySelectorAll('.tab-content').forEach(content => {
             if (content.id === `${tabId}-content`) {

@@ -33,19 +33,19 @@
                 {{-- Project Status Tabs --}}
                 <div class="inline-flex rounded-lg shadow-sm">
                     <a href="{{ route('talent.manage.projects', array_merge(request()->query(), ['status' => 'all'])) }}"
-                       class="px-4 py-2 text-sm font-medium {{ request('status', 'all') == 'all' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                       class="px-4 py-2 text-sm font-medium {{ request('status', 'all') == 'all' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-black' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         All Projects
                     </a>
                     <a href="{{ route('talent.manage.projects', array_merge(request()->query(), ['status' => 'ongoing'])) }}"
-                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'ongoing' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'ongoing' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-black' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         Ongoing
                     </a>
                     <a href="{{ route('talent.manage.projects', array_merge(request()->query(), ['status' => 'qc'])) }}"
-                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'qc' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'qc' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-black' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         QC
                     </a>
                     <a href="{{ route('talent.manage.projects', array_merge(request()->query(), ['status' => 'completed'])) }}"
-                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'completed' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                       class="px-4 py-2 text-sm font-medium {{ request('status') == 'completed' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-black' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         Completed
                     </a>
                 </div>
