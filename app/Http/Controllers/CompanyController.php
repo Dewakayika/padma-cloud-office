@@ -94,8 +94,8 @@ class CompanyController extends Controller
             }
         };
 
-        // Calculate average serving time with filters
-        $averageServingTime = ProjectLog::calculateAverageServingTime(
+        // Calculate average completion time with filters
+        $averageCompletionTime = ProjectLog::calculateAverageCompletionTime(
             $user->id,
             $company->id,
             $year,
@@ -111,7 +111,42 @@ class CompanyController extends Controller
 
         // Get on-going projects with filters
         $onGoingProjects = Project::where('company_id', $company->id)
-            ->where('status', 'on-going')
+            ->where('status', ['waiting talent', 'draf', 'qc', 'revision'])
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $waitingTalent = Project::where('company_id', $company->id)
+            ->where('status', 'waiting talent')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $QC = Project::where('company_id', $company->id)
+            ->where('status', 'qc')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $draft = Project::where('company_id', $company->id)
+            ->where('status', 'draf')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $revision = Project::where('company_id', $company->id)
+            ->where('status', 'revision')
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->count();
+
+        $done = Project::where('company_id', $company->id)
+            ->where('status', 'done')
             ->when($projectType, function($query) use ($projectType) {
                 $query->where('project_type_id', $projectType);
             })
@@ -183,14 +218,19 @@ class CompanyController extends Controller
 
         return view('users.Company.index', compact(
             'company',
-            'averageServingTime',
+            'averageCompletionTime',
             'monthlyStats',
             'onGoingProjects',
             'totalProjects',
             'totalVolume',
             'projects',
             'projectTypes',
-            'talents'
+            'talents',
+            'waitingTalent',
+            'QC',
+            'draft',
+            'revision',
+            'done'
         ));
     }
 
@@ -908,14 +948,7 @@ class CompanyController extends Controller
             ->select('id', 'project_name', 'project_rate')
             ->get();
 
-        // Get monthly completion stats with filters
-        $monthlyStats = ProjectLog::getMonthlyCompletionStats(
-            $company->id,
-            $year,
-            $projectType
-        );
-
-        // Get project type statistics
+        // Project Type Stats
         $projectTypeStats = Project::where('company_id', $company->id)
             ->whereYear('created_at', $year)
             ->when($projectType, function($query) use ($projectType) {
@@ -926,7 +959,28 @@ class CompanyController extends Controller
             ->with('projectType')
             ->get();
 
-        // Get status distribution
+        // Monthly Completion Trend
+        $monthlyStats = ProjectLog::where('company_id', $company->id)
+            ->where('status', 'done')
+            ->whereYear('timestamp', $year)
+            ->when($projectType, function($query) use ($projectType) {
+                $query->whereHas('project', function($q) use ($projectType) {
+                    $q->where('project_type_id', $projectType);
+                });
+            })
+            ->selectRaw('MONTH(timestamp) as month, COUNT(*) as count')
+            ->groupBy('month')
+            ->pluck('count', 'month')
+            ->toArray();
+        // Fill missing months with 0
+        for ($i = 1; $i <= 12; $i++) {
+            if (!isset($monthlyStats[$i])) {
+                $monthlyStats[$i] = 0;
+            }
+        }
+        ksort($monthlyStats);
+
+        // Project Status Distribution
         $statusDistribution = Project::where('company_id', $company->id)
             ->whereYear('created_at', $year)
             ->when($projectType, function($query) use ($projectType) {
@@ -936,48 +990,88 @@ class CompanyController extends Controller
             ->groupBy('status')
             ->get();
 
-        // Get average completion time by project type
-        $completionTimeByType = ProjectLog::where('project_logs.company_id', $company->id)
-            ->whereYear('project_logs.timestamp', $year)
-            ->where('project_logs.status', 'done')
-            ->when($projectType, function($query) use ($projectType) {
-                $query->whereHas('project', function($q) use ($projectType) {
+        // Average Completion Time by Project Type
+        $completionTimeByType = ProjectType::where('company_id', $company->id)
+            ->with(['projects' => function($q) use ($year, $projectType) {
+                $q->where('status', 'done')
+                  ->whereYear('created_at', $year);
+                if ($projectType) {
                     $q->where('project_type_id', $projectType);
-                });
-            })
-            ->join('projects', 'project_logs.project_id', '=', 'projects.id')
-            ->selectRaw('projects.project_type_id, AVG(TIMESTAMPDIFF(MINUTE, project_logs.created_at, project_logs.timestamp)) as avg_time')
-            ->groupBy('projects.project_type_id')
-            ->with('project.projectType')
+                }
+                $q->with(['projectLogs' => function($logQ) {
+                    $logQ->orderBy('timestamp', 'asc');
+                }]);
+            }])
             ->get()
-            ->keyBy('project_type_id');
+            ->map(function($type) {
+                $totalSeconds = 0;
+                $count = 0;
+                foreach ($type->projects as $project) {
+                    $assignLog = $project->projectLogs->firstWhere('status', 'project assign');
+                    $doneLog = $project->projectLogs->firstWhere('status', 'done');
+                    if ($assignLog && $doneLog) {
+                        $start = \Carbon\Carbon::parse($assignLog->timestamp);
+                        $end = \Carbon\Carbon::parse($doneLog->timestamp);
+                        $duration = $end->diffInSeconds($start);
+                        if ($duration > 0) {
+                            $totalSeconds += $duration;
+                            $count++;
+                        }
+                    }
+                }
+                return [
+                    'name' => $type->project_name,
+                    'avg_time' => $count ? round($totalSeconds / $count / 60, 2) : 0 // in minutes
+                ];
+            });
 
-        // Get talent statistics
-        $talentStats = ProjectLog::where('project_logs.company_id', $company->id)
-            ->whereYear('project_logs.timestamp', $year)
-            ->when($projectType, function($query) use ($projectType) {
-                $query->whereHas('project', function($q) use ($projectType) {
-                    $q->where('project_type_id', $projectType);
-                });
+        // Talent Performance
+        $talentStats = User::whereHas('companyTalent', function($query) use ($company) {
+                $query->where('company_id', $company->id);
             })
-            ->join('users', 'project_logs.user_id', '=', 'users.id')
-            ->join('company_talent', function($join) use ($company) {
-                $join->on('users.id', '=', 'company_talent.talent_id')
-                    ->where('company_talent.company_id', '=', $company->id);
-            })
-            ->selectRaw('
-                users.id,
-                users.name,
-                company_talent.job_role,
-                COUNT(CASE WHEN project_logs.status = "done" THEN 1 END) as completed_projects,
-                COUNT(CASE WHEN project_logs.status = "pending" THEN 1 END) as pending_projects,
-                COUNT(CASE WHEN project_logs.status = "in_progress" THEN 1 END) as in_progress_projects,
-                AVG(CASE WHEN project_logs.status = "done"
-                    THEN TIMESTAMPDIFF(MINUTE, project_logs.created_at, project_logs.timestamp)
-                    END) as avg_completion_time
-            ')
-            ->groupBy('users.id', 'users.name', 'company_talent.job_role')
-            ->get();
+            ->with(['companyTalent' => function($query) use ($company) {
+                $query->where('company_id', $company->id);
+            }])
+            ->get()
+            ->map(function($talent) use ($company, $year, $projectType) {
+                $completed = Project::where('talent', $talent->id)
+                    ->where('company_id', $company->id)
+                    ->where('status', 'done')
+                    ->when($projectType, function($query) use ($projectType) {
+                        $query->where('project_type_id', $projectType);
+                    })
+                    ->whereYear('created_at', $year)
+                    ->get();
+
+                $inProgress = Project::where('talent', $talent->id)
+                    ->where('company_id', $company->id)
+                    ->whereIn('status', ['project assign', 'draft', 'qc', 'revision'])
+                    ->when($projectType, function($query) use ($projectType) {
+                        $query->where('project_type_id', $projectType);
+                    })
+                    ->whereYear('created_at', $year)
+                    ->count();
+
+                $completionTimes = $completed->map(function($project) {
+                    $assignLog = $project->projectLogs->firstWhere('status', 'project assign');
+                    $doneLog = $project->projectLogs->firstWhere('status', 'done');
+                    if ($assignLog && $doneLog) {
+                        $start = \Carbon\Carbon::parse($assignLog->timestamp);
+                        $end = \Carbon\Carbon::parse($doneLog->timestamp);
+                        return $end->diffInSeconds($start);
+                    }
+                    return null;
+                })->filter();
+
+                $avgCompletionTime = $completionTimes->count() ? $completionTimes->sum() / $completionTimes->count() : 0;
+
+                return (object)[
+                    'name' => $talent->name,
+                    'completed_projects' => $completed->count(),
+                    'in_progress_projects' => $inProgress,
+                    'avg_completion_time' => $avgCompletionTime / 60 // in minutes
+                ];
+            });
 
         return view('users.Company.statistics', compact(
             'company',

@@ -59,42 +59,57 @@ class ProjectLog extends Model
      */
     public static function calculateAverageServingTime($userId, $companyId, $year = null, $projectType = null)
     {
-        $query = self::where('user_id', $userId)
-            ->where('company_id', $companyId)
-            ->whereNotNull('timestamp')
-            ->where('status', 'done');
+        // Get all projects for this user and company
+        $projects = \App\Models\Project::where('company_id', $companyId)
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->with(['projectLogs' => function($q) {
+                $q->orderBy('timestamp', 'asc');
+            }])
+            ->get();
 
-        if ($year) {
-            $query->whereYear('timestamp', $year);
+        $totalSeconds = 0;
+        $completedCount = 0;
+
+        foreach ($projects as $project) {
+            $assignLog = $project->projectLogs->firstWhere('status', 'project assign');
+            $doneLog = $project->projectLogs->firstWhere('status', 'done');
+            $start = null;
+            $end = null;
+            if ($assignLog && $doneLog) {
+                $start = \Carbon\Carbon::parse($assignLog->timestamp);
+                $end = \Carbon\Carbon::parse($doneLog->timestamp);
+            } elseif ($project->status === 'done' && $project->start_date && $project->finish_date) {
+                $start = \Carbon\Carbon::parse($project->start_date);
+                $end = \Carbon\Carbon::parse($project->finish_date);
+            }
+            if ($start && $end) {
+                $duration = $end->diffInSeconds($start);
+                if ($duration > 0) {
+                    $totalSeconds += $duration;
+                    $completedCount++;
+                }
+            }
         }
 
-        if ($projectType) {
-            $query->whereHas('project', function($q) use ($projectType) {
-                $q->where('project_type_id', $projectType);
-            });
+        if ($completedCount === 0) {
+            return 'N/A';
         }
 
-        $logs = $query->get();
+        $averageSeconds = $totalSeconds / $completedCount;
+        $days = floor($averageSeconds / (24 * 3600));
+        $hours = floor(($averageSeconds % (24 * 3600)) / 3600);
+        $minutes = floor(($averageSeconds % 3600) / 60);
+        $seconds = floor($averageSeconds % 60);
 
-        if ($logs->isEmpty()) {
-            return '0:00:00';
-        }
+        // Pluralization
+        $dayLabel = $days == 1 ? 'day' : 'days';
+        $hourLabel = $hours == 1 ? 'hour' : 'hours';
+        $minuteLabel = $minutes == 1 ? 'minute' : 'minutes';
+        $secondLabel = $seconds == 1 ? 'second' : 'seconds';
 
-        $totalMinutes = $logs->sum(function($log) {
-            $start = Carbon::parse($log->timestamp);
-            $end = Carbon::parse($log->end_time);
-            return $end->diffInMinutes($start);
-        });
-
-        $averageMinutes = $totalMinutes / $logs->count();
-
-        // Convert to days, hours, minutes
-        $days = floor($averageMinutes / (24 * 60));
-        $remainingMinutes = $averageMinutes % (24 * 60);
-        $hours = floor($remainingMinutes / 60);
-        $minutes = round($remainingMinutes % 60);
-
-        return sprintf('%d:%02d:%02d', $days, $hours, $minutes);
+        return sprintf('%dd %dh %dm %ds', $days, $hours, $minutes, $seconds);
     }
 
     /**
@@ -127,5 +142,51 @@ class ProjectLog extends Model
                 return [$item->month => $item->total_completed];
             })
             ->toArray();
+    }
+
+    public static function calculateAverageCompletionTime($userId, $companyId, $year = null, $projectType = null)
+    {
+        // Get all projects for this company (and optionally user)
+        $projects = \App\Models\Project::where('company_id', $companyId)
+            ->when($userId, function($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->when($projectType, function($query) use ($projectType) {
+                $query->where('project_type_id', $projectType);
+            })
+            ->where('status', 'done')
+            ->with(['projectLogs' => function($q) {
+                $q->orderBy('timestamp', 'asc');
+            }])
+            ->get();
+
+        $totalSeconds = 0;
+        $completedCount = 0;
+
+        foreach ($projects as $project) {
+            $assignLog = $project->projectLogs->firstWhere('status', 'project assign');
+            $doneLog = $project->projectLogs->firstWhere('status', 'done');
+            if ($assignLog && $doneLog) {
+                $start = \Carbon\Carbon::parse($assignLog->timestamp);
+                $end = \Carbon\Carbon::parse($doneLog->timestamp);
+                $duration = $end->diffInSeconds($start);
+                if ($duration > 0) {
+                    $totalSeconds += $duration;
+                    $completedCount++;
+                }
+            }
+        }
+
+        if ($completedCount === 0) {
+            return 'N/A';
+        }
+
+        $averageSeconds = $totalSeconds / $completedCount;
+        $days = floor($averageSeconds / (24 * 3600));
+        $hours = floor(($averageSeconds % (24 * 3600)) / 3600);
+        $minutes = floor(($averageSeconds % 3600) / 60);
+        $seconds = floor($averageSeconds % 60);
+
+        return sprintf('%dd %dh %dm %ds', $days, $hours, $minutes, $seconds);
     }
 }
