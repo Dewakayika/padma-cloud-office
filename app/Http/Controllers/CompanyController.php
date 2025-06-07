@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class CompanyController extends Controller
 {
@@ -918,6 +919,294 @@ class CompanyController extends Controller
             'completionTimeByType',
             'talentStats'
         ));
+    }
+
+    public function manageProjects(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $company = Company::where('user_id', $user->id)->first();
+
+            if (!$company) {
+                return redirect()->route('home')->with('error', 'Company not found.');
+            }
+
+            // Base query for projects
+            $query = Project::where('company_id', $company->id)
+                ->with(['projectType', 'User']);
+
+            // Status filtering
+            $status = $request->get('status', 'all');
+            switch ($status) {
+                case 'ongoing':
+                    $query->whereIn('status', ['project assign', 'draft']);
+                    break;
+                case 'qc':
+                    $query->where('status', 'qc');
+                    break;
+                case 'completed':
+                    $query->where('status', 'done');
+                    break;
+            }
+
+            // Search functionality
+            if ($request->has('search')) {
+                $search = $request->get('search');
+                $query->where('project_name', 'LIKE', "%{$search}%");
+            }
+
+            // Sorting
+            $sort = $request->get('sort', 'newest');
+            switch ($sort) {
+                case 'oldest':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                case 'name_asc':
+                    $query->orderBy('project_name', 'asc');
+                    break;
+                case 'name_desc':
+                    $query->orderBy('project_name', 'desc');
+                    break;
+                default: // newest
+                    $query->orderBy('created_at', 'desc');
+                    break;
+            }
+
+            $projects = $query->paginate(10);
+
+            return view('users.Company.company-manage-project', compact('projects'));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to load projects: ' . $e->getMessage());
+        }
+    }
+
+    public function manageTalents(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $company = Company::where('user_id', $user->id)->first();
+
+            if (!$company) {
+                return redirect()->route('home')->with('error', 'Company not found.');
+            }
+
+            // Base query for talents
+            $query = User::whereHas('companyTalent', function($query) use ($company) {
+                $query->where('company_id', $company->id);
+            })->with(['companyTalent' => function($query) use ($company) {
+                $query->where('company_id', $company->id);
+            }]);
+
+            // Role filtering
+            $role = $request->get('role', 'all');
+            if ($role !== 'all') {
+                $query->whereHas('companyTalent', function($query) use ($role) {
+                    $query->where('job_role', $role);
+                });
+            }
+
+            // Search functionality
+            if ($request->has('search')) {
+                $search = $request->get('search');
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'LIKE', "%{$search}%")
+                      ->orWhere('email', 'LIKE', "%{$search}%");
+                });
+            }
+
+            // Sorting
+            $sort = $request->get('sort', 'name_asc');
+            switch ($sort) {
+                case 'name_desc':
+                    $query->orderBy('name', 'desc');
+                    break;
+                case 'newest':
+                    $query->orderBy('created_at', 'desc');
+                    break;
+                case 'oldest':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                default: // name_asc
+                    $query->orderBy('name', 'asc');
+                    break;
+            }
+
+            $talents = $query->paginate(10);
+
+            // Get statistics for each talent
+            $talentStats = [];
+            foreach ($talents as $talent) {
+                $talentStats[$talent->id] = [
+                    'total_projects' => Project::where('talent', $talent->id)
+                        ->where('company_id', $company->id)
+                        ->count(),
+                    'completed_projects' => Project::where('talent', $talent->id)
+                        ->where('company_id', $company->id)
+                        ->where('status', 'done')
+                        ->count(),
+                    'average_completion_time' => ProjectLog::where('talent_id', $talent->id)
+                        ->where('company_id', $company->id)
+                        ->where('status', 'done')
+                        ->avg(DB::raw('TIMESTAMPDIFF(MINUTE, created_at, timestamp)'))
+                ];
+            }
+
+            return view('users.Company.manage-talents', compact('talents', 'talentStats'));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to load talents: ' . $e->getMessage());
+        }
+    }
+
+    public function talentDetail($id)
+    {
+        try {
+            $user = auth()->user();
+            $company = Company::where('user_id', $user->id)->first();
+
+            if (!$company) {
+                return redirect()->route('home')->with('error', 'Company not found.');
+            }
+
+            // Get the talent user
+            $talent = User::with(['talent', 'companyTalent' => function($query) use ($company) {
+                $query->where('company_id', $company->id);
+            }])->findOrFail($id);
+
+            // Verify the talent is associated with the company
+            if (!$talent->companyTalent->contains('company_id', $company->id)) {
+                return redirect()->route('company.manage.talents')
+                    ->with('error', 'Talent not found in your company.');
+            }
+
+            // Get project statistics
+            $projectStats = [
+                'total' => Project::where('talent', $talent->id)
+                    ->where('company_id', $company->id)
+                    ->count(),
+                'completed' => Project::where('talent', $talent->id)
+                    ->where('company_id', $company->id)
+                    ->where('status', 'done')
+                    ->count(),
+                'in_progress' => Project::where('talent', $talent->id)
+                    ->where('company_id', $company->id)
+                    ->whereIn('status', ['project assign', 'draft'])
+                    ->count(),
+                'in_qc' => Project::where('talent', $talent->id)
+                    ->where('company_id', $company->id)
+                    ->where('status', 'qc')
+                    ->count()
+            ];
+
+            // Get all completed projects with their logs
+            $completedProjects = Project::where('talent', $talent->id)
+                ->where('company_id', $company->id)
+                ->where('status', 'done')
+                ->with(['projectLogs' => function($query) {
+                    $query->orderBy('created_at', 'asc');
+                }])
+                ->get();
+
+            // Calculate completion times for all projects
+            $completionTimes = $completedProjects->map(function($project) {
+                if ($project->projectLogs->isNotEmpty()) {
+                    $firstLog = $project->projectLogs->first();
+                    $lastLog = $project->projectLogs->last();
+                    return $firstLog->created_at->diffInSeconds($lastLog->timestamp);
+                }
+                return null;
+            })->filter();
+
+            // Calculate average completion time
+            $formattedCompletionTime = null;
+            if ($completionTimes->isNotEmpty()) {
+                $totalSeconds = $completionTimes->sum();
+                $projectCount = $completionTimes->count();
+                $averageSeconds = $totalSeconds / $projectCount;
+
+                $days = floor($averageSeconds / (24 * 3600));
+                $hours = floor(($averageSeconds % (24 * 3600)) / 3600);
+                $minutes = floor(($averageSeconds % 3600) / 60);
+                $seconds = $averageSeconds % 60;
+
+                $formattedCompletionTime = [
+                    'days' => $days,
+                    'hours' => $hours,
+                    'minutes' => $minutes,
+                    'seconds' => $seconds,
+                    'total_projects' => $projectCount,
+                    'total_seconds' => $totalSeconds,
+                    'average_seconds' => $averageSeconds,
+                    'min_seconds' => $completionTimes->min(),
+                    'max_seconds' => $completionTimes->max()
+                ];
+            }
+
+            // Get recent projects
+            $recentProjects = Project::where('talent', $talent->id)
+                ->where('company_id', $company->id)
+                ->with(['projectType', 'projectLogs' => function($query) {
+                    $query->orderBy('created_at', 'asc');
+                }])
+                ->latest()
+                ->take(5)
+                ->get()
+                ->map(function($project) {
+                    if ($project->status === 'done' && $project->projectLogs->isNotEmpty()) {
+                        $firstLog = $project->projectLogs->first();
+                        $lastLog = $project->projectLogs->last();
+                        $completionTime = $firstLog->created_at->diffInSeconds($lastLog->timestamp);
+
+                        $days = floor($completionTime / (24 * 3600));
+                        $hours = floor(($completionTime % (24 * 3600)) / 3600);
+                        $minutes = floor(($completionTime % 3600) / 60);
+                        $seconds = $completionTime % 60;
+
+                        $project->formatted_completion_time = [
+                            'days' => $days,
+                            'hours' => $hours,
+                            'minutes' => $minutes,
+                            'seconds' => $seconds,
+                            'total_seconds' => $completionTime
+                        ];
+                    } else {
+                        $project->formatted_completion_time = null;
+                    }
+                    return $project;
+                });
+
+            // Get monthly project completion stats
+            $monthlyStats = ProjectLog::where('talent_id', $talent->id)
+                ->where('company_id', $company->id)
+                ->where('status', 'done')
+                ->whereYear('timestamp', date('Y'))
+                ->selectRaw('MONTH(timestamp) as month, COUNT(*) as count')
+                ->groupBy('month')
+                ->get()
+                ->pluck('count', 'month')
+                ->toArray();
+
+            // Fill in missing months with 0
+            for ($i = 1; $i <= 12; $i++) {
+                if (!isset($monthlyStats[$i])) {
+                    $monthlyStats[$i] = 0;
+                }
+            }
+            ksort($monthlyStats);
+
+            return view('users.Company.talent-detail', compact(
+                'talent',
+                'projectStats',
+                'formattedCompletionTime',
+                'recentProjects',
+                'monthlyStats'
+            ));
+
+        } catch (\Exception $e) {
+            return redirect()->route('company.manage.talents')
+                ->with('error', 'Failed to load talent details: ' . $e->getMessage());
+        }
     }
 
 }
