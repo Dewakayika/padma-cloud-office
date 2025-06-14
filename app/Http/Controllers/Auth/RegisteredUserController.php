@@ -50,7 +50,7 @@ class RegisteredUserController extends Controller
 
         DB::beginTransaction();
 
-        try {
+
             $invitation = Invitation::where('email', $request->email)->first();
 
             if (!$invitation) {
@@ -62,7 +62,7 @@ class RegisteredUserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => $invitation->role,
+                'role' => 'talent',
             ]);
 
             // Create CompanyTalent record
@@ -81,15 +81,6 @@ class RegisteredUserController extends Controller
             DB::commit();
 
             return redirect()->route('home')->with('success', 'Registration successful.');
-        } catch (\Exception $e) {
-            DB::rollBack();
 
-            Log::error('Registration failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()->with('error', 'Registration failed: ' . $e->getMessage());
-        }
     }
 }

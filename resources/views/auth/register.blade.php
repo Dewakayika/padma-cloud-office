@@ -4,7 +4,7 @@
         <div class="w-1/3 bg-gray-50 p-12 flex flex-col">
             <!-- Back to Home Link -->
             <div class="mb-12">
-                <a href="{{ route('home') }}" class="text-gray-600 hover:text-gray-800 flex items-center">
+                <a href="{{ url('/') }}" class="text-gray-600 hover:text-gray-800 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>

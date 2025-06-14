@@ -40,8 +40,8 @@
                                 <a href="{{ url('/dashboard') }}" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Dashboard</a>
                             @else
                                 <a href="{{ route('login') }}" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Sign in</a>
-                                @if (Route::has('register'))
-                                    <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300">
+                                @if (Route::has('signup'))
+                                    <a href="{{ route('signup') }}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300">
                                         Start for free
                                     </a>
                                 @endif
@@ -85,8 +85,8 @@
             <div class="absolute left-0 right-0 -bottom-0 sm:-bottom-80 flex items-end justify-center">
                 <div class="w-full px-4 sm:px-6 lg:px-8">
                     <div class="mx-auto text-center max-w-7xl border-8 border-gray-300 dark:border-white rounded-2xl shadow-2xl">
-                        <img 
-                            src="{{ asset('images/hero-section.png') }}" 
+                        <img
+                            src="{{ asset('images/hero-section.png') }}"
                             alt="Dashboard preview"
                             class="w-full h-auto object-cover rounded-2xl"
                         >
@@ -160,7 +160,7 @@
                         <div class="p-4">
                         <h3 class="text-lg font-semibold mb-2 text-white">Register Your Team</h3>
                         <div class="flex flex-wrap gap-2 text-sm text-white">
-                            <p>Create your organization’s workspace and invite your team in under 5 minutes.</p>    
+                            <p>Create your organization’s workspace and invite your team in under 5 minutes.</p>
                         </div>
                         </div>
                     </div>
@@ -240,7 +240,7 @@
                 </div>
                 </section>
 
-            
+
         </main>
         <footer class="bg-black dark:bg-gray-900 text-white dark:text-gray-400 py-8">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
