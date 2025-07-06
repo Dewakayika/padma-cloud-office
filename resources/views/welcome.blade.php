@@ -71,7 +71,7 @@
                                 @else
                                     <a href="{{ route('login') }}" class="block text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Sign in</a>
                                     @if (Route::has('register'))
-                                        <a href="{{ route('register') }}" class="block mt-3 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300">
+                                        <a href="{{ route('signup') }}" class="block mt-3 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300">
                                             Start for free
                                         </a>
                                     @endif
@@ -98,7 +98,7 @@
                         <div class="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-center gap-4 px-4">
                             @if (Route::has('register'))
                                 <div>
-                                    <a href="{{ route('register') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-6 sm:px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-black hover:bg-gray-700 lg:py-4 lg:text-lg lg:px-10 transition-all duration-300">
+                                    <a href="{{ route('signup') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-6 sm:px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-black hover:bg-gray-700 lg:py-4 lg:text-lg lg:px-10 transition-all duration-300">
                                         Get started
                                     </a>
                                 </div>

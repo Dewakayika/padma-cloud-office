@@ -95,6 +95,7 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::get('/company/ewallet', [EwalletController::class, 'eWallet'])->name('company.e-wallet');
 
     // Onboarding Routes
+    Route::get('/onboarding', [CompanyOnboardingController::class, 'showOnboarding'])->name('company.start.onboarding');
     Route::get('/onboarding/{step?}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
     Route::post('/onboarding/{step}', [CompanyOnboardingController::class, 'postStep'])->name('company.onboarding.step.post');
 
