@@ -90,7 +90,14 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                     @if($talentStats[$talent->id]['average_completion_time'])
-                                        {{ round($talentStats[$talent->id]['average_completion_time'] / 60, 1) }} hours
+                                        @php
+                                            $seconds = $talentStats[$talent->id]['average_completion_time'] * 60;
+                                            $days = floor($seconds / (24 * 3600));
+                                            $hours = floor(($seconds % (24 * 3600)) / 3600);
+                                            $minutes = floor(($seconds % 3600) / 60);
+                                            $secs = $seconds % 60;
+                                        @endphp
+                                        {{ $days }}d {{ $hours }}h {{ $minutes }}m {{ $secs }}s
                                     @else
                                         N/A
                                     @endif

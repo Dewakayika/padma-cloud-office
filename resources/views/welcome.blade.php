@@ -116,6 +116,7 @@
             <!-- Hero Image -->
             <div class="relative -mt-20 lg:-mt-80 pb-20 lg:pb-0">
                 <div class="w-full px-4 sm:px-6 lg:px-8">
+
                     <div class="mx-auto text-center max-w-7xl">
                         <div class="border-4 lg:border-8 border-gray-300 dark:border-white rounded-xl lg:rounded-2xl shadow-2xl overflow-hidden">
                             <img 

@@ -118,11 +118,17 @@
                                     <td class="px-4 py-3 text-sm text-gray-900 dark:text-white">{{ $talent->in_progress_projects }}</td>
                                     <td class="px-4 py-3 text-sm text-gray-900 dark:text-white">
                                         @php
-                                            $minutes = round($talent->avg_completion_time);
-                                            $hours = floor($minutes / 60);
-                                            $remainingMinutes = $minutes % 60;
+                                            $seconds = $talent->avg_completion_time ? abs($talent->avg_completion_time * 60) : 0;
+                                            $days = floor($seconds / (24 * 3600));
+                                            $hours = floor(($seconds % (24 * 3600)) / 3600);
+                                            $minutes = floor(($seconds % 3600) / 60);
+                                            $secs = $seconds % 60;
                                         @endphp
-                                        {{ $hours }}h {{ $remainingMinutes }}m
+                                        @if($talent->avg_completion_time && $seconds > 0)
+                                            {{ $days }}d {{ $hours }}h {{ $minutes }}m {{ $secs }}s
+                                        @else
+                                            N/A
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
@@ -454,8 +460,8 @@
                 chart.update();
             });
         });
-        
-      
+
+
         // Filter
         const yearFilter = document.getElementById('year_filter');
         const projectTypeFilter = document.getElementById('project_type_filter');

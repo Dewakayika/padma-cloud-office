@@ -4,8 +4,24 @@
 
 @section('content')
 
+
+
 <div class="sm:ml-64">
     <div class="p-4 sm:p-6 space-y-6">
+
+        @if(!empty($missingOnboardingSteps))
+            <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                <h2 class="font-bold text-yellow-800 mb-2">Complete Your Company Setup</h2>
+                <ul class="list-disc pl-6 text-yellow-700">
+                    @foreach($missingOnboardingSteps as $step)
+                        <li>{{ $step }}</li>
+                    @endforeach
+                </ul>
+                <a href="{{ route('company.onboarding.step', ['step' => 1]) }}" class="inline-block mt-3 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                    Continue Setup
+                </a>
+            </div>
+        @endif
         {{-- Header Section with Filters --}}
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -75,10 +91,10 @@
 
         {{-- Stats Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {{-- Project Serving Time --}}
+            {{-- Average Project Completion Time --}}
             <x-score-card
-                title="Project Serving Time"
-                :value="$averageServingTime . ' hours'"
+                title="Average Project Completion Time"
+                :value="$averageCompletionTime"
                 iconColor="text-green-500"
                 bgColor="bg-green-50 dark:bg-green-900/20">
                 <x-slot name="icon">
@@ -151,7 +167,7 @@
                             <p class="text-sm font-medium text-gray-900 dark:text-white">Waiting Talent</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Waiting Talent approved Project</p>
                         </div>
-                        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $onGoingProjects['waiting talent'] ?? 0 }}</span>
+                        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $waitingTalent ?? 0 }}</span>
                     </div>
 
                     <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -162,7 +178,7 @@
                             <p class="text-sm font-medium text-gray-900 dark:text-white">Project Assign</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Project Applied, still working on it</p>
                         </div>
-                        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $onGoingProjects['Project Assign'] ?? 0 }}</span>
+                        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $QC ?? 0 }}</span>
                     </div>
 
                     <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -173,7 +189,7 @@
                             <p class="text-sm font-medium text-gray-900 dark:text-white">Project QC</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Waiting QC agent check the project</p>
                         </div>
-                        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $onGoingProjects['Project QC'] ?? 0 }}</span>
+                        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $draft ?? 0 }}</span>
                     </div>
 
                     <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -184,7 +200,7 @@
                             <p class="text-sm font-medium text-gray-900 dark:text-white">Project Revision</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Revision note release by admin</p>
                         </div>
-                        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $onGoingProjects['Revision'] ?? 0 }}</span>
+                        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $revision ?? 0 }}</span>
                     </div>
 
                     <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -195,7 +211,7 @@
                             <p class="text-sm font-medium text-gray-900 dark:text-white">Project Completed</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Number of project completed</p>
                         </div>
-                        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $onGoingProjects['Done'] ?? 0 }}</span>
+                            <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ $done ?? 0 }}</span>
                     </div>
                 </div>
             </div>
@@ -220,7 +236,11 @@
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @forelse ($projects as $item)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
-                                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{$item->project_name}}</td>
+                                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                        <a href="{{ route('company.project.detail', $item->id . '-' . Str::slug($item->project_name)) }}" class="text-indigo-600 hover:underline">
+                                            {{ $item->project_name }}
+                                        </a>
+                                    </td>
                                     <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{$item->projectType->project_name}}</td>
                                     <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ $item->qcAgent->name ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 text-center">
@@ -257,13 +277,7 @@
                                         @endswitch
                                     </td>
                                     <td class="px-6 py-4 text-center space-x-2">
-                                        <a href="#" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 mr-1">
-                                                <path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd" />
-                                            </svg>
-                                            Edit
-                                        </a>
-                                        <a href="#" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                        <a href="{{ route('company.project.detail', $item->id . '-' . Str::slug($item->project_name)) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 mr-1">
                                                 <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625Z" />
                                             </svg>

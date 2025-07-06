@@ -1,5 +1,9 @@
-<x-guest-layout>
-    <div class="min-h-screen flex flex-col lg:flex-row bg-white">
+@extends('layouts.guest')
+@section('title', 'Login')
+@section('meta_description', 'Ini adalah halaman login.')
+
+@section('content')
+    <div class="min-h-screen flex bg-white">
         <!-- Left Side - Hidden on mobile, visible on desktop -->
         <div class="hidden lg:flex lg:w-1/3 bg-gray-50 p-8 lg:p-12 flex-col">
             <div class="mb-8 lg:mb-12">
@@ -114,4 +118,4 @@
             </div>
         </div>
     </div>
-</x-guest-layout>
+@endsection

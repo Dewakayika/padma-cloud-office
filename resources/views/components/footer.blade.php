@@ -1,4 +1,5 @@
 <!-- Footer -->
+
 <footer class="w-full bg-white border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700
     lg:fixed lg:bottom-0 lg:right-0 lg:left-64 z-40
     sticky bottom-0">

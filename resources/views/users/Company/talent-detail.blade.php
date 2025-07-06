@@ -153,10 +153,7 @@
                             {{ $formattedCompletionTime['hours'] }}h
                             {{ $formattedCompletionTime['minutes'] }}m
                             {{ $formattedCompletionTime['seconds'] }}s
-                            <span class="ml-1 cursor-help" title="Formula: Total Time of All Completed Projects ÷ Number of Completed Projects
-Where:
-- Total Time = Sum of (Last Log Timestamp - First Log Created At) for each completed project
-- Number of Completed Projects = Count of projects with status 'done'">ⓘ</span>
+                            <span class="ml-1 cursor-help" title="Formula: Total Time of All Completed Projects \xF7 Number of Completed Projects\nWhere:\n- Total Time = Sum of (Last Log Timestamp - First Log Created At) for each completed project\n- Number of Completed Projects = Count of projects with status 'done'">ⓘ</span>
                         @else
                             N/A
                         @endif

@@ -1,4 +1,8 @@
-<x-guest-layout>
+@extends('layouts.guest')
+@section('title', 'Register Portal')
+@section('meta_description', 'Ini adalah halaman register portal.')
+
+@section('content')
     <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
         <div class="w-full max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden">
             <div class="text-center p-8 bg-white">
@@ -49,4 +53,4 @@
             </div>
         </div>
     </div>
-</x-guest-layout>
+@endsection

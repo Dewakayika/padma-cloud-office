@@ -1,5 +1,10 @@
-<x-guest-layout>
-    <div class="min-h-screen flex flex-col lg:flex-row bg-white" x-data="{ 
+
+@extends('layouts.guest')
+@section('title', 'Login')
+@section('meta_description', 'Ini adalah halaman login.')
+
+@section('content')
+    <div class="min-h-screen flex bg-white" x-data="{
         step: 1,
         totalSteps: 4,
         formData: {
@@ -35,7 +40,7 @@
         checkPassword() {
             const pass = this.formData.step1.password;
             const confirm = this.formData.step1.password_confirmation;
-            
+
             this.passwordRules.minLength = pass.length >= 8;
             this.passwordRules.upperCase = /[A-Z]/.test(pass);
             this.passwordRules.specialChar = /[^A-Za-z0-9]/.test(pass);
@@ -43,25 +48,25 @@
         },
         validateStep1() {
             this.checkPassword();
-            return this.formData.step1.name !== '' && 
-                   this.formData.step1.email !== '' && 
+            return this.formData.step1.name !== '' &&
+                   this.formData.step1.email !== '' &&
                    Object.values(this.passwordRules).every(rule => rule === true);
         },
         validateStep2() {
-            return this.formData.step2.phone_number !== '' && 
-                   this.formData.step2.address !== '' && 
-                   this.formData.step2.gender !== '' && 
+            return this.formData.step2.phone_number !== '' &&
+                   this.formData.step2.address !== '' &&
+                   this.formData.step2.gender !== '' &&
                    this.formData.step2.date_of_birth !== '';
         },
         validateStep3() {
             return this.formData.step3.id_card_number !== '';
-                   
+
         },
         validateStep4() {
-            return this.formData.step4.bank_name !== '' && 
-                   this.formData.step4.bank_account !== '' && 
-                   this.formData.step4.swift_code !== '' && 
-                   this.formData.step4.subjected_tax !== '' && 
+            return this.formData.step4.bank_name !== '' &&
+                   this.formData.step4.bank_account !== '' &&
+                   this.formData.step4.swift_code !== '' &&
+                   this.formData.step4.subjected_tax !== '' &&
                    this.formData.step4.terms === true;
         },
         canProceed() {
@@ -104,7 +109,7 @@
                                     <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
-                            <div class="h-full w-0.5 bg-gray-200 absolute left-5 top-10 -bottom-12" 
+                            <div class="h-full w-0.5 bg-gray-200 absolute left-5 top-10 -bottom-12"
                                 x-show="step > 1"></div>
                         </div>
                         <div class="ml-4">
@@ -176,7 +181,7 @@
             <!-- Sign In Link -->
             <div class="mt-auto pt-8">
                 <p class="text-gray-600">
-                    Already have an account? 
+                    Already have an account?
                     <a href="{{ route('login') }}" class="text-blue-600 hover:text-green-700 font-medium">Sign in</a>
                 </p>
             </div>
@@ -241,9 +246,9 @@
                                 Name<span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <input type="text" 
-                                    name="name" 
-                                    id="name" 
+                                <input type="text"
+                                    name="name"
+                                    id="name"
                                     x-model="formData.step1.name"
                                     class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                         focus:outline-none focus:ring-2 focus:ring-black focus:border-black
@@ -256,16 +261,16 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                    
+
                         <!-- Email Field -->
                         <div class="space-y-2 mt-6">
                             <label for="email" class="block text-sm font-semibold text-gray-700">
                                 Email<span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <input type="email" 
-                                    name="email" 
-                                    id="email" 
+                                <input type="email"
+                                    name="email"
+                                    id="email"
                                     x-model="formData.step1.email"
                                     class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                         focus:outline-none focus:ring-2 focus:ring-black focus:border-black
@@ -292,9 +297,9 @@
                                 Password<span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <input type="password" 
-                                    name="password" 
-                                    id="password" 
+                                <input type="password"
+                                    name="password"
+                                    id="password"
                                     x-model="formData.step1.password"
                                     @input="checkPassword"
                                     class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
@@ -343,9 +348,9 @@
                                 Confirm Password<span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <input type="password" 
-                                    name="password_confirmation" 
-                                    id="password_confirmation" 
+                                <input type="password"
+                                    name="password_confirmation"
+                                    id="password_confirmation"
                                     x-model="formData.step1.password_confirmation"
                                     @input="checkPassword()"
                                     class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
@@ -383,6 +388,7 @@
                             <label for="address" class="block text-sm font-semibold text-gray-700">Address</label>
                             <textarea id="address" 
                                 name="address" 
+
                                 rows="3"
                                 x-model="formData.step2.address"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
@@ -428,9 +434,9 @@
                             <label for="id_card_number" class="block text-sm font-semibold text-gray-700">
                                 ID Card Number<span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                name="id_card_number" 
-                                id="id_card_number" 
+                            <input type="text"
+                                name="id_card_number"
+                                id="id_card_number"
                                 x-model="formData.step3.id_card_number"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
@@ -447,9 +453,9 @@
                             <label for="bank_name" class="block text-sm font-semibold text-gray-700">
                                 Bank Name<span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                name="bank_name" 
-                                id="bank_name" 
+                            <input type="text"
+                                name="bank_name"
+                                id="bank_name"
                                 x-model="formData.step4.bank_name"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
@@ -463,9 +469,9 @@
                             <label for="bank_account" class="block text-sm font-semibold text-gray-700">
                                 Bank Account Number<span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                name="bank_account" 
-                                id="bank_account" 
+                            <input type="text"
+                                name="bank_account"
+                                id="bank_account"
                                 x-model="formData.step4.bank_account"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
@@ -479,9 +485,9 @@
                             <label for="swift_code" class="block text-sm font-semibold text-gray-700">
                                 SWIFT Code<span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                name="swift_code" 
-                                id="swift_code" 
+                            <input type="text"
+                                name="swift_code"
+                                id="swift_code"
                                 x-model="formData.step4.swift_code"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
@@ -495,9 +501,9 @@
                             <label for="subjected_tax" class="block text-sm font-semibold text-gray-700">
                                 Subjected Tax<span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                name="subjected_tax" 
-                                id="subjected_tax" 
+                            <input type="text"
+                                name="subjected_tax"
+                                id="subjected_tax"
                                 x-model="formData.step4.subjected_tax"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
@@ -510,9 +516,9 @@
                         <div class="mt-6">
                             <div class="flex items-start">
                                 <div class="flex items-center h-5">
-                                    <input type="checkbox" 
-                                        id="terms" 
-                                        name="terms" 
+                                    <input type="checkbox"
+                                        id="terms"
+                                        name="terms"
                                         x-model="formData.step4.terms"
                                         class="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
                                         required>
@@ -542,7 +548,6 @@
                             </svg>
                             Previous
                         </button>
-
                         <div class="w-full sm:w-auto">
                             <button type="button" 
                                 x-show="step < totalSteps" 
@@ -558,7 +563,7 @@
                                 </svg>
                             </button>
 
-                            <button type="submit" 
+                            <button type="submit"
                                 x-show="step === totalSteps"
                                 :class="{'opacity-50 cursor-not-allowed': !canProceed()}"
                                 :disabled="!canProceed()"
@@ -584,4 +589,4 @@
             </div>
         </div>
     </div>
-</x-guest-layout>
+@endsection

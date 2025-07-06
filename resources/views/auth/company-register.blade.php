@@ -1,5 +1,9 @@
-<x-guest-layout>
-    <div class="min-h-screen flex flex-col lg:flex-row bg-white">
+@extends('layouts.guest')
+@section('title', 'Register')
+@section('meta_description', 'Ini adalah halaman register.')
+
+@section('content')
+    <div class="min-h-screen flex bg-white">
         <!-- Left Side: Branding - Hidden on mobile, visible on desktop -->
         <div class="hidden lg:flex lg:w-1/3 bg-gray-50 p-8 lg:p-12 flex-col">
             <!-- Back to Home Link -->
@@ -15,7 +19,7 @@
             <!-- Registration Info -->
             <div class="flex-1">
                 <h2 class="text-2xl font-semibold text-gray-900 mb-4">Company Registration</h2>
-                
+
                 <!-- Company Benefits -->
                 <div class="space-y-6">
                     <div class="flex items-start space-x-3">
@@ -51,7 +55,7 @@
             <!-- Sign In Link -->
             <div class="mt-auto pt-8">
                 <p class="text-gray-600">
-                    Already have an account? 
+                    Already have an account?
                     <a href="{{ route('login') }}" class="text-blue-600 hover:text-red-700 font-medium">Sign in</a>
                 </p>
             </div>
@@ -99,7 +103,7 @@
                                     transition-all duration-200 text-base"
                                 placeholder="Enter your company name"
                                 value="{{ old('company_name') }}"
-                                required 
+                                required
                                 autofocus />
                         </div>
 
@@ -125,7 +129,7 @@
                     </div>
 
                     <!-- Country Select -->
-                    <div class="space-y-2" x-data="{ 
+                    <div class="space-y-2" x-data="{
                         countries: [],
                         loading: true,
                         async fetchCountries() {
@@ -157,15 +161,16 @@
                                 required>
                                 <option value="">Select a country</option>
                                 <template x-for="country in countries" :key="country">
-                                    <option :value="country" 
+                                    <option :value="country"
                                         :selected="country === '{{ old('country') }}'"
                                         x-text="country"></option>
                                 </template>
                             </select>
-                            
+
                             <!-- Loading indicator -->
                             <div x-show="loading" 
                                 class="absolute right-4 top-1/2 transform -translate-y-1/2">
+
                                 <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -179,6 +184,7 @@
                         <label for="contact_person_name" class="block text-sm font-semibold text-gray-700">
                             Contact Person Name<span class="text-red-500">*</span>
                         </label>
+
                         <input type="text" 
                             name="contact_person_name" 
                             id="contact_person_name" 
@@ -195,6 +201,7 @@
                         <label for="email" class="block text-sm font-semibold text-gray-700">
                             Work Email<span class="text-red-500">*</span>
                         </label>
+
                         <input type="email" 
                             name="email" 
                             id="email" 
@@ -211,6 +218,7 @@
                         <label for="password" class="block text-sm font-semibold text-gray-700">
                             Password<span class="text-red-500">*</span>
                         </label>
+
                         <input type="password" 
                             name="password" 
                             id="password" 
@@ -226,6 +234,7 @@
                         <label for="password_confirmation" class="block text-sm font-semibold text-gray-700">
                             Confirm Password<span class="text-red-500">*</span>
                         </label>
+
                         <input type="password" 
                             name="password_confirmation" 
                             id="password_confirmation" 
@@ -240,6 +249,7 @@
                     <div class="mt-6">
                         <div class="flex items-start">
                             <div class="flex items-center h-5">
+
                                 <input type="checkbox" 
                                     id="terms" 
                                     name="terms" 
@@ -259,9 +269,11 @@
 
                     <!-- Submit Button -->
                     <div class="mt-8">
+
                         <button type="submit" 
                             class="w-full flex justify-center py-4 px-6 border border-transparent rounded-xl
                                 text-base font-semibold text-white bg-black hover:bg-gray-800
+
                                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black
                                 transition-all duration-200">
                             Create Company Account
@@ -279,4 +291,4 @@
             </div>
         </div>
     </div>
-</x-guest-layout>
+@endsection
