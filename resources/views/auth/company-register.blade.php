@@ -3,7 +3,7 @@
 @section('meta_description', 'Ini adalah halaman register.')
 
 @section('content')
-    <div class="min-h-screen flex bg-white">
+    <div class="min-h-screen flex flex-col lg:flex-row bg-white">
         <!-- Left Side: Branding - Hidden on mobile, visible on desktop -->
         <div class="hidden lg:flex lg:w-1/3 bg-gray-50 p-8 lg:p-12 flex-col">
             <!-- Back to Home Link -->
@@ -95,9 +95,9 @@
                             <label for="company_name" class="block text-sm font-semibold text-gray-700">
                                 Company Name<span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                name="company_name" 
-                                id="company_name" 
+                            <input type="text"
+                                name="company_name"
+                                id="company_name"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                     transition-all duration-200 text-base"
@@ -112,8 +112,8 @@
                             <label for="company_type" class="block text-sm font-semibold text-gray-700">
                                 Company Type<span class="text-red-500">*</span>
                             </label>
-                            <select id="company_type" 
-                                name="company_type" 
+                            <select id="company_type"
+                                name="company_type"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                     transition-all duration-200 text-base appearance-none"
@@ -153,8 +153,8 @@
                             Country<span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
-                            <select name="country" 
-                                id="country" 
+                            <select name="country"
+                                id="country"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                     transition-all duration-200 text-base appearance-none"
@@ -168,9 +168,8 @@
                             </select>
 
                             <!-- Loading indicator -->
-                            <div x-show="loading" 
+                            <div x-show="loading"
                                 class="absolute right-4 top-1/2 transform -translate-y-1/2">
-
                                 <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -184,10 +183,9 @@
                         <label for="contact_person_name" class="block text-sm font-semibold text-gray-700">
                             Contact Person Name<span class="text-red-500">*</span>
                         </label>
-
-                        <input type="text" 
-                            name="contact_person_name" 
-                            id="contact_person_name" 
+                        <input type="text"
+                            name="contact_person_name"
+                            id="contact_person_name"
                             class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                 focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                 transition-all duration-200 text-base"
@@ -201,10 +199,9 @@
                         <label for="email" class="block text-sm font-semibold text-gray-700">
                             Work Email<span class="text-red-500">*</span>
                         </label>
-
-                        <input type="email" 
-                            name="email" 
-                            id="email" 
+                        <input type="email"
+                            name="email"
+                            id="email"
                             class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                 focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                 transition-all duration-200 text-base"
@@ -218,10 +215,9 @@
                         <label for="password" class="block text-sm font-semibold text-gray-700">
                             Password<span class="text-red-500">*</span>
                         </label>
-
-                        <input type="password" 
-                            name="password" 
-                            id="password" 
+                        <input type="password"
+                            name="password"
+                            id="password"
                             class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                 focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                 transition-all duration-200 text-base"
@@ -234,10 +230,9 @@
                         <label for="password_confirmation" class="block text-sm font-semibold text-gray-700">
                             Confirm Password<span class="text-red-500">*</span>
                         </label>
-
-                        <input type="password" 
-                            name="password_confirmation" 
-                            id="password_confirmation" 
+                        <input type="password"
+                            name="password_confirmation"
+                            id="password_confirmation"
                             class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                 focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                 transition-all duration-200 text-base"
@@ -249,16 +244,15 @@
                     <div class="mt-6">
                         <div class="flex items-start">
                             <div class="flex items-center h-5">
-
-                                <input type="checkbox" 
-                                    id="terms" 
-                                    name="terms" 
+                                <input type="checkbox"
+                                    id="terms"
+                                    name="terms"
                                     class="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
                                     required>
                             </div>
                             <div class="ml-3 text-sm">
                                 <label for="terms" class="font-medium text-gray-700 leading-relaxed">
-                                    I agree to the 
+                                    I agree to the
                                     <a href="{{ route('terms.show') }}" class="text-blue-600 hover:text-blue-700 transition-colors duration-200">Terms</a>
                                     and
                                     <a href="{{ route('policy.show') }}" class="text-blue-600 hover:text-blue-700 transition-colors duration-200">Privacy Policy</a>
@@ -269,11 +263,9 @@
 
                     <!-- Submit Button -->
                     <div class="mt-8">
-
-                        <button type="submit" 
+                        <button type="submit"
                             class="w-full flex justify-center py-4 px-6 border border-transparent rounded-xl
                                 text-base font-semibold text-white bg-black hover:bg-gray-800
-
                                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black
                                 transition-all duration-200">
                             Create Company Account
@@ -284,7 +276,7 @@
                 <!-- Mobile Footer -->
                 <div class="lg:hidden mt-10 pt-8 border-t border-gray-200 text-center">
                     <p class="text-gray-600">
-                        Already have an account? 
+                        Already have an account?
                         <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200">Sign in</a>
                     </p>
                 </div>
