@@ -1,4 +1,3 @@
-
 @extends('layouts.guest')
 @section('title', 'Login')
 @section('meta_description', 'Ini adalah halaman login.')
@@ -11,9 +10,7 @@
         formData: {
             step1: {
                 name: '',
-                email: '',
-                password: '',
-                password_confirmation: ''
+                email: ''
             },
             step2: {
                 phone_number: '',
@@ -39,19 +36,13 @@
             matching: false
         },
         checkPassword() {
-            const pass = this.formData.step1.password;
-            const confirm = this.formData.step1.password_confirmation;
-
-            this.passwordRules.minLength = pass.length >= 8;
-            this.passwordRules.upperCase = /[A-Z]/.test(pass);
-            this.passwordRules.specialChar = /[^A-Za-z0-9]/.test(pass);
-            this.passwordRules.matching = pass !== '' && confirm !== '' && pass === confirm;
+            // removed, now handled by component
         },
         validateStep1() {
-            this.checkPassword();
+            // Remove checkPassword();
             return this.formData.step1.name !== '' &&
                    this.formData.step1.email !== '' &&
-                   Object.values(this.passwordRules).every(rule => rule === true);
+                   this.$refs.passwordField && this.$refs.passwordField.__x && Object.values(this.$refs.passwordField.__x.$data.passwordRules).every(rule => rule === true);
         },
         validateStep2() {
             return this.formData.step2.phone_number !== '' &&
@@ -293,79 +284,15 @@
                         </div>
 
                         <!-- Password Field -->
-                        <div class="space-y-2 mt-6">
-                            <label for="password" class="block text-sm font-semibold text-gray-700">
-                                Password<span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <input type="password"
-                                    name="password"
-                                    id="password"
-                                    x-model="formData.step1.password"
-                                    @input="checkPassword"
-                                    class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
-                                        focus:outline-none focus:ring-2 focus:ring-black focus:border-black
-                                        transition-all duration-200 text-base"
-                                    :class="{'border-red-500': formData.step1.password && !passwordRules.minLength}"
-                                    placeholder="Choose a password"
-                                    required />
-                                <div class="mt-3 space-y-2">
-                                    <div class="flex items-center space-x-2">
-                                        <svg class="h-4 w-4" :class="passwordRules.minLength ? 'text-green-600' : 'text-red-600'" fill="currentColor" viewBox="0 0 20 20">
-                                            <path x-show="passwordRules.minLength" fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                            <path x-show="!passwordRules.minLength" fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                        </svg>
-                                        <span class="text-sm" :class="passwordRules.minLength ? 'text-green-600' : 'text-red-600'">
-                                            At least 8 characters
-                                        </span>
-                                    </div>
-
-                                    <div class="flex items-center space-x-2">
-                                        <svg class="h-4 w-4" :class="passwordRules.upperCase ? 'text-green-600' : 'text-red-600'" fill="currentColor" viewBox="0 0 20 20">
-                                            <path x-show="passwordRules.upperCase" fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                            <path x-show="!passwordRules.upperCase" fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                        </svg>
-                                        <span class="text-sm" :class="passwordRules.upperCase ? 'text-green-600' : 'text-red-600'">
-                                            One uppercase letter
-                                        </span>
-                                    </div>
-
-                                    <div class="flex items-center space-x-2">
-                                        <svg class="h-4 w-4" :class="passwordRules.specialChar ? 'text-green-600' : 'text-red-600'" fill="currentColor" viewBox="0 0 20 20">
-                                            <path x-show="passwordRules.specialChar" fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                            <path x-show="!passwordRules.specialChar" fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                        </svg>
-                                        <span class="text-sm" :class="passwordRules.specialChar ? 'text-green-600' : 'text-red-600'">
-                                            One special character
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Password Confirmation Field -->
-                        <div class="space-y-2 mt-6">
-                            <label for="password_confirmation" class="block text-sm font-semibold text-gray-700">
-                                Confirm Password<span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <input type="password"
-                                    name="password_confirmation"
-                                    id="password_confirmation"
-                                    x-model="formData.step1.password_confirmation"
-                                    @input="checkPassword()"
-                                    class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
-                                        focus:outline-none focus:ring-2 focus:ring-black focus:border-black
-                                        transition-all duration-200 text-base"
-                                    :class="{'border-red-500': formData.step1.password_confirmation && !passwordRules.matching}"
-                                    placeholder="Confirm your password"
-                                    required />
-                            </div>
-                            <p class="text-red-600 text-sm mt-1"
-                               x-show="formData.step1.password_confirmation !== '' && !passwordRules.matching">
-                                Passwords do not match
-                            </p>
-                        </div>
+                        <x-password-field ref="passwordField"
+                            passwordName="password"
+                            passwordConfirmationName="password_confirmation"
+                            label="Password"
+                            confirmationLabel="Confirm Password"
+                            showRequirements="true"
+                            required="true" 
+                            passwordPlaceholder="Enter your secure password"
+                            confirmationPlaceholder="Re-enter your password to confirm"/>
                     </div>
 
                     <!-- Step 2: Personal Details -->
