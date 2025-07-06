@@ -1,4 +1,8 @@
-<x-guest-layout>
+@extends('layouts.guest')
+@section('title', 'Login')
+@section('meta_description', 'Ini adalah halaman login.')
+
+@section('content')
     <div class="min-h-screen flex bg-white">
         <!-- Left Side -->
         <div class="w-1/3 bg-gray-50 p-12 flex flex-col">
@@ -75,4 +79,4 @@
             </div>
         </div>
     </div>
-</x-guest-layout>
+@endsection

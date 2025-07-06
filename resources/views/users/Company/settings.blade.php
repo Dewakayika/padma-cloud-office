@@ -10,12 +10,12 @@
 
             <div class="container mx-auto">
                 <!-- Tab Navigation -->
-                <div class="border-b border-gray-200 mb-6">
-                    <nav class="-mb-px flex space-x-8 dark:text-white" aria-label="Tabs">
-                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600 dark:text-white" aria-current="page">Project Settings</button>
-                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-white hover:text-gray-700 hover:border-gray-300 ">SOP Settings</button>
-                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-white hover:text-gray-700 hover:border-gray-300 ">Team Settings</button>
-                        <button class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-white hover:text-gray-700 hover:border-gray-300 ">Billing Settings</button>
+                <div class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <nav class="flex space-x-8 px-4" aria-label="Tabs" id="settings-tabs">
+                        <a href="javascript:void(0);" class="tab-link py-4 px-1 border-b-2 font-medium text-sm border-blue-600 text-blue-600 dark:text-white active" data-target="project-settings">Project Settings</a>
+                        <a href="javascript:void(0);" class="tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="sop-settings">SOP Settings</a>
+                        <a href="javascript:void(0);" class="tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="team-settings">Team Settings</a>
+                        <a href="javascript:void(0);" class="tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="billing-settings">Billing Settings</a>
                     </nav>
                 </div>
 
@@ -70,31 +70,31 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const tabs = document.querySelectorAll('nav[aria-label="Tabs"] button');
+        const tabs = document.querySelectorAll('.tab-link');
         const tabContents = document.querySelectorAll('#tab-content > div');
 
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                const targetId = tab.textContent.toLowerCase().replace(' ', '-').replace('settings', 'settings');
+                // Remove active styles from all tabs
+                tabs.forEach(t => t.classList.remove('border-blue-600', 'text-blue-600', 'active'));
+                tabs.forEach(t => t.classList.add('border-transparent', 'text-gray-500'));
 
-                // Hide all tab contents and deactivate all tabs
+                // Hide all tab contents
                 tabContents.forEach(content => content.classList.add('hidden'));
-                tabs.forEach(t => t.classList.replace('border-blue-500', 'border-transparent'));
-                tabs.forEach(t => t.classList.replace('text-blue-600', 'text-gray-500'));
 
-                // Show the target tab content and activate the clicked tab
+                // Activate clicked tab
+                tab.classList.add('border-blue-600', 'text-blue-600', 'active');
+                tab.classList.remove('border-transparent', 'text-gray-500');
+
+                // Show corresponding content
+                const targetId = tab.getAttribute('data-target');
                 document.getElementById(targetId).classList.remove('hidden');
-                tab.classList.replace('border-transparent', 'border-blue-500');
-                tab.classList.replace('text-gray-500', 'text-blue-600');
             });
         });
 
         // Show the first tab by default
         if (tabs.length > 0) {
-            const initialTargetId = tabs[0].textContent.toLowerCase().replace(' ', '-').replace('settings', 'settings');
-            document.getElementById(initialTargetId).classList.remove('hidden');
-            tabs[0].classList.replace('border-transparent', 'border-blue-500');
-            tabs[0].classList.replace('text-gray-500', 'text-blue-600');
+            tabs[0].click();
         }
     });
 </script>

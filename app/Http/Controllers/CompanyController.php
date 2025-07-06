@@ -70,8 +70,9 @@ class CompanyController extends Controller
         // Auth::login($user);
 
         // Redirect after successful registration
-        return redirect()->route('home')->with('success', 'Company registered successfully');
+        return redirect()->route('company.onboarding.step', 1)->with('success', 'Company registered successfully');
     }
+
 
     public function index()
     {
@@ -81,6 +82,16 @@ class CompanyController extends Controller
         if (!$company) {
             return redirect()->route('home')->with('error', 'Company not found.');
         }
+
+        // Check if the company is onboarded
+        // if ($company->onboarding_step < 4) {
+        //     return redirect()->route('company.onboarding.step', $company->onboarding_step);
+        // }
+
+        // // Already onboarded
+        // if ($company->onboarding_step == 4) {
+        //     return redirect()->route('company.index');
+        // }
 
         // Get filter parameters
         $year = request('year', date('Y'));
@@ -216,6 +227,21 @@ class CompanyController extends Controller
             $monthlyStats = $monthlyStatsArray;
         }
 
+        // Onboarding steps check
+        $missingOnboardingSteps = [];
+        // Step 1: Legal & Verification
+        if (empty($company->company_name) || empty($company->registration_number) || empty($company->address)) {
+            $missingOnboardingSteps[] = 'Legal & Verification';
+        }
+        // Step 3: Billing & Tax
+        if (empty($company->billing_address) || empty($company->billing_email) || empty($company->invoice_recipient) || empty($company->zip_code) || empty($company->country) || empty($company->payment_schedule) || empty($company->currency)) {
+            $missingOnboardingSteps[] = 'Billing & Tax';
+        }
+        // Step 4: Collaboration Preferences
+        if (empty($company->primary_use_case) || !$company->nda_agreed) {
+            $missingOnboardingSteps[] = 'Collaboration Preferences';
+        }
+
         return view('users.Company.index', compact(
             'company',
             'averageCompletionTime',
@@ -230,7 +256,8 @@ class CompanyController extends Controller
             'QC',
             'draft',
             'revision',
-            'done'
+            'done',
+            'missingOnboardingSteps'
         ));
     }
 

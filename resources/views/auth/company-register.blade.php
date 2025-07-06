@@ -1,4 +1,8 @@
-<x-guest-layout>
+@extends('layouts.guest')
+@section('title', 'Register')
+@section('meta_description', 'Ini adalah halaman register.')
+
+@section('content')
     <div class="min-h-screen flex bg-white">
         <!-- Left Side: Branding -->
         <div class="w-1/3 bg-gray-50 p-12 flex flex-col">
@@ -15,7 +19,7 @@
             <!-- Registration Info -->
             <div class="flex-1">
                 <h2 class="text-2xl font-semibold text-gray-900 mb-4">Company Registration</h2>
-                
+
                 <!-- Company Benefits -->
                 <div class="space-y-6">
                     <div class="flex items-start space-x-3">
@@ -51,7 +55,7 @@
             <!-- Sign In Link -->
             <div class="mt-auto pt-8">
                 <p class="text-gray-600">
-                    Already have an account? 
+                    Already have an account?
                     <a href="{{ route('login') }}" class="text-blue-600 hover:text-red-700 font-medium">Sign in</a>
                 </p>
             </div>
@@ -79,15 +83,15 @@
                             <label for="company_name" class="block text-sm font-medium text-gray-700">
                                 Company Name<span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                name="company_name" 
-                                id="company_name" 
+                            <input type="text"
+                                name="company_name"
+                                id="company_name"
                                 class="block w-full px-4 py-3.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400
                                     focus:outline-none focus:ring-1 focus:ring-black focus:border-black
                                     transition duration-150 ease-in-out"
                                 placeholder="Enter your company name"
                                 value="{{ old('company_name') }}"
-                                required 
+                                required
                                 autofocus />
                         </div>
 
@@ -96,8 +100,8 @@
                             <label for="company_type" class="block text-sm font-medium text-gray-700">
                                 Company Type<span class="text-red-500">*</span>
                             </label>
-                            <select id="company_type" 
-                                name="company_type" 
+                            <select id="company_type"
+                                name="company_type"
                                 class="block w-full px-4 py-3.5 rounded-lg border border-gray-300 text-gray-900
                                     focus:outline-none focus:ring-1 focus:ring-black focus:border-black
                                     transition duration-150 ease-in-out"
@@ -113,7 +117,7 @@
                     </div>
 
                     <!-- Country Select -->
-                    <div class="space-y-2" x-data="{ 
+                    <div class="space-y-2" x-data="{
                         countries: [],
                         loading: true,
                         async fetchCountries() {
@@ -137,22 +141,22 @@
                             Country<span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
-                            <select name="country" 
-                                id="country" 
+                            <select name="country"
+                                id="country"
                                 class="block w-full px-4 py-3.5 rounded-lg border border-gray-300 text-gray-900
                                     focus:outline-none focus:ring-1 focus:ring-black focus:border-black
                                     transition duration-150 ease-in-out appearance-none"
                                 required>
                                 <option value="">Select a country</option>
                                 <template x-for="country in countries" :key="country">
-                                    <option :value="country" 
+                                    <option :value="country"
                                         :selected="country === '{{ old('country') }}'"
                                         x-text="country"></option>
                                 </template>
                             </select>
-                            
+
                             <!-- Loading indicator -->
-                            <div x-show="loading" 
+                            <div x-show="loading"
                                 class="absolute right-10 top-1/2 transform -translate-y-1/2">
                                 <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -167,9 +171,9 @@
                         <label for="contact_person_name" class="block text-sm font-medium text-gray-700">
                             Contact Person Name<span class="text-red-500">*</span>
                         </label>
-                        <input type="text" 
-                            name="contact_person_name" 
-                            id="contact_person_name" 
+                        <input type="text"
+                            name="contact_person_name"
+                            id="contact_person_name"
                             class="block w-full px-4 py-3.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400
                                 focus:outline-none focus:ring-1 focus:ring-black focus:border-black
                                 transition duration-150 ease-in-out"
@@ -183,9 +187,9 @@
                         <label for="email" class="block text-sm font-medium text-gray-700">
                             Work Email<span class="text-red-500">*</span>
                         </label>
-                        <input type="email" 
-                            name="email" 
-                            id="email" 
+                        <input type="email"
+                            name="email"
+                            id="email"
                             class="block w-full px-4 py-3.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400
                                 focus:outline-none focus:ring-1 focus:ring-black focus:border-black
                                 transition duration-150 ease-in-out"
@@ -199,9 +203,9 @@
                         <label for="password" class="block text-sm font-medium text-gray-700">
                             Password<span class="text-red-500">*</span>
                         </label>
-                        <input type="password" 
-                            name="password" 
-                            id="password" 
+                        <input type="password"
+                            name="password"
+                            id="password"
                             class="block w-full px-4 py-3.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400
                                 focus:outline-none focus:ring-1 focus:ring-black focus:border-black
                                 transition duration-150 ease-in-out"
@@ -214,9 +218,9 @@
                         <label for="password_confirmation" class="block text-sm font-medium text-gray-700">
                             Confirm Password<span class="text-red-500">*</span>
                         </label>
-                        <input type="password" 
-                            name="password_confirmation" 
-                            id="password_confirmation" 
+                        <input type="password"
+                            name="password_confirmation"
+                            id="password_confirmation"
                             class="block w-full px-4 py-3.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400
                                 focus:outline-none focus:ring-1 focus:ring-black focus:border-black
                                 transition duration-150 ease-in-out"
@@ -228,15 +232,15 @@
                     <div class="mt-6">
                         <div class="flex items-start">
                             <div class="flex items-center h-5">
-                                <input type="checkbox" 
-                                    id="terms" 
-                                    name="terms" 
+                                <input type="checkbox"
+                                    id="terms"
+                                    name="terms"
                                     class="h-4 w-4 text-green-600 focus:ring-black border-gray-300 rounded"
                                     required>
                             </div>
                             <div class="ml-3 text-sm">
                                 <label for="terms" class="font-medium text-gray-700">
-                                    I agree to the 
+                                    I agree to the
                                     <a href="{{ route('terms.show') }}" class="text-blue-600 hover:text-blue-500">Terms</a>
                                     and
                                     <a href="{{ route('policy.show') }}" class="text-blue-600 hover:text-blue-500">Privacy Policy</a>
@@ -247,7 +251,7 @@
 
                     <!-- Submit Button -->
                     <div class="mt-8">
-                        <button type="submit" 
+                        <button type="submit"
                             class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-lg
                                 text-base font-medium text-white bg-gray-800 hover:bg-black
                                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black
@@ -259,4 +263,4 @@
             </div>
         </div>
     </div>
-</x-guest-layout>
+@endsection

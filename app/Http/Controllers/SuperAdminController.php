@@ -9,6 +9,7 @@ use App\Models\ProjectLog;
 use App\Models\Talent;
 use App\Models\CompanyTalent;
 
+
 use Illuminate\Http\Request;
 
 class SuperAdminController extends Controller
@@ -39,7 +40,7 @@ class SuperAdminController extends Controller
 
 
 
-        $projects = Project::with(['projectType', 'talentQc'])->latest()->take(10)->get();
+        $projects = Project::with(['projectType', 'talentQc', 'qcAgent'])->latest()->take(10)->get();
 
         return view('users.SuperAdmin.index', [
             'totalCompany' => $totalCompany,

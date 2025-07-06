@@ -4,8 +4,24 @@
 
 @section('content')
 
+
+
 <div class="sm:ml-64">
     <div class="p-4 sm:p-6 space-y-6">
+
+        @if(!empty($missingOnboardingSteps))
+            <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                <h2 class="font-bold text-yellow-800 mb-2">Complete Your Company Setup</h2>
+                <ul class="list-disc pl-6 text-yellow-700">
+                    @foreach($missingOnboardingSteps as $step)
+                        <li>{{ $step }}</li>
+                    @endforeach
+                </ul>
+                <a href="{{ route('company.onboarding.step', ['step' => 1]) }}" class="inline-block mt-3 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                    Continue Setup
+                </a>
+            </div>
+        @endif
         {{-- Header Section with Filters --}}
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

@@ -1,6 +1,6 @@
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-lg p-6">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white">Company Data</h3>
+        <h3 class="text-xl font-semibold text-gray-800 dark:text-white">Company List</h3>
         {{-- Add buttons for managing companies if needed, similar to the project table --}}
         {{-- For now, just keep the title --}}
     </div>

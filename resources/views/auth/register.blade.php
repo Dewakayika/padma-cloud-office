@@ -1,4 +1,8 @@
-<x-guest-layout>
+@extends('layouts.guest')
+@section('title', 'Register')
+@section('meta_description', 'Ini adalah halaman register.')
+
+@section('content')
     <div class="min-h-screen flex bg-white">
         <!-- Left Side: Branding -->
         <div class="w-1/3 bg-gray-50 p-12 flex flex-col">
@@ -127,4 +131,4 @@
             </div>
         </div>
     </div>
-</x-guest-layout>
+@endsection

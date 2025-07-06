@@ -6,6 +6,8 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\TalentController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\CompanyOnboardingController;
+use App\Http\Controllers\EwalletController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -90,6 +92,17 @@ Route::middleware(['auth', 'company'])->group(function () {
 
     // Feedback routes
     Route::post('/projects/{project}/feedback/company', [CompanyController::class, 'storeCompanyFeedback'])->name('company.project.feedback');
+    Route::get('/company/ewallet', [EwalletController::class, 'eWallet'])->name('company.e-wallet');
+
+    // Onboarding Routes
+    Route::get('/onboarding/{step?}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
+    Route::post('/onboarding/{step}', [CompanyOnboardingController::class, 'postStep'])->name('company.onboarding.step.post');
+
+    // Project Management Routes
+    Route::get('/company/manage/projects', [CompanyController::class, 'manageProjects'])->name('company.manage.projects');
+    Route::get('/company/project/{slug}', [CompanyController::class, 'detailProject'])->name('company.project.detail');
+    Route::get('/company/project/{project}/qc', [CompanyController::class, 'storeQcReview'])->name('company.project.qc.store');
+
 });
 
 // Talent Routes
@@ -112,4 +125,7 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
 Route::get('/register/{token}', [RegisteredUserController::class, 'showInvitationRegistrationForm'])->middleware('guest')->name('register.invitation');
 Route::post('/register/store', [RegisteredUserController::class, 'store'])->middleware('guest')->name('register.invitation.store');
 
+// Company Onboarding Routes
+// Route::middleware(['auth', 'verified'])->group(function () {
+// });
 
