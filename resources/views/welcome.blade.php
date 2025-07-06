@@ -33,14 +33,14 @@
                         <div class="hidden lg:flex items-center space-x-8">
                             <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Features</a>
                             <a href="#benefits" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Benefits</a>
-                            
+
                             @if (Route::has('login'))
                                 @auth
                                     <a href="{{ url('/dashboard') }}" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Dashboard</a>
                                 @else
                                     <a href="{{ route('login') }}" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Sign in</a>
-                                    @if (Route::has('register'))
-                                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300">
+                                    @if (Route::has('signup'))
+                                        <a href="{{ route('signup') }}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300">
                                             Start for free
                                         </a>
                                     @endif
@@ -64,7 +64,7 @@
                         <div class="px-4 py-4 space-y-3">
                             <a href="#features" class="block text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Features</a>
                             <a href="#benefits" class="block text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Benefits</a>
-                            
+
                             @if (Route::has('login'))
                                 @auth
                                     <a href="{{ url('/dashboard') }}" class="block text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors duration-300">Dashboard</a>
@@ -119,8 +119,8 @@
 
                     <div class="mx-auto text-center max-w-7xl">
                         <div class="border-4 lg:border-8 border-gray-300 dark:border-white rounded-xl lg:rounded-2xl shadow-2xl overflow-hidden">
-                            <img 
-                                src="{{ asset('images/hero-section.png') }}" 
+                            <img
+                                src="{{ asset('images/hero-section.png') }}"
                                 alt="Dashboard preview"
                                 class="w-full h-auto object-cover"
                             >

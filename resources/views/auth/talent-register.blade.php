@@ -4,7 +4,8 @@
 @section('meta_description', 'Ini adalah halaman login.')
 
 @section('content')
-    <div class="min-h-screen flex bg-white" x-data="{
+
+    <div class="min-h-screen flex flex-col lg:flex-row bg-white" x-data="{
         step: 1,
         totalSteps: 4,
         formData: {
@@ -211,7 +212,7 @@
                                     :class="{'border-red-600 bg-red-600 text-white': step >= i, 'border-gray-300 text-gray-500': step < i}">
                                     <span x-text="i"></span>
                                 </div>
-                                <div x-show="i < totalSteps" 
+                                <div x-show="i < totalSteps"
                                      class="w-8 h-1 mx-2"
                                      :class="{'bg-red-600': step > i, 'bg-gray-300': step <= i}">
                                 </div>
@@ -354,7 +355,7 @@
                                     x-model="formData.step1.password_confirmation"
                                     @input="checkPassword()"
                                     class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
-                                        focus:outline-none focus:ring-2 focus:ring-black focus:border-black 
+                                        focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                         transition-all duration-200 text-base"
                                     :class="{'border-red-500': formData.step1.password_confirmation && !passwordRules.matching}"
                                     placeholder="Confirm your password"
@@ -372,9 +373,9 @@
                         <!-- Phone Number -->
                         <div class="space-y-2">
                             <label for="phone_number" class="block text-sm font-semibold text-gray-700">Phone Number</label>
-                            <input type="tel" 
-                                name="phone_number" 
-                                id="phone_number" 
+                            <input type="tel"
+                                name="phone_number"
+                                id="phone_number"
                                 x-model="formData.step2.phone_number"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
@@ -386,9 +387,8 @@
                         <!-- Address -->
                         <div class="space-y-2 mt-6">
                             <label for="address" class="block text-sm font-semibold text-gray-700">Address</label>
-                            <textarea id="address" 
-                                name="address" 
-
+                            <textarea id="address"
+                                name="address"
                                 rows="3"
                                 x-model="formData.step2.address"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
@@ -400,7 +400,7 @@
                         <!-- Gender -->
                         <div class="space-y-2 mt-6">
                             <label for="gender" class="block text-sm font-semibold text-gray-700">Gender</label>
-                            <select id="gender" 
+                            <select id="gender"
                                 name="gender"
                                 x-model="formData.step2.gender"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900
@@ -416,9 +416,9 @@
                         <!-- Date of Birth -->
                         <div class="space-y-2 mt-6">
                             <label for="date_of_birth" class="block text-sm font-semibold text-gray-700">Date of Birth</label>
-                            <input type="date" 
-                                name="date_of_birth" 
-                                id="date_of_birth" 
+                            <input type="date"
+                                name="date_of_birth"
+                                id="date_of_birth"
                                 x-model="formData.step2.date_of_birth"
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
@@ -525,7 +525,7 @@
                                 </div>
                                 <div class="ml-3 text-sm">
                                     <label for="terms" class="font-medium text-gray-700 leading-relaxed">
-                                        I agree to the 
+                                        I agree to the
                                         <a href="#" class="text-blue-600 hover:text-blue-700 transition-colors duration-200">Terms</a>
                                         and
                                         <a href="#" class="text-blue-600 hover:text-blue-700 transition-colors duration-200">Privacy Policy</a>
@@ -537,8 +537,8 @@
 
                     <!-- Navigation Buttons -->
                     <div class="flex flex-col sm:flex-row items-center justify-between mt-8 space-y-4 sm:space-y-0">
-                        <button type="button" 
-                            x-show="step > 1" 
+                        <button type="button"
+                            x-show="step > 1"
                             @click="prevStep()"
                             class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-gray-700 hover:text-gray-900
                                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black
@@ -548,9 +548,10 @@
                             </svg>
                             Previous
                         </button>
+
                         <div class="w-full sm:w-auto">
-                            <button type="button" 
-                                x-show="step < totalSteps" 
+                            <button type="button"
+                                x-show="step < totalSteps"
                                 @click="nextStep()"
                                 :class="{'opacity-50 cursor-not-allowed': !canProceed()}"
                                 :disabled="!canProceed()"
@@ -582,7 +583,7 @@
                 <!-- Mobile Footer -->
                 <div class="lg:hidden mt-10 pt-8 border-t border-gray-200 text-center">
                     <p class="text-gray-600">
-                        Already have an account? 
+                        Already have an account?
                         <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200">Sign in</a>
                     </p>
                 </div>
