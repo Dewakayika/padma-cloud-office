@@ -82,6 +82,9 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::get('/company/sop/{id}', [CompanyController::class, 'getSop'])->name('company.sop.get');
     Route::put('/company/sop/{id}', [CompanyController::class, 'updateSop'])->name('company.sop.update');
     Route::delete('/company/sop/{id}', [CompanyController::class, 'deleteSop'])->name('company.sop.delete');
+    Route::post('/company/notification-settings', [App\Http\Controllers\CompanyController::class, 'saveNotificationSettings'])->name('company.notification-settings.save');
+    Route::post('/company/notification-settings/test', [App\Http\Controllers\CompanyController::class, 'testNotificationWebhook'])->name('company.notification-settings.test');
+    Route::get('/company/sop-template/csv', [App\Http\Controllers\CompanyController::class, 'downloadSopCsvTemplate'])->name('company.sop.csv.template');
 
     // Project Management Routes
     Route::get('/company/manage/projects', [CompanyController::class, 'manageProjects'])->name('company.manage.projects');
@@ -102,6 +105,8 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::get('/company/manage/projects', [CompanyController::class, 'manageProjects'])->name('company.manage.projects');
     Route::get('/company/project/{slug}', [CompanyController::class, 'detailProject'])->name('company.project.detail');
     Route::get('/company/project/{project}/qc', [CompanyController::class, 'storeQcReview'])->name('company.project.qc.store');
+    Route::post('/company/invitation/{id}/resend', [CompanyController::class, 'resendInvitation'])->name('company.invitation.resend');
+    Route::delete('/company/invitation/{id}/cancel', [CompanyController::class, 'cancelInvitation'])->name('company.invitation.cancel');
 
 });
 

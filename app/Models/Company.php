@@ -87,6 +87,11 @@ class Company extends Model
         return $this->hasMany(ProjectRecord::class);
     }
 
+    public function notification()
+    {
+        return $this->hasOne(Notification::class);
+    }
+
     /**
      * Static options for payment schedule and currency dropdowns
      */

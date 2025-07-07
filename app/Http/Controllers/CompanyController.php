@@ -14,6 +14,8 @@ use App\Mail\UserInvitation;
 use App\Models\ProjectSop;
 use App\Models\ProjectRecord;
 use App\Models\Feedback;
+use App\Services\DiscordNotifier;
+use App\Models\Notification;
 
 
 use Illuminate\Support\Facades\Hash;
@@ -302,6 +304,25 @@ class CompanyController extends Controller
                 'talent_qc_id' => $project->qc_agent,
             ]);
 
+            // After creating the project and log, update the notification logic:
+            $project->load('projectType', 'assignedTalent', 'assignedQcAgent');
+            $projectTypeName = $project->projectType ? $project->projectType->project_name : '-';
+            $talentName = $project->assignedTalent ? $project->assignedTalent->name : '-';
+            $qcName = $project->assignedQcAgent ? $project->assignedQcAgent->name : '-';
+            $startDate = $project->start_date ? $project->start_date->format('Y-m-d') : '-';
+            $finishDate = $project->finish_date ? $project->finish_date->format('Y-m-d') : '-';
+
+            $message = "🚀 **New Project Created! @everyone**\n"
+                . "**Name:** {$project->project_name}\n"
+                . "**Type:** {$projectTypeName}\n"
+                . "**Volume:** {$project->project_volume}\n"
+                . "**Talent:** {$talentName}\n"
+                . "**QC:** {$qcName}\n"
+                . "**Start:** {$startDate}\n"
+                . "**Finish:** {$finishDate}\n"
+                . "👤 Created by: {$user->name}";
+            $this->notifyDiscord($company->id, $message);
+
             return redirect()->back()->with('success', 'Project created successfully');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -357,6 +378,15 @@ class CompanyController extends Controller
                 'status' => $project->status
             ]);
 
+            // Trigger Discord notification
+            $notification = Notification::where('company_id', $project->company_id)->first();
+            if ($notification && $notification->discord_webhook_url) {
+                DiscordNotifier::send(
+                    $notification->discord_webhook_url,
+                    "Project '{$project->project_name}' was updated."
+                );
+            }
+
             return redirect()->back()->with('success', 'Project updated successfully');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -379,6 +409,15 @@ class CompanyController extends Controller
 
             // Delete the project
             $project->delete();
+
+            // Trigger Discord notification
+            $notification = Notification::where('company_id', $project->company_id)->first();
+            if ($notification && $notification->discord_webhook_url) {
+                DiscordNotifier::send(
+                    $notification->discord_webhook_url,
+                    "Project '{$project->project_name}' was deleted."
+                );
+            }
 
             return redirect()->back()->with('success', 'Project deleted successfully');
         } catch (\Exception $e) {
@@ -558,7 +597,7 @@ class CompanyController extends Controller
     }
 
     // Settings
-    public function companySettings()
+    public function companySettings(Request $request)
     {
         // get company based on user_id
         $company = Company::where('user_id', auth()->user()->id)->first();
@@ -575,10 +614,35 @@ class CompanyController extends Controller
         }])
         ->paginate(5);
 
+        // Get all invitations for the company
+        $invitations = \App\Models\Invitation::where('company_id', $company->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Check if a specific project type is selected for SOP details
+        $projectType = null;
+        $sops = null;
+        
+        if ($request->has('project_type_id')) {
+            $projectType = ProjectType::where('id', $request->project_type_id)
+                                    ->where('company_id', $company->id)
+                                    ->first();
+            
+            if ($projectType) {
+                $sops = ProjectSop::where('project_type_id', $request->project_type_id)
+                                 ->where('company_id', $company->id)
+                                 ->with('user')
+                                 ->paginate(10);
+            }
+        }
+
         return view('users.Company.settings', [
             'company' => $company,
             'projectTypes' => $projectTypes,
-            'teamMembers' => $teamMembers
+            'teamMembers' => $teamMembers,
+            'projectType' => $projectType,
+            'sops' => $sops,
+            'invitations' => $invitations,
         ]);
     }
 
@@ -591,16 +655,53 @@ class CompanyController extends Controller
             'company_id' => 'required|string|max:255',
             'project_name' => 'required|string|max:255',
             'project_rate' => 'required|string|max:255',
+            'qc_rate' => 'nullable|numeric',
         ]);
 
         try {
-
-            ProjectType::create([
+            $projectType = ProjectType::create([
                 'user_id' => $request->user_id,
                 'company_id' => $request->company_id,
                 'project_rate' => $request->project_rate,
+                'qc_rate' => $request->qc_rate,
                 'project_name' => $request->project_name,
             ]);
+
+            // Save SOPs from manual_sops_json
+            if ($request->filled('manual_sops_json')) {
+                $manualSops = json_decode($request->manual_sops_json, true);
+                if (is_array($manualSops)) {
+                    foreach ($manualSops as $sop) {
+                        if (!empty($sop['sop_formula'])) {
+                            \App\Models\ProjectSop::create([
+                                'user_id' => $request->user_id,
+                                'company_id' => $request->company_id,
+                                'project_type_id' => $projectType->id,
+                                'sop_formula' => $sop['sop_formula'],
+                                'description' => $sop['description'] ?? null,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Save SOPs from csv_sops_json
+            if ($request->filled('csv_sops_json')) {
+                $csvSops = json_decode($request->csv_sops_json, true);
+                if (is_array($csvSops)) {
+                    foreach ($csvSops as $sop) {
+                        if (!empty($sop['sop_formula'])) {
+                            \App\Models\ProjectSop::create([
+                                'user_id' => $request->user_id,
+                                'company_id' => $request->company_id,
+                                'project_type_id' => $projectType->id,
+                                'sop_formula' => $sop['sop_formula'],
+                                'description' => $sop['description'] ?? null,
+                            ]);
+                        }
+                    }
+                }
+            }
 
             return redirect()->back()->with('success', 'Project type created successfully');
         } catch (\Exception $e) {
@@ -621,9 +722,8 @@ class CompanyController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // You will need to create a view for editing project types
-        // return view('users.Company.edit-project-type', ['projectType' => $projectType]);
-         return redirect()->back()->with('info', 'Edit functionality not yet implemented.');
+        // Return the edit view with the single projectType
+        return view('users.Company.edit-project-type', ['projectType' => $projectType]);
     }
 
     // Delete Project Type
@@ -752,27 +852,60 @@ class CompanyController extends Controller
     public function storeProjectSop(Request $request)
     {
         try {
-            $validated = $request->validate([
-            'project_type_id' => 'required|exists:project_types,id',
-                'sop_formula' => 'required|string|min:1',
-            'description' => 'nullable|string',
-        ]);
+            $user = auth()->user();
+            $company = Company::where('user_id', $user->id)->first();
 
-        $user = auth()->user();
-        $company = Company::where('user_id', $user->id)->first();
-
-        if (!$company) {
+            if (!$company) {
                 return response()->json(['error' => 'User is not associated with a company.'], 403);
-        }
+            }
 
-        // Find the project type and ensure it belongs to the company
-         $projectType = ProjectType::where('id', $request->project_type_id)
-                                  ->where('company_id', $company->id)
-                                  ->first();
+            // Find the project type and ensure it belongs to the company
+            $projectType = ProjectType::where('id', $request->project_type_id)
+                                     ->where('company_id', $company->id)
+                                     ->first();
 
-        if (!$projectType) {
+            if (!$projectType) {
                 return response()->json(['error' => 'Project type not found for this company.'], 404);
-        }
+            }
+
+            // Handle CSV upload
+            if ($request->has('sops')) {
+                $sopsData = json_decode($request->sops, true);
+                
+                if (!is_array($sopsData)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid SOPs data format.'
+                    ], 400);
+                }
+
+                $createdSops = [];
+                foreach ($sopsData as $sopData) {
+                    if (!empty($sopData['sop_formula'])) {
+                        $sop = ProjectSop::create([
+                            'user_id' => $user->id,
+                            'company_id' => $company->id,
+                            'project_type_id' => $request->project_type_id,
+                            'sop_formula' => $sopData['sop_formula'],
+                            'description' => $sopData['description'] ?? null,
+                        ]);
+                        $createdSops[] = $sop;
+                    }
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => count($createdSops) . ' SOPs uploaded successfully.',
+                    'sops' => $createdSops
+                ]);
+            }
+
+            // Handle single SOP creation
+            $validated = $request->validate([
+                'project_type_id' => 'required|exists:project_types,id',
+                'sop_formula' => 'required|string|min:1',
+                'description' => 'nullable|string',
+            ]);
 
             $sop = ProjectSop::create([
                 'user_id' => $user->id,
@@ -955,6 +1088,96 @@ class CompanyController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to delete SOP: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function downloadSopCsvTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="sop_template.csv"',
+        ];
+        $callback = function() {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['sop_formula', 'description']);
+            // Example row
+            fputcsv($file, ['Draw character base', 'Draw the base of the character in pencil']);
+            fclose($file);
+        };
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function uploadSopCsv(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt',
+            'project_type_id' => 'required|exists:project_types,id',
+        ]);
+
+        $user = auth()->user();
+        $company = Company::where('user_id', $user->id)->first();
+
+        if (!$company) {
+            return redirect()->back()->with('error', 'User is not associated with a company.');
+        }
+
+        $projectType = ProjectType::where('id', $request->project_type_id)
+                                 ->where('company_id', $company->id)
+                                 ->first();
+
+        if (!$projectType) {
+            return redirect()->back()->with('error', 'Project type not found for this company.');
+        }
+
+        $file = $request->file('csv_file');
+        $missingColumn = false;
+        $noRows = false;
+        $sops = [];
+
+        if ($file) {
+            $handle = fopen($file->path(), 'r');
+            $header = fgetcsv($handle);
+
+            if ($header && in_array('sop_formula', $header)) {
+                while (($row = fgetcsv($handle)) !== false) {
+                    if (count($row) >= 2) {
+                        $sop = [
+                            'sop_formula' => $row[0],
+                            'description' => $row[1] ?? null,
+                        ];
+                        $sops[] = $sop;
+                    } else {
+                        $noRows = true;
+                        break;
+                    }
+                }
+                fclose($handle);
+            } else {
+                $missingColumn = true;
+            }
+        }
+
+        if ($missingColumn) {
+            return redirect()->back()->with('error', 'CSV missing not following the format or template');
+        }
+        if ($noRows) {
+            return redirect()->back()->with('error', 'CSV must have at least one SOP row.');
+        }
+
+        $createdSops = [];
+        foreach ($sops as $sopData) {
+            if (!empty($sopData['sop_formula'])) {
+                $sop = ProjectSop::create([
+                    'user_id' => $user->id,
+                    'company_id' => $company->id,
+                    'project_type_id' => $projectType->id,
+                    'sop_formula' => $sopData['sop_formula'],
+                    'description' => $sopData['description'] ?? null,
+                ]);
+                $createdSops[] = $sop;
+            }
+        }
+
+        return redirect()->back()->with('success', 'SOPs uploaded successfully!');
     }
 
     public function statistics()
@@ -1447,6 +1670,15 @@ class CompanyController extends Controller
                 'timestamp' => now(),
             ]);
 
+            // Trigger Discord notification
+            $notification = Notification::where('company_id', $project->company_id)->first();
+            if ($notification && $notification->discord_webhook_url) {
+                DiscordNotifier::send(
+                    $notification->discord_webhook_url,
+                    "QC review submitted for project '{$project->project_name}'."
+                );
+            }
+
             return redirect()->back()->with('success', 'QC review submitted successfully.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to submit QC review: ' . $e->getMessage());
@@ -1557,6 +1789,15 @@ class CompanyController extends Controller
                 'message' => $validated['completion_message'] ?? 'Project marked as completed'
             ]);
 
+            // Trigger Discord notification
+            $notification = Notification::where('company_id', $project->company_id)->first();
+            if ($notification && $notification->discord_webhook_url) {
+                DiscordNotifier::send(
+                    $notification->discord_webhook_url,
+                    "Project '{$project->project_name}' has been marked as completed."
+                );
+            }
+
             return redirect()->back()->with('success', 'Project has been marked as completed successfully.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to complete project: ' . $e->getMessage());
@@ -1591,6 +1832,7 @@ class CompanyController extends Controller
             'role' => 'company',
             'feedback_text' => $request->feedback_text,
         ]);
+        $this->notifyDiscord($project->company_id, "Company feedback submitted for project '{$project->project_name}'.");
         return redirect()->back()->with('success', 'Feedback submitted for talent.');
     }
 
@@ -1624,7 +1866,96 @@ class CompanyController extends Controller
             'feedback_text' => $request->feedback_text,
             'project_rate' => $request->project_rate,
         ]);
+        $this->notifyDiscord($project->company_id, "Talent feedback submitted for project '{$project->project_name}'.");
         return redirect()->back()->with('success', 'Feedback and rating submitted for project.');
+    }
+
+    public function saveNotificationSettings(Request $request)
+    {
+        $request->validate([
+            'discord_webhook_url' => 'required|url',
+            'discord_channel' => 'nullable|string|max:255',
+        ]);
+
+        $company = Company::where('user_id', auth()->user()->id)->firstOrFail();
+
+        $notification = \App\Models\Notification::updateOrCreate(
+            ['company_id' => $company->id],
+            [
+                'discord_webhook_url' => $request->discord_webhook_url,
+                'discord_channel' => $request->discord_channel,
+            ]
+        );
+
+        return redirect()->back()->with('success', 'Notification settings updated successfully.');
+    }
+
+    public function testNotificationWebhook(Request $request)
+    {
+        $company = Company::where('user_id', auth()->user()->id)->firstOrFail();
+        $notification = \App\Models\Notification::where('company_id', $company->id)->first();
+
+        if (!$notification || !$notification->discord_webhook_url) {
+            return redirect()->back()->with('error', 'No Discord webhook URL found. Please save your webhook first.');
+        }
+
+        $response = \Illuminate\Support\Facades\Http::post(
+            $notification->discord_webhook_url,
+            ['content' => 'This is a test notification from Padma Cloud Office!']
+        );
+
+        if ($response->successful()) {
+            return redirect()->back()->with('success', 'Test notification sent to Discord!');
+        } else {
+            return redirect()->back()->with('error', 'Failed to send test notification. Status: ' . $response->status() . ' Body: ' . $response->body());
+        }
+    }
+
+    /**
+     * Send a Discord notification for a company if webhook is set.
+     */
+    protected function notifyDiscord($companyId, $message)
+    {
+        $notification = \App\Models\Notification::where('company_id', $companyId)->first();
+        if ($notification && $notification->discord_webhook_url) {
+            \App\Services\DiscordNotifier::send($notification->discord_webhook_url, $message);
+        }
+    }
+
+    // Resend invitation
+    public function resendInvitation($id)
+    {
+        $invitation = Invitation::findOrFail($id);
+        // (Optional) Check if the current user/company owns this invitation
+        try {
+            // Generate a new token and update expires_at
+            $invitation->token = \Str::random(60);
+            $invitation->expires_at = now()->addDays(7);
+            $invitation->save();
+
+            // Resend the invitation email
+            $invitingUser = auth()->user();
+            $company = $invitation->company;
+            $invitationLink = url('/register?token=' . $invitation->token);
+            \Mail::to($invitation->email)->send(new \App\Mail\UserInvitation($invitationLink, $invitingUser, $company));
+
+            return redirect()->back()->with('success', 'Invitation resent to ' . $invitation->email);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to resend invitation: ' . $e->getMessage());
+        }
+    }
+
+    // Cancel invitation
+    public function cancelInvitation($id)
+    {
+        $invitation = Invitation::findOrFail($id);
+        // (Optional) Check if the current user/company owns this invitation
+        try {
+            $invitation->delete();
+            return redirect()->back()->with('success', 'Invitation cancelled.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to cancel invitation: ' . $e->getMessage());
+        }
     }
 
 }

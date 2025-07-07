@@ -13,7 +13,8 @@ class ProjectType extends Model
         'project_name',
         'user_id',
         'company_id',
-        'project_rate'
+        'project_rate',
+        'qc_rate',
     ];
 
     // Relationship with Projects
