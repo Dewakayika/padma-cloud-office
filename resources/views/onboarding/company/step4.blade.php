@@ -6,43 +6,46 @@
 @php
     $steps = [
         1 => 'Legal & Verification',
-        2 => 'Team Setup',
-        3 => 'Billing & Tax',
-        4 => 'Collaboration'
+        2 => 'Billing & Tax',
+        3 => 'Collaboration'
     ];
     $totalSteps = count($steps);
-    $currentStep = $step ?? 4;
+    $currentStep = $step ?? 3;
     $percent = round(($currentStep - 1) / ($totalSteps - 1) * 100);
 @endphp
 
-<div class="max-w-2xl mt-14 mx-auto mb-8">
-    <div class="flex items-center justify-between mb-2">
-        <div class="font-semibold text-lg">Step {{ $currentStep }} of {{ $totalSteps }}</div>
-        <div class="text-sm font-medium text-gray-600">{{ $percent }}% Complete</div>
+<div class="max-w-2xl mt-10 sm:mt-14 mx-auto mb-8 bg-gray-50 rounded-xl shadow-sm px-4 md-px-0 py-6">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
+        <div class="font-semibold text-base sm:text-lg">Step {{ $currentStep }} of {{ $totalSteps }}</div>
+        <div class="text-xs sm:text-sm font-medium text-gray-600">{{ $percent }}% Complete</div>
     </div>
     <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
-        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ $percent }}%"></div>
+        <div class="bg-red-600 h-2 rounded-full transition-all duration-300" style="width: {{ $percent }}%"></div>
     </div>
-    <div class="flex justify-between">
-        @foreach($steps as $i => $label)
-            <div class="flex flex-col items-center flex-1">
-                <div class="@if($i < $currentStep) bg-green-500 @elseif($i == $currentStep) bg-blue-600 @else bg-gray-300 @endif rounded-full w-8 h-8 flex items-center justify-center text-white font-bold text-lg">
-                    @if($i < $currentStep)
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    @else
-                        {{ $i }}
-                    @endif
+    <div class="overflow-x-auto">
+        <div class="flex justify-between min-w-[340px] sm:min-w-0">
+            @foreach($steps as $i => $label)
+                <div class="flex flex-col items-center flex-1 min-w-[80px]">
+                    <div class="@if($i < $currentStep) bg-green-500 @elseif($i == $currentStep) bg-red-600 @else bg-gray-300 @endif rounded-full w-8 h-8 flex items-center justify-center text-white font-bold text-lg">
+                        @if($i < $currentStep)
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        @else
+                            {{ $i }}
+                        @endif
+                    </div>
+                    <div class="mt-2 text-xs text-center @if($i == $currentStep) font-bold text-black @elseif($i < $currentStep) text-green-700 @else text-gray-400 @endif">
+                        {{ $label }}
+                    </div>
                 </div>
-                <div class="mt-2 text-xs text-center @if($i == $currentStep) font-bold text-blue-700 @elseif($i < $currentStep) text-green-700 @else text-gray-400 @endif">
-                    {{ $label }}
-                </div>
-            </div>
-            @if($i < $totalSteps)
-                <div class="flex-1 h-1 bg-gray-300 mx-1 mt-4"></div>
-            @endif
-        @endforeach
+                @if($i < $totalSteps)
+                    <div class="flex-1 h-1 bg-gray-300 mx-1 mt-4 hidden sm:block"></div>
+                    <div class="h-1 w-8 bg-gray-300 mx-1 my-4 sm:hidden"></div>
+                @endif
+            @endforeach
+        </div>
     </div>
 </div>
+
 
 <div class="max-w-2xl mx-auto bg-white shadow rounded-xl p-8 mb-8">
     <h2 class="text-xl font-bold mb-1 flex items-center gap-2">
@@ -52,7 +55,7 @@
         Collaboration Preferences
     </h2>
     <p class="text-gray-500 mb-6">Configure your workflow and tools to match with Indonesian talent</p>
-    <form method="POST" action="{{ route('company.onboarding.step.post', ['step' => 4]) }}">
+    <form method="POST" action="{{ route('company.onboarding.step.post', ['step' => 3]) }}">
         @csrf
         <div class="mb-5">
             <label class="block font-semibold mb-1">Primary Use Case</label>

@@ -5,9 +5,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class CompanyOnboardingController extends Controller
 {
+
+    // Show the onboarding page
+    public function showOnboarding()
+    {
+        return view('onboarding.company.start-onboarding');
+    }
+
     // Show the onboarding step
     public function showStep($step = 1)
     {
@@ -24,28 +33,56 @@ class CompanyOnboardingController extends Controller
 
         switch ((int)$step) {
             case 1: // Legal & Verification
-                $request->validate([
+                $validator = Validator::make($request->all(), [
                     'company_name' => 'required|string|max:255',
                     'registration_number' => 'required|string|max:255',
-                    'address' => 'required|string|max:255',
-                    'business_license' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+                    'address' => 'required|string|max:1000',
+                    'business_license' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+                ], [
+                    'company_name.required' => 'Company name is required.',
+                    'registration_number.required' => 'Company registration number is required.',
+                    'address.required' => 'Company address is required.',
+                    'business_license.file' => 'The business license must be a valid file.',
+                    'business_license.mimes' => 'The business license must be a PDF, JPG, or PNG file.',
+                    'business_license.max' => 'The business license file size must not exceed 10MB.',
                 ]);
-                $company->company_name = $request->company_name;
-                $company->registration_number = $request->registration_number;
-                $company->address = $request->address;
-                if ($request->hasFile('business_license')) {
-                    $path = $request->file('business_license')->store('business_licenses', 'public');
-                    $company->business_license_path = $path;
+
+                if ($validator->fails()) {
+                    return back()->withErrors($validator)->withInput();
                 }
-                $company->save();
-                // Also update user name
-                $user->name = $request->company_name;
-                $user->save();
+
+                try {
+                    $company->company_name = $request->company_name;
+                    $company->registration_number = $request->registration_number;
+                    $company->address = $request->address;
+
+                    // Handle file upload
+                    if ($request->hasFile('business_license')) {
+                        $file = $request->file('business_license');
+                        
+                        // Delete old file if exists
+                        if ($company->business_license_path && Storage::disk('public')->exists($company->business_license_path)) {
+                            Storage::disk('public')->delete($company->business_license_path);
+                        }
+
+                        // Store new file with unique name
+                        $fileName = 'business_licenses/' . time() . '_' . $user->id . '_' . $file->getClientOriginalName();
+                        $path = $file->storeAs('business_licenses', $fileName, 'public');
+                        $company->business_license_path = $path;
+                    }
+
+                    $company->save();
+
+                    // Also update user name
+                    $user->name = $request->company_name;
+                    $user->save();
+
+                } catch (\Exception $e) {
+                    return back()->withErrors(['error' => 'An error occurred while saving your information. Please try again.'])->withInput();
+                }
                 break;
-            case 2: // Team Setup
-                // Implement as needed
-                break;
-            case 3: // Billing & Tax
+
+            case 2: // Billing & Tax
                 $request->validate([
                     'billing_address' => 'required|string|max:255',
                     'billing_email' => 'required|email|max:255',
@@ -66,7 +103,8 @@ class CompanyOnboardingController extends Controller
                 $company->currency = $request->currency;
                 $company->save();
                 break;
-            case 4: // Collaboration Preferences
+
+            case 3: // Collaboration
                 $request->validate([
                     'primary_use_case' => 'required|string|max:255',
                     'collaboration_tools' => 'nullable|array',
@@ -93,9 +131,9 @@ class CompanyOnboardingController extends Controller
         }
 
         // Redirect to next step or dashboard
-        $nextStep = ((int)$step < 4) ? (int)$step + 1 : null;
+        $nextStep = ((int)$step < 3) ? (int)$step + 1 : null;
         if ($nextStep) {
-            return redirect()->route('company.onboarding.step', ['step' => $nextStep]);
+            return redirect()->route('company.onboarding.step', ['step' => $nextStep])->with('success', 'Step ' . $step . ' completed successfully!');
         } else {
             return redirect()->route('home')->with('success', 'Onboarding complete!');
         }
@@ -117,16 +155,11 @@ class CompanyOnboardingController extends Controller
         if (empty($company->company_name) || empty($company->registration_number) || empty($company->address)) {
             $missingOnboardingSteps[] = 'Legal & Verification';
         }
-        // Step 2: Team Setup (customize as needed)
-        // Example: if you want at least 1 team member
-        // if ($company->teamMembers()->count() < 1) {
-        //     $missingOnboardingSteps[] = 'Team Setup';
-        // }
-        // Step 3: Billing & Tax
+        // Step 2: Billing & Tax
         if (empty($company->billing_address) || empty($company->billing_email) || empty($company->invoice_recipient) || empty($company->zip_code) || empty($company->country) || empty($company->payment_schedule) || empty($company->currency)) {
             $missingOnboardingSteps[] = 'Billing & Tax';
         }
-        // Step 4: Collaboration Preferences
+        // Step 3: Collaboration Preferences
         if (empty($company->primary_use_case) || !$company->nda_agreed) {
             $missingOnboardingSteps[] = 'Collaboration Preferences';
         }

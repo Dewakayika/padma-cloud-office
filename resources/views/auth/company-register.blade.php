@@ -211,7 +211,7 @@
                     </div>
 
                     <!-- Password -->
-                    <div class="space-y-2">
+                    <!-- <div class="space-y-2">
                         <label for="password" class="block text-sm font-semibold text-gray-700">
                             Password<span class="text-red-500">*</span>
                         </label>
@@ -223,10 +223,10 @@
                                 transition-all duration-200 text-base"
                             placeholder="Choose a password"
                             required />
-                    </div>
+                    </div> -->
 
                     <!-- Confirm Password -->
-                    <div class="space-y-2">
+                    <!-- <div class="space-y-2">
                         <label for="password_confirmation" class="block text-sm font-semibold text-gray-700">
                             Confirm Password<span class="text-red-500">*</span>
                         </label>
@@ -238,7 +238,16 @@
                                 transition-all duration-200 text-base"
                             placeholder="Confirm your password"
                             required />
-                    </div>
+                    </div> -->
+                    <x-password-field ref="passwordField"
+                            passwordName="password"
+                            passwordConfirmationName="password_confirmation"
+                            label="Password"
+                            confirmationLabel="Confirm Password"
+                            showRequirements="true"
+                            required="true" 
+                            passwordPlaceholder="Enter your secure password"
+                            confirmationPlaceholder="Re-enter your password to confirm"/>
 
                     <!-- Terms and Privacy -->
                     <div class="mt-6">
