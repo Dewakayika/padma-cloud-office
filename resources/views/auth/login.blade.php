@@ -71,21 +71,11 @@
                     </div>
 
                     <div>
-                        <!-- <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-                        <input id="password" 
-                               class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
-                                      focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all duration-200
-                                      text-base" 
-                               type="password" 
-                               name="password" 
-                               required 
-                               placeholder="Enter your password" /> -->
-                               <x-password-field ref="passwordField"
+                        <x-password-field ref="passwordField"
                             passwordName="password"
                             withConfirmation="false"
                             label="Password"
                             confirmationLabel="Confirm Password"
-                            showRequirements="true"
                             required="true" 
                             passwordPlaceholder="Enter your secure password"
                             />

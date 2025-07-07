@@ -1,7 +1,7 @@
-<div class="bg-white dark:bg-gray-900 w-full max-w-4xl mx-auto">
+<div class="bg-white dark:bg-gray-900 w-full max-w-4xl mx-auto max-h-[95vh] overflow-x-auto overflow-y-auto">
     <div class="modal fade" id="projectRecordModal" tabindex="-1" aria-labelledby="projectRecordModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-[90vh] flex flex-col">
+            <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-[90vh] overflow-x-auto overflow-y-auto flex flex-col">
                 <!-- Modal Header -->
                 <div class="modal-header border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
                     <h5 class="modal-title text-xl font-semibold text-gray-900 dark:text-white" id="projectRecordModalLabel">

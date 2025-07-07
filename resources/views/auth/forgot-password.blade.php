@@ -1,4 +1,8 @@
-<x-guest-layout>
+@extends('layouts.guest')
+@section('title', 'Login')
+@section('meta_description', 'Ini adalah halaman login.')
+
+@section('content')
     <x-authentication-card>
         <x-slot name="logo">
             <x-authentication-card-logo />
@@ -31,4 +35,4 @@
             </div>
         </form>
     </x-authentication-card>
-</x-guest-layout>
+@endsection

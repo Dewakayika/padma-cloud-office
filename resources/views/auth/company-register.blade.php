@@ -244,7 +244,7 @@
                             passwordConfirmationName="password_confirmation"
                             label="Password"
                             confirmationLabel="Confirm Password"
-                            showRequirements="true"
+    
                             required="true" 
                             passwordPlaceholder="Enter your secure password"
                             confirmationPlaceholder="Re-enter your password to confirm"/>
