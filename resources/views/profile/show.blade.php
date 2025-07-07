@@ -21,6 +21,7 @@
                 <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab2">Legal & Verification</a>
                 <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab3">Billing & Tax</a>
                 <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab4">Collaboration Preferences</a>
+                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab5">Notification Settings</a>
             </nav>
         </div>
 
@@ -230,6 +231,34 @@
                 @else
                     <div class="text-center py-8">
                         <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tab 5: Notification Settings -->
+            <div id="profile-tab5" class="hidden">
+                @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                @if($company)
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-8">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2">Discord Notification Settings</h3>
+                    <div class="flex flex-col md:flex-row md:space-x-2">
+                        <form method="POST" action="{{ route('company.notification-settings.save') }}" class="mb-2 md:mb-0">
+                            @csrf
+                            <div class="mb-4">
+                                <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Discord Webhook URL *</label>
+                                <input type="url" name="discord_webhook_url" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('discord_webhook_url', optional($company->notification)->discord_webhook_url) }}" required placeholder="Paste your Discord webhook URL here">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Discord Channel (optional)</label>
+                                <input type="text" name="discord_channel" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('discord_channel', optional($company->notification)->discord_channel) }}" placeholder="#channel-name">
+                            </div>
+                            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">Save Notification Settings</button>
+                        </form>
+                        <form method="POST" action="{{ route('company.notification-settings.test') }}" class="self-end">
+                            @csrf
+                            <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">Test Webhook</button>
+                        </form>
+                    </div>
                     </div>
                 @endif
             </div>

@@ -4,11 +4,13 @@
     <div class="flex items-center mb-6">
         <div class="rounded-full bg-blue-100 p-3 mr-3">
             <svg class="w-6 h-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                <path d="M19.5 22.5a.75.75 0 0 0 0-1.5H21a.75.75 0 0 0 .75-.75V6a3 3 0 0 0-3-3h-3a.75.75 0 0 0-.75.75v1.5a.75.75 0 0 0 .75.75h2.25a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-9.75a.75.75 0 0 1-.75-.75V6.75a.75.75 0 0 0-.75-.75H5.25a.75.75 0 0 0-.75.75v10.5c0 .414.336.75.75.75H19.5Z" />
-                <path d="M12 12.75a.75.75 0 0 0 0-1.5H9a.75.75 0 0 0-.75.75c0 .414.336.75.75.75h3Z" />
-                <path d="M7.5 6.75a.75.75 0 0 0 0-1.5H5.25a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75H7.5a.75.75 0 0 0 .75-.75V7.5a.75.75 0 0 0-.75-.75ZM12 9.75a.75.75 0 0 0 0-1.5H9a.75.75 0 0 0-.75.75c0 .414.336.75.75.75h3Z" />
+                <path d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 0 1 3.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0 1 21 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 0 1 7.5 16.125V3.375Z" />
+                <path d="M15 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 17.25 7.5h-1.875A.375.375 0 0 1 15 7.125V5.25ZM4.875 6H6v10.125A3.375 3.375 0 0 0 9.375 19.5H16.5v1.125c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V7.875C3 6.839 3.84 6 4.875 6Z" />
             </svg>
         </div>
+
+
+
         <div>
             <h1 class="text-xl font-semibold">SOP Setup</h1>
             <p class="text-gray-600 dark:text-gray-400">Manage Standard Operating Procedures for project types</p>
@@ -25,13 +27,13 @@
                         <p class="text-gray-600 dark:text-gray-400">Rate: ${{ number_format($projectType->project_rate, 2) }}</p>
                     </div>
                     <div>
-                        <a href="{{ route('company.project.type.sops', $projectType->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <button type="button" onclick="showSopDetails({{ $projectType->id }})" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
                             View SOPs
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -54,6 +56,17 @@
 
 @push('scripts')
 <script>
+    // Function to show SOP details tab with project type
+    function showSopDetails(projectTypeId) {
+        // Update URL with project type parameter and tab
+        const url = new URL(window.location);
+        url.searchParams.set('project_type_id', projectTypeId);
+        url.searchParams.set('tab', 'sop-details');
+        
+        // Navigate to the updated URL to load the SOP data
+        window.location.href = url.toString();
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const projectTypeSelect = document.getElementById('select_project_type_sop');
         const projectSopsSection = document.getElementById('project-sops-section');
