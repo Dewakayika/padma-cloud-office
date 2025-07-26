@@ -88,4 +88,44 @@ class ProjectTracking extends Model
         $endTime = Carbon::now('UTC');
         return $this->start_at->diffInSeconds($endTime);
     }
+
+    /**
+     * Send project tracking data to Google Apps Script
+     */
+    public function sendToGoogleAppsScript()
+    {
+        try {
+            // Get the company through user's company talent relationship
+            $company = $this->user->companyTalent->first()->company ?? null;
+
+            if (!$company || !$company->gas_api_enabled) {
+                return false;
+            }
+
+            $gasService = app(\App\Services\GoogleAppsScriptService::class);
+            $data = $gasService->generateProjectTrackingData($this);
+
+            $result = $gasService->sendToGoogleAppsScript(
+                $company->gas_deployment_id,
+                $company->gas_hmac_key,
+                $data
+            );
+
+            // Log the result
+            \Log::info('ProjectTracking GAS API call', [
+                'project_id' => $this->id,
+                'company_id' => $company->id,
+                'result' => $result
+            ]);
+
+            return $result['success'];
+
+        } catch (\Exception $e) {
+            \Log::error('Error sending to GAS', [
+                'project_id' => $this->id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
 }

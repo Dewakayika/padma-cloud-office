@@ -55,7 +55,7 @@ class WorkSession extends Model
 
         if ($this->status === 'paused' && $this->paused_at) {
             $currentTime = $this->paused_at;
-        }
+    }
 
         $totalDuration = $startTime->diffInSeconds($currentTime);
         return max(0, $totalDuration - $this->total_paused_time);

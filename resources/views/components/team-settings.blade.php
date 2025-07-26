@@ -27,6 +27,7 @@
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
                 <input type="email" id="email" name="email" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-800" required>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Existing users will receive an invitation to join. New users will be invited to register.</p>
                 @error('email')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -36,7 +37,6 @@
                 <select id="role" name="role" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-800" required>
                     <option value="">Select Role</option>
                     <option value="talent">Talent</option>
-                    <option value="talent_qc">Talent QC</option>
                 </select>
                 @error('role')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>

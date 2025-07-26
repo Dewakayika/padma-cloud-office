@@ -86,6 +86,12 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/company/notification-settings/test', [App\Http\Controllers\CompanyController::class, 'testNotificationWebhook'])->name('company.notification-settings.test');
     Route::get('/company/sop-template/csv', [App\Http\Controllers\CompanyController::class, 'downloadSopCsvTemplate'])->name('company.sop.csv.template');
 
+        // Developer Mode Routes
+    Route::post('/company/developer/api-config', [App\Http\Controllers\Company\DeveloperModeController::class, 'saveApiConfig'])->name('company.developer.api-config.save');
+    Route::post('/company/developer/api-test', [App\Http\Controllers\Company\DeveloperModeController::class, 'testApi'])->name('company.developer.api-test');
+    Route::post('/company/developer/api-disable', [App\Http\Controllers\Company\DeveloperModeController::class, 'disableApi'])->name('company.developer.api-disable');
+    Route::get('/company/developer/api-status', [App\Http\Controllers\Company\DeveloperModeController::class, 'getApiStatus'])->name('company.developer.api-status');
+
     // Project Management Routes
     Route::get('/company/manage/projects', [CompanyController::class, 'manageProjects'])->name('company.manage.projects');
     Route::get('/company/project/{slug}', [CompanyController::class, 'detailProject'])->name('company.project.detail');
@@ -101,7 +107,7 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::get('/company/project-tracking-monitor', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'index'])->name('company.project-tracking.monitor');
     Route::get('/company/project-tracking-monitor/realtime', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'getRealTimeData'])->name('company.project-tracking.realtime');
 
-        // Debug route for testing
+    // Debug route for testing
     Route::get('/company/debug-data', function() {
         $user = Auth::user();
         $company = \App\Models\Company::where('user_id', $user->id)->first();
@@ -137,19 +143,18 @@ Route::middleware(['auth', 'company'])->group(function () {
                     'start_at' => $project->start_at,
                 ];
             }),
-            'company_talents' => $companyTalents->map(function($ct) {
+            'company_talents' => $companyTalents->map(function($talent) {
                 return [
-                    'id' => $ct->id,
-                    'company_id' => $ct->company_id,
-                    'talent_id' => $ct->talent_id,
+                    'id' => $talent->id,
+                    'talent_id' => $talent->talent_id,
+                    'job_role' => $talent->job_role,
                 ];
-            })
+            }),
         ]);
-    })->name('company.debug.data');
+    })->name('company.debug-data');
 
-    // Onboarding Routes
-    Route::get('/onboarding', [CompanyOnboardingController::class, 'showOnboarding'])->name('company.start.onboarding');
-    Route::get('/onboarding/{step?}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
+    // Company Onboarding Routes
+    Route::get('/onboarding/{step}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
     Route::post('/onboarding/{step}', [CompanyOnboardingController::class, 'postStep'])->name('company.onboarding.step.post');
 
     // Project Management Routes
@@ -159,12 +164,17 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/company/invitation/{id}/resend', [CompanyController::class, 'resendInvitation'])->name('company.invitation.resend');
     Route::delete('/company/invitation/{id}/cancel', [CompanyController::class, 'cancelInvitation'])->name('company.invitation.cancel');
 
+    // Onboarding Routes
+    Route::get('/onboarding', [CompanyOnboardingController::class, 'showOnboarding'])->name('company.start.onboarding');
+    Route::get('/onboarding/{step?}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
+    Route::post('/onboarding/{step}', [CompanyOnboardingController::class, 'postStep'])->name('company.onboarding.step.post');
 });
+
 
 // Talent Routes
 Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/', [TalentController::class, 'index'])->name('talent.landing.page');
-    Route::get('/company/{slug}', [TalentController::class, 'detailCompany'])->name('[talent#company');
+    Route::get('/company/{slug}', [TalentController::class, 'detailCompany'])->name('talent.company');
     Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage.projects');
     Route::get('/project-detail/{id}', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
     Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
@@ -186,9 +196,15 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::post('/project/start', [App\Http\Controllers\ProjectTrackingController::class, 'startProject'])->name('talent.project.start');
     Route::post('/project/{id}/end', [App\Http\Controllers\ProjectTrackingController::class, 'endProject'])->name('talent.project.end');
     Route::get('/today-stats', [App\Http\Controllers\ProjectTrackingController::class, 'getTodayStats'])->name('talent.today-stats');
+    Route::get('/project-types/{companySlug}', [App\Http\Controllers\ProjectTrackingController::class, 'getProjectTypesByCompanySlug'])->name('talent.project-types.by-company');
 });
 
-// Add this new route for invitation acceptance
+// Invitation Routes (Public - no company middleware required)
+Route::get('/invitations/{token}', [App\Http\Controllers\InvitationController::class, 'show'])->name('invitations.show');
+Route::get('/invitations/accept/{token}', [App\Http\Controllers\InvitationController::class, 'accept'])->name('invitations.accept');
+Route::post('/invitations/decline/{token}', [App\Http\Controllers\InvitationController::class, 'decline'])->name('invitations.decline');
+
+// Registration routes for invitations
 Route::get('/register/{token}', [RegisteredUserController::class, 'showInvitationRegistrationForm'])->middleware('guest')->name('register.invitation');
 Route::post('/register/store', [RegisteredUserController::class, 'store'])->middleware('guest')->name('register.invitation.store');
 

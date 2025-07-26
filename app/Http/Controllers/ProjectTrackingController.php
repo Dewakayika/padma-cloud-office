@@ -17,7 +17,7 @@ class ProjectTrackingController extends Controller
     /**
      * Display the project tracking page
      */
-            public function index()
+    public function index()
     {
         $user = Auth::user();
         $timezone = $user->timezone ?? 'UTC';
@@ -51,6 +51,35 @@ class ProjectTrackingController extends Controller
             ->orderBy('end_at', 'desc')
             ->get();
 
+        // Get project types for the user's validated company
+        $projectTypes = collect();
+        $currentCompany = null;
+
+        if ($user->role === 'talent') {
+            // Get the talent's company association
+            $companyTalent = \App\Models\CompanyTalent::where('talent_id', $user->id)
+                ->with('company')
+                ->first();
+
+            if ($companyTalent && $companyTalent->company) {
+                $currentCompany = $companyTalent->company;
+
+                // Validate company by slug and get project types
+                $companySlug = $currentCompany->slug;
+
+                // Get project types from the validated company
+                $projectTypes = \App\Models\ProjectType::where('company_id', $currentCompany->id)->get();
+
+                Log::info('Project types fetched for talent', [
+                    'user_id' => $user->id,
+                    'company_id' => $currentCompany->id,
+                    'company_name' => $currentCompany->company_name,
+                    'company_slug' => $companySlug,
+                    'project_types_count' => $projectTypes->count()
+                ]);
+            }
+        }
+
         return view('users.Talent.project-tracking', compact(
             'currentWorkSession',
             'activeProjects',
@@ -59,6 +88,8 @@ class ProjectTrackingController extends Controller
             'basicStats',
             'allCompletedProjects',
             'timezone',
+            'projectTypes',
+            'currentCompany',
         ));
     }
 
@@ -275,6 +306,9 @@ class ProjectTrackingController extends Controller
             'working_duration' => $workingDuration,
         ]);
 
+        // Send data to Google Apps Script if API is enabled
+        $project->sendToGoogleAppsScript();
+
         Log::info('Project ended', [
             'user_id' => $user->id,
             'project_id' => $project->id,
@@ -460,5 +494,64 @@ class ProjectTrackingController extends Controller
         return [
             'avg_daily_duration' => $this->formatTime($avgDailyDuration),
         ];
+    }
+
+    /**
+     * Validate company by slug
+     */
+    private function validateCompanyBySlug($slug)
+    {
+        return \App\Models\Company::where('company_name', 'like', '%' . str_replace('-', ' ', $slug) . '%')
+            ->orWhere('company_name', 'like', '%' . str_replace('_', ' ', $slug) . '%')
+            ->first();
+    }
+
+    /**
+     * Get project types by company slug (for API use)
+     */
+    public function getProjectTypesByCompanySlug($companySlug)
+    {
+        $user = Auth::user();
+
+        // Validate that the user is a talent
+        if ($user->role !== 'talent') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Find company by slug
+        $company = $this->validateCompanyBySlug($companySlug);
+
+        if (!$company) {
+            return response()->json(['error' => 'Company not found'], 404);
+        }
+
+        // Validate that the talent belongs to this company
+        $companyTalent = \App\Models\CompanyTalent::where('talent_id', $user->id)
+            ->where('company_id', $company->id)
+            ->first();
+
+        if (!$companyTalent) {
+            return response()->json(['error' => 'You are not authorized to access this company'], 403);
+        }
+
+        // Get project types for the validated company
+        $projectTypes = \App\Models\ProjectType::where('company_id', $company->id)->get();
+
+        return response()->json([
+            'success' => true,
+            'company' => [
+                'id' => $company->id,
+                'name' => $company->company_name,
+                'slug' => $company->slug,
+            ],
+            'project_types' => $projectTypes->map(function($type) {
+                return [
+                    'id' => $type->id,
+                    'name' => $type->project_name,
+                    'rate' => $type->project_rate,
+                    'qc_rate' => $type->qc_rate,
+                ];
+            })
+        ]);
     }
 }

@@ -23,6 +23,7 @@
                     <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab3">Billing & Tax</a>
                     <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab4">Collaboration Preferences</a>
                     <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab5">Notification Settings</a>
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab7">Developer Mode</a>
                 @endif
                 <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab6">Timezone Settings</a>
             </nav>
@@ -330,6 +331,161 @@
                 @endif
             </div>
 
+            <!-- Tab 7: Developer Mode -->
+            <div id="profile-tab7" class="hidden">
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                            <div class="mb-6">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Google Apps Script API Configuration</h3>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configure your Google Apps Script API to receive real-time project tracking data</p>
+                            </div>
+
+                            <!-- API Configuration Form -->
+                            <form method="POST" action="{{ route('company.developer.api-config.save') }}" class="mb-8">
+                                @csrf
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Deployment ID *</label>
+                                        <input type="text" name="gas_deployment_id" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('gas_deployment_id', $company->gas_deployment_id) }}" required placeholder="e.g., AKfycbzbSw9WWBqsOmOMTlc4Y9Ld2jK6j4OUsCr1df8Af_UvWJPz5A4xUjJC95sx58mTjDPA7A">
+                                        <span class="text-xs text-gray-400 mt-1">Your Google Apps Script deployment ID</span>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">HMAC Key *</label>
+                                        <input type="text" name="gas_hmac_key" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('gas_hmac_key', $company->gas_hmac_key) }}" required placeholder="e.g., 7puhATp8KQkFqT8UNOpQ5aPbHJSz4cN9Ha2IowW1ndg=">
+                                        <span class="text-xs text-gray-400 mt-1">Your HMAC key for data verification</span>
+                                    </div>
+                                </div>
+                                <div class="mt-6 flex justify-end">
+                                    <button type="submit" class="px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition">Save API Configuration</button>
+                                </div>
+                            </form>
+
+                            <!-- API Status -->
+                            <div class="mb-8">
+                                <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-white">API Status</h4>
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                                            @if($company->gas_api_enabled)
+                                                <span class="ml-2 px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">Enabled</span>
+                                            @else
+                                                <span class="ml-2 px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">Disabled</span>
+                                            @endif
+                                        </div>
+                                        @if($company->gas_api_enabled)
+                                            <form method="POST" action="{{ route('company.developer.api-disable') }}" class="inline">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 transition">Disable API</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                    @if($company->gas_access_link)
+                                        <div class="mt-2">
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Access Link:</span>
+                                            <a href="{{ $company->gas_access_link }}" target="_blank" class="ml-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 break-all">{{ $company->gas_access_link }}</a>
+                                        </div>
+                                    @endif
+                                    @if($company->gas_last_test)
+                                        <div class="mt-2">
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Last Test:</span>
+                                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">{{ $company->gas_last_test->format('Y-m-d H:i:s') }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- API Testing -->
+                            @if($company->gas_api_enabled)
+                                <div class="mb-8">
+                                    <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-white">Test API</h4>
+                                    <form method="POST" action="{{ route('company.developer.api-test') }}" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                        @csrf
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Test Talent ID</label>
+                                                <input type="text" name="talent_id" class="form-input w-full bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-600 dark:border-gray-500 dark:text-white" value="T1" placeholder="T1">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Test Talent Name</label>
+                                                <input type="text" name="talent_name" class="form-input w-full bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-600 dark:border-gray-500 dark:text-white" value="Alice" placeholder="Alice">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">Test API with Dummy Data</button>
+                                    </form>
+                                </div>
+
+                                <!-- API URL Display -->
+                                @if($company->gas_last_response && isset($company->gas_last_response['url']))
+                                    <div class="mb-8">
+                                        <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-white">Last Test API URL</h4>
+                                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                            <div class="mb-2">
+                                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Full API Endpoint:</span>
+                                            </div>
+                                            <div class="bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 p-3">
+                                                <code class="text-xs text-gray-800 dark:text-gray-200 break-all">{{ $company->gas_last_response['url'] }}</code>
+                                            </div>
+                                            <div class="mt-3 flex space-x-2">
+                                                <button onclick="copyToClipboard('{{ $company->gas_last_response['url'] }}')" class="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700 transition">
+                                                    Copy URL
+                                                </button>
+                                                <a href="{{ $company->gas_last_response['url'] }}" target="_blank" class="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700 transition">
+                                                    Open in Browser
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- API Documentation -->
+                                <div class="mb-8">
+                                    <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-white">API Documentation</h4>
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                        <h5 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">JSON Structure:</h5>
+                                        <pre class="text-xs text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-800 p-3 rounded overflow-x-auto"><code>{
+  "lastUpdate": "2025-07-26T12:00:00.000Z",
+  "talentId": "T1",
+  "talentName": "Alice",
+  "workingTime": "02:30",
+  "projectCode": "AE_s",
+  "projectName": "After Effect Storyboard",
+  "workTitle": "Initial Draft",
+  "role": "Talent",
+  "link": "https://drive.google.com/drive/u/0/folders/1W7XyVx32NlevvLXKWQHeUqzJkWckO29t"
+}</code></pre>
+                                        <div class="mt-3 text-sm text-blue-700 dark:text-blue-300">
+                                            <p><strong>Endpoint:</strong> https://script.google.com/macros/s/&lt;DEPLOYMENT_ID&gt;/exec</p>
+                                            <p><strong>Parameters:</strong> data=&lt;BASE64URL-ENCODED JSON&gt;&sig=&lt;BASE64URL-ENCODED HMAC-SHA256&gt;</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="text-center py-8">
+                            <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
+                        </div>
+                    @endif
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
             <!-- Tab 6: Timezone Settings -->
             <div id="profile-tab6" class="hidden">
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-8">
@@ -450,6 +606,27 @@
                 updateCurrentTime();
             }
         }, 1000);
+
+        // Copy to clipboard function
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success message
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                button.classList.add('bg-green-600');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-600');
+                    button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                alert('Failed to copy URL to clipboard');
+            });
+        }
     });
 </script>
 @endpush

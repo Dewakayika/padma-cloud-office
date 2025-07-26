@@ -132,15 +132,14 @@
 
                             {{-- End Work Button --}}
                             @if($currentWorkSession && in_array($currentWorkSession->status, ['active', 'paused']))
-                            <form action="{{ route('talent.work-session.end') }}" method="POST">
-                                    @csrf
-                                <button type="submit" class="inline-flex items-center px-6 py-3 bg-red-600 border border-transparent rounded-lg font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+                            <button type="button"
+                                    onclick="confirmEndWork()"
+                                    class="inline-flex items-center px-6 py-3 bg-red-600 border border-transparent rounded-lg font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                                 End Work
                             </button>
-                                </form>
                             @endif
                         </div>
 
@@ -178,13 +177,26 @@
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Project Management</h3>
                         <div x-data="{ openNewProject: false }">
-                            <button @click="openNewProject = true" class="inline-flex items-center px-3 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors text-sm">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                New Project
-
-                            </button
+                            @if($activeProjects->count() > 0)
+                                <div class="flex flex-col items-end">
+                                    <button disabled class="inline-flex items-center px-3 py-2 bg-gray-400 border border-transparent rounded-lg font-semibold text-white cursor-not-allowed transition-colors text-sm">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        New Project
+                                    </button>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        End active projects first to start a new one
+                                    </p>
+                                </div>
+                            @else
+                                <button @click="openNewProject = true" class="inline-flex items-center px-3 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors text-sm">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    New Project
+                                </button>
+                            @endif
 
                             <!-- New Project Modal -->
                             <div x-show="openNewProject" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
@@ -193,10 +205,35 @@
                                     <form action="{{ route('talent.project.start') }}" method="POST">
                                         @csrf
                                         <div class="space-y-4">
-                                            <div>
-                                            {{-- drop down project type text --}}
+                                                                                        <div>
                                                 <label for="project_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Type *</label>
-                                                <input type="text" id="project_type" name="project_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter project type" required>
+                                                @if($projectTypes->count() > 0)
+                                                    <div class="mb-2">
+                                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                            Available project types from: <span class="font-medium text-gray-700 dark:text-gray-300">{{ $currentCompany->company_name ?? 'Your Company' }}</span>
+                                                        </p>
+                                                    </div>
+                                                    <select id="project_type" name="project_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                                                        <option value="">Select project type</option>
+                                                        @foreach($projectTypes as $projectType)
+                                                            <option value="{{ $projectType->project_name }}" data-rate="{{ $projectType->project_rate }}" data-qc-rate="{{ $projectType->qc_rate }}">
+                                                                {{ $projectType->project_name }}
+                                                                @if($projectType->project_rate)
+                                                                    (Rate: ${{ number_format($projectType->project_rate, 2) }})
+                                                                @endif
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                @else
+                                                    <input type="text" id="project_type" name="project_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter project type" required>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                        @if($currentCompany)
+                                                            No project types available for {{ $currentCompany->company_name }}. Please contact your company admin.
+                                                        @else
+                                                            No project types available. Please contact your company admin.
+                                                        @endif
+                                                    </p>
+                                                @endif
                                             </div>
                                             <div>
                                                 <label for="project_title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Title *</label>
@@ -252,15 +289,14 @@
                                     @endif
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <form action="{{ route('talent.project.end', $project->id) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 border border-transparent rounded-lg font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors text-sm">
+                                    <button type="button"
+                                            onclick="confirmEndProject({{ $project->id }}, '{{ $project->project_title }}')"
+                                            class="inline-flex items-center px-3 py-1.5 bg-red-600 border border-transparent rounded-lg font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors text-sm">
                                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
                                         End Project
                                     </button>
-                                </form>
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-3 text-sm">
@@ -419,6 +455,9 @@
         </div>
     </div>
 </div>
+
+{{-- Confirmation Modal Component --}}
+<x-confirmation-modal />
 
 @endsection
 
@@ -626,5 +665,75 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.error('Error loading today stats:', error);
             });
     }
+
+    // Handle project type selection
+    const projectTypeSelect = document.getElementById('project_type');
+    const projectTypeDetails = document.getElementById('project-type-details');
+    const projectRateSpan = document.getElementById('project-rate');
+    const qcRateSpan = document.getElementById('qc-rate');
+
+    if (projectTypeSelect) {
+        projectTypeSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+
+            if (this.value) {
+                const projectRate = selectedOption.getAttribute('data-rate');
+                const qcRate = selectedOption.getAttribute('data-qc-rate');
+
+                // Show project type details
+                projectTypeDetails.classList.remove('hidden');
+
+                // Update rate displays
+                projectRateSpan.textContent = projectRate ? `$${parseFloat(projectRate).toFixed(2)}` : 'Not set';
+                qcRateSpan.textContent = qcRate ? `$${parseFloat(qcRate).toFixed(2)}` : 'Not set';
+            } else {
+                // Hide project type details
+                projectTypeDetails.classList.add('hidden');
+            }
+        });
+    }
+
+    // Confirmation functions
+    window.confirmEndWork = function() {
+        showConfirmation(
+            'End Work Session',
+            'Are you sure you want to end your current work session? This action cannot be undone.',
+            function() {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route("talent.work-session.end") }}';
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+
+                form.appendChild(csrfToken);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        );
+    };
+
+    window.confirmEndProject = function(projectId, projectTitle) {
+        showConfirmation(
+            'End Project',
+            `Are you sure you want to end the project "${projectTitle}"? This action cannot be undone.`,
+            function() {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route("talent.project.end", ":id") }}'.replace(':id', projectId);
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+
+                form.appendChild(csrfToken);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        );
+    };
 });
 </script>
