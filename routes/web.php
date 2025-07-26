@@ -197,6 +197,7 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::post('/project/{id}/end', [App\Http\Controllers\ProjectTrackingController::class, 'endProject'])->name('talent.project.end');
     Route::get('/today-stats', [App\Http\Controllers\ProjectTrackingController::class, 'getTodayStats'])->name('talent.today-stats');
     Route::get('/project-types/{companySlug}', [App\Http\Controllers\ProjectTrackingController::class, 'getProjectTypesByCompanySlug'])->name('talent.project-types.by-company');
+    Route::post('/additional-info/save', [TalentController::class, 'saveAdditionalInfo'])->name('talent.additional-info.save');
 });
 
 // Invitation Routes (Public - no company middleware required)

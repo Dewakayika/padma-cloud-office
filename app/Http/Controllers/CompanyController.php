@@ -85,16 +85,6 @@ class CompanyController extends Controller
             return redirect()->route('home')->with('error', 'Company not found.');
         }
 
-        // Check if the company is onboarded
-        // if ($company->onboarding_step < 4) {
-        //     return redirect()->route('company.onboarding.step', $company->onboarding_step);
-        // }
-
-        // // Already onboarded
-        // if ($company->onboarding_step == 4) {
-        //     return redirect()->route('company.index');
-        // }
-
         // Get filter parameters
         $year = request('year', date('Y'));
         $projectType = request('project_type');

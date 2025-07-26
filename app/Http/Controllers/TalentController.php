@@ -357,66 +357,85 @@ class TalentController extends Controller
     public function storeProjectRecord(Request $request, Project $project)
     {
         $request->validate([
-            'project_link' => ['required', 'url'],
-            'passed_sops' => ['required', 'string'],
+            'project_title' => 'required|string|max:255',
+            'project_type' => 'required|string|max:255',
+            'project_code' => 'nullable|string|max:255',
+            'project_link' => 'nullable|url|max:255',
+            'role' => 'required|string|max:255',
+            'notes' => 'nullable|string',
         ]);
 
-        // Check if the authenticated user is the assigned talent
-        if ($project->talent !== auth()->id()) {
-            abort(403, 'You are not authorized to create records for this project.');
+        $user = auth()->user();
+
+        // Check if user is a talent and has access to this project
+        if ($user->role !== 'talent') {
+            return redirect()->back()->with('error', 'Access denied.');
         }
 
-        // Get all SOPs for this project type and company
-        $requiredSops = ProjectSop::where('project_type_id', $project->project_type_id)
+        // Check if talent is part of the company that owns this project
+        $companyTalent = \App\Models\CompanyTalent::where('talent_id', $user->id)
             ->where('company_id', $project->company_id)
-            ->pluck('id')
-            ->toArray();
+            ->first();
 
-        // Get passed SOPs from request
-        $passedSops = array_map('intval', explode(',', $request->passed_sops));
-
-        // Check if all required SOPs are passed
-        if (count(array_diff($requiredSops, $passedSops)) > 0) {
-            return redirect()->back()->with('error', 'All SOPs must be passed before saving.');
+        if (!$companyTalent) {
+            return redirect()->back()->with('error', 'You do not have access to this project.');
         }
 
-        try {
-            // Start database transaction
-            DB::beginTransaction();
+        // Create project record
+        ProjectRecord::create([
+            'project_id' => $project->id,
+            'talent_id' => $user->id,
+            'project_title' => $request->project_title,
+            'project_type' => $request->project_type,
+            'project_code' => $request->project_code,
+            'project_link' => $request->project_link,
+            'role' => $request->role,
+            'notes' => $request->notes,
+            'start_at' => now(),
+            'status' => 'active',
+        ]);
 
-            // Create the project record
-            $projectRecord = ProjectRecord::create([
-                'user_id' => auth()->id(),
-                'company_id' => $project->company_id,
-                'project_id' => $project->id,
-                'talent_id' => auth()->id(),
-                'status' => 'qc',
-                'project_link' => $request->project_link,
-                'qc_message' => 'All SOPs passed: ' . implode(', ', $passedSops),
-            ]);
+        return redirect()->back()->with('success', 'Project record created successfully.');
+    }
 
-            // Create project log entry
-            ProjectLog::create([
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'company_id' => $project->company_id,
-                'talent_id' => auth()->id(),
-                'timestamp' => now(),
-                'status' => 'qc',
-                'message' => 'Project record created with all SOPs passed'
-            ]);
-
-            $project->update([
-                'status' => 'qc',
-                'talent' => auth()->id()
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Project record created successfully with all SOPs passed.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to create project record. Please try again.');
+    /**
+     * Save additional talent information
+     */
+    public function saveAdditionalInfo(Request $request)
+    {
+        // Validate that user is a talent
+        if (auth()->user()->role !== 'talent') {
+            return redirect()->back()->with('error', 'Access denied. Only talents can update this information.');
         }
+
+        $request->validate([
+            'phone_number' => 'required|string|max:20',
+            'address' => 'required|string|max:1000',
+            'gender' => 'required|string|in:male,female,other',
+            'date_of_birth' => 'required|date',
+            'id_card' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account' => 'nullable|string|max:255',
+            'swift_code' => 'nullable|string|max:20',
+            'subjected_tax' => 'nullable|string|in:yes,no,exempt',
+        ]);
+
+        $user = auth()->user();
+        $talent = Talent::where('user_id', $user->id)->first();
+
+
+        $talent->update([
+            'phone_number' => $request->phone_number,
+            'address' => $request->address,
+            'gender' => $request->gender,
+            'date_of_birth' => $request->date_of_birth,
+            'id_card' => $request->id_card,
+            'bank_name' => $request->bank_name,
+            'bank_account' => $request->bank_account,
+            'swift_code' => $request->swift_code,
+            'subjected_tax' => $request->subjected_tax,
+        ]);
+
+        return redirect()->back()->with('success', 'Additional information saved successfully.');
     }
 }
