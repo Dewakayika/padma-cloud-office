@@ -294,7 +294,7 @@
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-8">
                     <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2">Discord Notification Settings</h3>
                     <div class="flex flex-col md:flex-row md:space-x-2">
-                        <form method="POST" action="{{ route('company.notification-settings.save') }}" class="mb-2 md:mb-0">
+                        <form method="POST" action="{{ route('company.notification-settings.save') }}" class="mb-2 md:mb-0 flex-1">
                             @csrf
                             <div class="mb-4">
                                 <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Discord Webhook URL *</label>
