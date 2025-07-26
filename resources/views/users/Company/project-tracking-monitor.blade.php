@@ -16,6 +16,7 @@
                     <div class="text-right">
                         <p class="text-sm text-gray-500 dark:text-gray-400">Last Updated</p>
                         <p class="text-sm font-mono text-gray-900 dark:text-white" id="last-updated">--:--:--</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500">{{ Auth::user()->timezone ?? 'UTC' }}</p>
                     </div>
                     <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                 </div>
@@ -120,49 +121,88 @@
             </div>
         </div>
 
-        {{-- Talent List --}}
+        {{-- Talent Statistics --}}
         <div class="mt-8">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                        All Talents Status
-                        <span class="ml-2 px-2 py-1 text-xs font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 rounded-full">{{ $talents->count() }}</span>
-                    </h2>
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                            Talent Statistics
+                            <span class="ml-2 px-2 py-1 text-xs font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 rounded-full">{{ $talents->count() }}</span>
+                        </h2>
+                        <div class="flex items-center space-x-4">
+                            <select id="month-filter" class="text-sm border border-gray-300 rounded-lg px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                @foreach($availableMonths as $month)
+                                    <option value="{{ $month['value'] }}" {{ $month['selected'] ? 'selected' : '' }}>
+                                        {{ $month['label'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         @foreach($talents as $talent)
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                            <div class="flex items-center justify-between mb-3">
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
+                            {{-- Talent Header --}}
+                            <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center">
-                                    <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-800 rounded-full flex items-center justify-center mr-3">
-                                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-800 rounded-full flex items-center justify-center mr-3">
+                                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 class="font-semibold text-gray-900 dark:text-white">{{ $talent->name }}</h3>
+                                        <h3 class="font-semibold text-gray-900 dark:text-white text-lg">{{ $talent->name }}</h3>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">{{ $talent->email }}</p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    @if($talent->workSessions->count() > 0 || $talent->projectTracking->count() > 0)
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                            Active
-                                        </span>
-                                    @else
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
-                                            Inactive
-                                        </span>
-                                    @endif
+                            </div>
+
+                            {{-- Average Working Time --}}
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Average Working Time</span>
+                                    <span class="text-sm font-bold text-indigo-600 dark:text-indigo-400">{{ $talentStats[$talent->id]['avg_working_time'] ?? '0h 0m' }}</span>
                                 </div>
                             </div>
-                            <div class="text-sm text-gray-600 dark:text-gray-400">
-                                <p>Sessions: {{ $talent->workSessions->count() }}</p>
-                                <p>Projects: {{ $talent->projectTracking->count() }}</p>
+
+                            {{-- Statistics Grid --}}
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                                    <div class="text-center">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Avg Projects/Day</p>
+                                        <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ $talentStats[$talent->id]['avg_projects_per_day'] ?? '0.0' }}</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                                    <div class="text-center">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Best Speed</p>
+                                        <p class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ $talentStats[$talent->id]['best_speed'] ?? '0h 0m' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Additional Metrics --}}
+                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                <div class="grid grid-cols-3 gap-3 text-center">
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Total Sessions</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $talentStats[$talent->id]['total_sessions'] ?? 0 }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Total Projects</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $talentStats[$talent->id]['total_projects'] ?? 0 }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Work Days</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $talentStats[$talent->id]['work_days'] ?? 0 }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @endforeach
@@ -238,7 +278,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div>
                         <span class="text-gray-600 dark:text-gray-400">Started:</span>
                         <span class="ml-2 font-mono text-gray-900 dark:text-white">
-                            ${new Date(session.started_at).toLocaleString()}
+                            ${new Date(session.started_at).toLocaleString('en-US', {
+                                timeZone: '{{ Auth::user()->timezone ?? "UTC" }}',
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
                         </span>
                     </div>
                     <div>
@@ -299,7 +346,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateLastUpdated() {
         const now = new Date();
-        document.getElementById('last-updated').textContent = now.toLocaleTimeString();
+        const userTimezone = '{{ Auth::user()->timezone ?? "UTC" }}';
+
+        // Format time in user's timezone
+        const localTime = now.toLocaleTimeString('en-US', {
+            timeZone: userTimezone,
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        document.getElementById('last-updated').textContent = localTime;
     }
 
     // Initial load
@@ -313,6 +371,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (updateInterval) {
             clearInterval(updateInterval);
         }
+    });
+
+    // Handle month filter change
+    document.getElementById('month-filter').addEventListener('change', function() {
+        const selectedMonth = this.value;
+        const currentUrl = new URL(window.location);
+        currentUrl.searchParams.set('month', selectedMonth);
+        window.location.href = currentUrl.toString();
     });
 });
 </script>

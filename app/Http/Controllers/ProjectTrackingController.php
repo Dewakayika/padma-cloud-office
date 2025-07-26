@@ -44,11 +44,20 @@ class ProjectTrackingController extends Controller
         // Get today's statistics
         $todayStats = $this->getTodayStatsForView();
 
+        // Get basic statistics
+        $basicStats = $this->getBasicStats($user->id);
+        $allCompletedProjects = ProjectTracking::where('user_id', $user->id)
+            ->where('status', 'completed')
+            ->orderBy('end_at', 'desc')
+            ->get();
+
         return view('users.Talent.project-tracking', compact(
             'currentWorkSession',
             'activeProjects',
             'recentProjects',
             'todayStats',
+            'basicStats',
+            'allCompletedProjects',
             'timezone',
         ));
     }
@@ -428,5 +437,28 @@ class ProjectTrackingController extends Controller
         $secs = $seconds % 60;
 
         return sprintf('%02d:%02d:%02d', $hours, $minutes, $secs);
+    }
+
+    /**
+     * Get basic statistics for a user
+     */
+    private function getBasicStats($userId)
+    {
+        // Get all completed work sessions
+        $workSessions = WorkSession::where('user_id', $userId)
+            ->where('status', 'completed')
+            ->get();
+
+        // Calculate average daily working duration
+        $totalWorkingTime = $workSessions->sum('total_working_time');
+        $workDays = $workSessions->groupBy(function($session) {
+            return $session->started_at->format('Y-m-d');
+        })->count();
+
+        $avgDailyDuration = $workDays > 0 ? $totalWorkingTime / $workDays : 0;
+
+        return [
+            'avg_daily_duration' => $this->formatTime($avgDailyDuration),
+        ];
     }
 }

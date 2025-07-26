@@ -92,7 +92,7 @@
                     </div>
                 </div>
 
-                <!-- Desktop Icons -->
+                {{-- <!-- Desktop Icons -->
                 <!-- E-Wallet - Always visible -->
                 <button type="button" onclick="window.location.href='{{ route('talent.e-wallet') }}'"
                     class="relative p-1.5 sm:p-2 text-gray-500 dark:text-white rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.e-wallet') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }} hidden md:block">
@@ -151,7 +151,7 @@
                     @if(request()->routeIs('talent.settings'))
                         <span class="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-purple-600 rounded-full"></span>
                     @endif
-                </button>
+                </button> --}}
 
                 <!-- Theme Switcher - Hidden on mobile -->
                 <div class="hidden lg:block">

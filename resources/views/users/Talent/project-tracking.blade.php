@@ -372,6 +372,49 @@
                     </div>
                 </div>
                 @endif
+
+                {{-- Basic Statistics --}}
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Basic Statistics</h3>
+                    <div class="space-y-4">
+                        {{-- Average Daily Working Duration --}}
+                        <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Average Daily Working Duration</h4>
+                            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                {{ $basicStats['avg_daily_duration'] ?? '0h 0m' }}
+                            </div>
+                        </div>
+
+                        {{-- All Completed Projects --}}
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">All Completed Projects</h4>
+                            @if($allCompletedProjects->count() > 0)
+                                <div class="space-y-2 max-h-64 overflow-y-auto">
+                                    @foreach($allCompletedProjects as $project)
+                                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <h5 class="font-medium text-gray-900 dark:text-white text-sm">{{ $project->project_title }}</h5>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ \App\Helpers\TimezoneHelper::formatForDisplay($project->end_at, 'M d, Y', $timezone) }}
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">{{ $project->project_type }}</p>
+                                        @if($project->working_duration)
+                                            <span class="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded px-2 py-1">
+                                                Duration: {{ $project->formatted_working_duration }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-center text-gray-500 dark:text-gray-400 py-4">
+                                    <p class="text-sm">No completed projects yet</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -18,10 +18,12 @@
         <div class=" dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 mb-6">
             <nav class="flex space-x-8 px-4" aria-label="Tabs" id="profile-tabs">
                 <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-blue-600 text-blue-600 dark:text-white active" data-target="profile-tab1">Profile Settings</a>
-                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab2">Legal & Verification</a>
-                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab3">Billing & Tax</a>
-                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab4">Collaboration Preferences</a>
-                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab5">Notification Settings</a>
+                @if(Auth::user()->role === 'company')
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab2">Legal & Verification</a>
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab3">Billing & Tax</a>
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab4">Collaboration Preferences</a>
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab5">Notification Settings</a>
+                @endif
                 <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab6">Timezone Settings</a>
             </nav>
         </div>
@@ -58,8 +60,9 @@
 
             <!-- Tab 2: Legal & Verification -->
             <div id="profile-tab2" class="hidden">
-                @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
-                @if($company)
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
                     <div class="flex justify-between items-start">
                     <div class="mb-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Legal & Verification</h3>
@@ -108,17 +111,33 @@
                         </form>
                     </div>
                     </div>
+                    @else
+                        <div class="text-center py-8">
+                            <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
+                        </div>
+                    @endif
                 @else
                     <div class="text-center py-8">
-                        <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 @endif
             </div>
 
             <!-- Tab 3: Billing & Tax -->
             <div id="profile-tab3" class="hidden">
-                @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
-                @if($company)
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
                 <div class="flex justify-between items-start">
                     <div class="mb-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Billing & Tax</h3>
@@ -179,12 +198,28 @@
                         <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
                     </div>
                 @endif
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Tab 4: Collaboration Preferences -->
             <div id="profile-tab4" class="hidden">
-                @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
-                @if($company)
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
                 <div class="flex justify-between items-start">
                     <div class="mb-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Collaboration Preferences</h3>
@@ -234,12 +269,28 @@
                         <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
                     </div>
                 @endif
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Tab 5: Notification Settings -->
             <div id="profile-tab5" class="hidden">
-                @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
-                @if($company)
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-8">
                     <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2">Discord Notification Settings</h3>
                     <div class="flex flex-col md:flex-row md:space-x-2">
@@ -260,6 +311,21 @@
                             <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">Test Webhook</button>
                         </form>
                     </div>
+                    </div>
+                @endif
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 @endif
             </div>

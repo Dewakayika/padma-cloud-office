@@ -56,8 +56,17 @@ class ProjectTrackingMonitorController extends Controller
             })
         ]);
 
+        // Get selected month (default to current month)
+        $selectedMonth = request('month', Carbon::now()->format('Y-m'));
+
         // Get today's statistics for all talents in this company
         $todayStats = $this->getTodayStatsForCompanyTalents($company->id);
+
+        // Get talent statistics for the selected month
+        $talentStats = $this->getTalentStatistics($company->id, $selectedMonth);
+
+        // Get available months for filtering
+        $availableMonths = $this->getAvailableMonths();
 
         // Get project types for this company
         $projectTypes = ProjectType::where('company_id', $company->id)->get();
@@ -65,6 +74,9 @@ class ProjectTrackingMonitorController extends Controller
         return view('users.Company.project-tracking-monitor', compact(
             'talents',
             'todayStats',
+            'talentStats',
+            'availableMonths',
+            'selectedMonth',
             'projectTypes',
             'timezone'
         ));
@@ -222,5 +234,125 @@ class ProjectTrackingMonitorController extends Controller
         $secs = $seconds % 60;
 
         return sprintf('%02d:%02d:%02d', $hours, $minutes, $secs);
+    }
+
+    /**
+     * Get talent statistics for a specific month
+     */
+    private function getTalentStatistics($companyId, $selectedMonth)
+    {
+        $startDate = Carbon::createFromFormat('Y-m', $selectedMonth)->startOfMonth();
+        $endDate = Carbon::createFromFormat('Y-m', $selectedMonth)->endOfMonth();
+
+        $talents = User::where('role', 'talent')
+            ->whereHas('companyTalent', function($query) use ($companyId) {
+                $query->where('company_id', $companyId);
+            })
+            ->get();
+
+        $talentStats = [];
+
+        foreach ($talents as $talent) {
+            // Get work sessions for the month
+            $workSessions = WorkSession::where('user_id', $talent->id)
+                ->where('status', 'completed')
+                ->whereBetween('started_at', [$startDate, $endDate])
+                ->get();
+
+            // Get projects for the month
+            $projects = ProjectTracking::where('user_id', $talent->id)
+                ->where('status', 'completed')
+                ->whereBetween('start_at', [$startDate, $endDate])
+                ->get();
+
+            // Calculate average working time
+            $totalWorkingTime = $workSessions->sum('total_working_time');
+            $workDays = $workSessions->groupBy(function($session) {
+                return $session->started_at->format('Y-m-d');
+            })->count();
+
+            $avgWorkingTime = $workDays > 0 ? $totalWorkingTime / $workDays : 0;
+            $avgWorkingHours = $avgWorkingTime / 3600; // Convert to hours
+
+            // Calculate average projects per day
+            $totalProjects = $projects->count();
+            $avgProjectsPerDay = $workDays > 0 ? round($totalProjects / $workDays, 1) : 0;
+
+            // Calculate best speed (fastest project completion)
+            $bestSpeed = $projects->min('working_duration') ?? 0;
+
+            // Calculate total sessions and projects
+            $totalSessions = $workSessions->count();
+
+            // Calculate daily working time data for chart
+            $dailyWorkingTime = [];
+            $workSessionsByDay = $workSessions->groupBy(function($session) {
+                return $session->started_at->format('Y-m-d');
+            });
+
+            $projectsByDay = $projects->groupBy(function($project) {
+                return $project->start_at->format('Y-m-d');
+            });
+
+            // Get all unique days
+            $allDays = $workSessionsByDay->keys()->merge($projectsByDay->keys())->unique()->sort();
+
+            foreach ($allDays as $day) {
+                $dayWorkTime = 0;
+
+                // Add work session time for this day
+                if ($workSessionsByDay->has($day)) {
+                    $dayWorkTime += $workSessionsByDay[$day]->sum('total_working_time');
+                }
+
+                // Add project time for this day
+                if ($projectsByDay->has($day)) {
+                    $dayWorkTime += $projectsByDay[$day]->sum('working_duration');
+                }
+
+                $dailyWorkingTime[] = [
+                    'date' => $day,
+                    'hours' => round($dayWorkTime / 3600, 1),
+                    'formatted' => $this->formatTime($dayWorkTime)
+                ];
+            }
+
+            $talentStats[$talent->id] = [
+                'avg_working_time' => $this->formatTime($avgWorkingTime),
+                'avg_working_hours' => $avgWorkingHours,
+                'avg_projects_per_day' => $avgProjectsPerDay,
+                'best_speed' => $this->formatTime($bestSpeed),
+                'total_sessions' => $totalSessions,
+                'total_projects' => $totalProjects,
+                'work_days' => $workDays,
+                'daily_working_time' => $dailyWorkingTime,
+            ];
+        }
+
+        return $talentStats;
+    }
+
+    /**
+     * Get available months for filtering
+     */
+    private function getAvailableMonths()
+    {
+        $months = [];
+        $currentDate = Carbon::now();
+
+        // Generate last 12 months
+        for ($i = 0; $i < 12; $i++) {
+            $date = $currentDate->copy()->subMonths($i);
+            $value = $date->format('Y-m');
+            $label = $date->format('F Y');
+
+            $months[] = [
+                'value' => $value,
+                'label' => $label,
+                'selected' => $i === 0 // Current month is selected by default
+            ];
+        }
+
+        return $months;
     }
 }
