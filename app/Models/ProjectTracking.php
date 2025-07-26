@@ -79,7 +79,13 @@ class ProjectTracking extends Model
             return 0;
         }
 
-        $endTime = $this->end_at ?? now();
+        // For completed projects, use the stored end_at time
+        if ($this->status === 'completed' && $this->end_at) {
+            return $this->start_at->diffInSeconds($this->end_at);
+        }
+
+        // For active projects, calculate from start to now using UTC
+        $endTime = Carbon::now('UTC');
         return $this->start_at->diffInSeconds($endTime);
     }
 }

@@ -49,8 +49,9 @@ class WorkSession extends Model
             return $this->total_working_time;
         }
 
+        $timezone = $this->user->timezone ?? 'UTC';
         $startTime = $this->started_at;
-        $currentTime = Carbon::now('UTC'); // Always use UTC for calculations
+        $currentTime = Carbon::now('UTC');
 
         if ($this->status === 'paused' && $this->paused_at) {
             $currentTime = $this->paused_at;

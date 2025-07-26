@@ -22,6 +22,7 @@
                 <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab3">Billing & Tax</a>
                 <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab4">Collaboration Preferences</a>
                 <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab5">Notification Settings</a>
+                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab6">Timezone Settings</a>
             </nav>
         </div>
 
@@ -262,6 +263,68 @@
                     </div>
                 @endif
             </div>
+
+            <!-- Tab 6: Timezone Settings -->
+            <div id="profile-tab6" class="hidden">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-8">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2">Timezone Settings</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Configure your timezone to ensure all timestamps and schedules are displayed in your local time.</p>
+
+                    <form method="POST" action="{{ route('profile.timezone.update') }}" class="space-y-6">
+                        @csrf
+
+                        <div>
+                            <label for="timezone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Select Your Timezone
+                            </label>
+                            <select id="timezone" name="timezone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="">Choose your timezone...</option>
+                                @foreach(\App\Helpers\TimezoneHelper::getAllTimezones() as $value => $label)
+                                    <option value="{{ $value }}" {{ Auth::user()->timezone == $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Current timezone: <span class="font-mono">{{ Auth::user()->timezone ?? 'UTC' }}</span>
+                            </p>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-900/20 dark:border-blue-800">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                        Timezone Information
+                                    </h3>
+                                    <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                        <p>• Your timezone affects how all dates and times are displayed</p>
+                                        <p>• Project tracking timestamps will be stored in your local time</p>
+                                        <p>• Work sessions and project durations will use your timezone</p>
+                                        <p>• You can change this setting at any time</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                <span class="font-medium">Current Local Time:</span>
+                                <span class="font-mono ml-2" id="current-local-time">
+                                    {{ now()->format('Y-m-d H:i:s') }}
+                                </span>
+                            </div>
+                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                                Save Timezone Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -295,6 +358,32 @@
         if (tabs.length > 0) {
             tabs[0].click();
         }
+
+        // Update current time in timezone settings
+        function updateCurrentTime() {
+            const timeElement = document.getElementById('current-local-time');
+            if (timeElement) {
+                const now = new Date();
+                const timeString = now.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                timeElement.textContent = timeString;
+            }
+        }
+
+        // Update time every second if timezone tab is active
+        setInterval(() => {
+            const timezoneTab = document.getElementById('profile-tab6');
+            if (timezoneTab && !timezoneTab.classList.contains('hidden')) {
+                updateCurrentTime();
+            }
+        }, 1000);
     });
 </script>
 @endpush

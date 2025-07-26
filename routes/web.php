@@ -97,6 +97,56 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/projects/{project}/feedback/company', [CompanyController::class, 'storeCompanyFeedback'])->name('company.project.feedback');
     Route::get('/company/ewallet', [EwalletController::class, 'eWallet'])->name('company.e-wallet');
 
+    // Project Tracking Monitor Routes
+    Route::get('/company/project-tracking-monitor', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'index'])->name('company.project-tracking.monitor');
+    Route::get('/company/project-tracking-monitor/realtime', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'getRealTimeData'])->name('company.project-tracking.realtime');
+
+        // Debug route for testing
+    Route::get('/company/debug-data', function() {
+        $user = Auth::user();
+        $company = \App\Models\Company::where('user_id', $user->id)->first();
+
+        // Get all work sessions
+        $allWorkSessions = \App\Models\WorkSession::whereIn('status', ['active', 'paused'])->with('user')->get();
+
+        // Get all project tracking
+        $allProjectTracking = \App\Models\ProjectTracking::where('status', 'active')->with('user')->get();
+
+        // Get company talents
+        $companyTalents = $company ? \App\Models\CompanyTalent::where('company_id', $company->id)->get() : collect();
+
+        return response()->json([
+            'user_id' => $user->id,
+            'company_id' => $company ? $company->id : null,
+            'company_name' => $company ? $company->company_name : null,
+            'all_work_sessions' => $allWorkSessions->map(function($session) {
+                return [
+                    'id' => $session->id,
+                    'user_id' => $session->user_id,
+                    'user_name' => $session->user->name ?? 'Unknown',
+                    'status' => $session->status,
+                    'started_at' => $session->started_at,
+                ];
+            }),
+            'all_project_tracking' => $allProjectTracking->map(function($project) {
+                return [
+                    'id' => $project->id,
+                    'user_id' => $project->user_id,
+                    'user_name' => $project->user->name ?? 'Unknown',
+                    'project_type' => $project->project_type,
+                    'start_at' => $project->start_at,
+                ];
+            }),
+            'company_talents' => $companyTalents->map(function($ct) {
+                return [
+                    'id' => $ct->id,
+                    'company_id' => $ct->company_id,
+                    'talent_id' => $ct->talent_id,
+                ];
+            })
+        ]);
+    })->name('company.debug.data');
+
     // Onboarding Routes
     Route::get('/onboarding', [CompanyOnboardingController::class, 'showOnboarding'])->name('company.start.onboarding');
     Route::get('/onboarding/{step?}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
@@ -145,12 +195,63 @@ Route::post('/register/store', [RegisteredUserController::class, 'store'])->midd
 // Timezone setting route
 Route::post('/set-timezone', function (\Illuminate\Http\Request $request) {
     $request->validate(['timezone' => 'required|string']);
-    session(['timezone' => $request->timezone]);
-    if (Auth::check()) {
-        Auth::user()->update(['timezone' => $request->timezone]);
+    $timezone = $request->timezone;
+
+    // Validate timezone is valid
+    if (!empty($timezone) && in_array($timezone, timezone_identifiers_list())) {
+        // Store in session
+        session(['timezone' => $timezone]);
+
+        // Update user's timezone in database
+        if (Auth::check()) {
+            Auth::user()->update(['timezone' => $timezone]);
+        }
+
+        // Set application timezone using helper
+        \App\Helpers\TimezoneHelper::setAppTimezone($timezone);
+
+        return response()->json(['success' => true, 'timezone' => $timezone]);
+    } else {
+        // If invalid timezone, use UTC
+        session(['timezone' => 'UTC']);
+        \App\Helpers\TimezoneHelper::setAppTimezone('UTC');
+
+        return response()->json(['success' => false, 'message' => 'Invalid timezone, using UTC', 'timezone' => 'UTC']);
     }
-    return response()->json(['success' => true]);
 })->name('set.timezone');
+
+// Get all available timezones
+Route::get('/timezones', function () {
+    return response()->json([
+        'timezones' => \App\Helpers\TimezoneHelper::getAllTimezones(),
+        'all_php_timezones' => \App\Helpers\TimezoneHelper::getAllPhpTimezones()
+    ]);
+})->name('timezones.list');
+
+// Profile timezone update route
+Route::post('/profile/timezone', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'timezone' => 'required|string|max:100'
+    ]);
+
+    $timezone = $request->timezone;
+
+    // Validate timezone is valid
+    if (!in_array($timezone, timezone_identifiers_list())) {
+        return redirect()->back()->with('error', 'Invalid timezone selected!');
+    }
+
+    $user = Auth::user();
+    $user->update(['timezone' => $timezone]);
+
+    // Update session timezone
+    session(['timezone' => $timezone]);
+
+    // Set application timezone
+    \App\Helpers\TimezoneHelper::setAppTimezone($timezone);
+
+    return redirect()->back()->with('success', 'Timezone updated successfully!');
+})->middleware(['auth'])->name('profile.timezone.update');
 
 // Company Onboarding Routes
 // Route::middleware(['auth', 'verified'])->group(function () {

@@ -34,7 +34,7 @@
 
         {{-- Timezone Info --}}
         <div class="bg-green-50 border border-green-200 rounded-lg p-3 dark:bg-green-900/20 dark:border-green-800">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center">
                     <svg class="w-4 h-4 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -50,6 +50,7 @@
                     </p>
                 </div>
             </div>
+
         </div>
 
         {{-- Main Tracking Interface --}}
@@ -84,16 +85,16 @@
 
                             {{-- Pause Button --}}
                             @if($currentWorkSession && $currentWorkSession->status === 'active')
-                            <div x-data="{ openPause: false }">
+                                <div x-data="{ openPause: false }">
                                 <button @click="openPause = true" class="inline-flex items-center px-6 py-3 bg-yellow-600 border border-transparent rounded-lg font-semibold text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    Pause Work
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                        Pause Work
                                 </button>
 
                                 <!-- Pause Modal -->
-                                <div x-show="openPause" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                                    <div x-show="openPause" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
                                     <div @click.outside="openPause = false" class="bg-white dark:bg-gray-800 p-6 rounded-xl w-full max-w-md shadow-xl">
                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pause Work Session</h3>
                                         <form action="{{ route('talent.work-session.pause') }}" method="POST">
@@ -109,7 +110,7 @@
                                                 <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-yellow-600 border border-transparent rounded-lg hover:bg-yellow-700">
                                                     Pause
                                                 </button>
-                                            </div>
+                                        </div>
                                         </form>
                                     </div>
                                 </div>
@@ -119,27 +120,27 @@
                             {{-- Resume Button --}}
                             @if($currentWorkSession && $currentWorkSession->status === 'paused')
                             <form action="{{ route('talent.work-session.resume') }}" method="POST">
-                                @csrf
+                                    @csrf
                                 <button type="submit" class="inline-flex items-center px-6 py-3 bg-blue-600 border border-transparent rounded-lg font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    Resume
-                                </button>
-                            </form>
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Resume
+                            </button>
+                                </form>
                             @endif
 
                             {{-- End Work Button --}}
                             @if($currentWorkSession && in_array($currentWorkSession->status, ['active', 'paused']))
                             <form action="{{ route('talent.work-session.end') }}" method="POST">
-                                @csrf
+                                    @csrf
                                 <button type="submit" class="inline-flex items-center px-6 py-3 bg-red-600 border border-transparent rounded-lg font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                    End Work
-                                </button>
-                            </form>
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                End Work
+                            </button>
+                                </form>
                             @endif
                         </div>
 
@@ -151,7 +152,7 @@
                                 <div>
                                     <span class="text-gray-600 dark:text-gray-400">Started:</span>
                                     <span class="ml-2 font-mono text-gray-900 dark:text-white" data-utc-time="{{ $currentWorkSession->started_at ? $currentWorkSession->started_at->toISOString() : '' }}">
-                                        {{ $currentWorkSession->started_at ? \Carbon\Carbon::parse($currentWorkSession->started_at)->setTimezone($timezone)->format('M d, H:i') : 'N/A' }}
+                                        {{ $currentWorkSession->started_at ? \App\Helpers\TimezoneHelper::formatForDisplay($currentWorkSession->started_at, 'M d, H:i', $timezone) : 'N/A' }}
                                     </span>
                                 </div>
                                 <div>
@@ -228,13 +229,13 @@
                                             </button>
                                             <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700">
                                                 Start Project
-                                            </button>
+                            </button>
                                         </div>
                                     </form>
                                 </div>
-                            </div>
                         </div>
                     </div>
+                </div>
 
                     {{-- Active Projects --}}
                     @if($activeProjects->count() > 0)
@@ -252,21 +253,21 @@
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <form action="{{ route('talent.project.end', $project->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 border border-transparent rounded-lg font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors text-sm">
-                                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                            End Project
-                                        </button>
-                                    </form>
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 border border-transparent rounded-lg font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors text-sm">
+                                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                        End Project
+                                    </button>
+                                </form>
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-3 text-sm">
                                 <div>
                                     <span class="text-green-700 dark:text-green-300">Started:</span>
                                     <span class="ml-2 font-mono text-green-900 dark:text-green-200">
-                                        {{ \Carbon\Carbon::parse($project->start_at)->setTimezone($timezone)->format('M d, H:i') }}
+                                        {{ \App\Helpers\TimezoneHelper::formatForDisplay($project->start_at, 'M d, H:i', $timezone) }}
                                     </span>
                                 </div>
                                 <div>
@@ -279,7 +280,7 @@
                         </div>
                         @endforeach
                     </div>
-                    @endif
+                                        @endif
 
                     {{-- Recent Completed Projects --}}
                     @if($recentProjects->count() > 0)
@@ -298,23 +299,21 @@
                                     </span>
                                 </div>
                                 <div class="text-xs text-gray-600 dark:text-gray-400">
-                                    <span class="font-mono">{{ \Carbon\Carbon::parse($project->start_at)->setTimezone($timezone)->format('M d, H:i') }}</span> -
-                                    <span class="font-mono">{{ \Carbon\Carbon::parse($project->end_at)->setTimezone($timezone)->format('M d, H:i') }}</span>
                                     @if($project->working_duration)
-                                        ({{ $project->formatted_working_duration }})
-                                    @endif
-                                </div>
+                                        <span class=" text-yellow-600 dark:text-yellow-200 text-xs bg-yellow-100 dark:bg-yellow-700 rounded-lg p-1 px-2">Working Duration: ({{ $project->formatted_working_duration }})</span>
+                                            @endif
+                                    </div>
                             </div>
                             @endforeach
                         </div>
-                    </div>
-                    @endif
+                        </div>
+                            @endif
 
                     @if($activeProjects->count() === 0 && $recentProjects->count() === 0)
                     <div class="text-center text-gray-500 dark:text-gray-400 py-8">
-                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
+                            </svg>
                         <p class="text-lg font-medium">No projects yet</p>
                         <p class="text-sm mt-1">Start your first project to see it here</p>
                     </div>
@@ -361,7 +360,7 @@
                         <div class="flex justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Started:</span>
                             <span class="text-sm font-semibold text-gray-900 dark:text-white" data-utc-time="{{ $currentWorkSession->started_at->toISOString() }}">
-                                {{ \Carbon\Carbon::parse($currentWorkSession->started_at)->setTimezone($timezone)->format('M d, H:i') }}
+                                {{ \App\Helpers\TimezoneHelper::formatForDisplay($currentWorkSession->started_at, 'M d, H:i', $timezone) }}
                             </span>
                         </div>
                         <div class="flex justify-between">
@@ -546,6 +545,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Load today's stats
     loadTodayStats();
+
+    // Manual timezone setting function
+    window.setManualTimezone = function() {
+        const select = document.getElementById('manual-timezone');
+        const timezone = select.value;
+
+        if (timezone) {
+            fetch("{{ route('set.timezone') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ timezone: timezone })
+            }).then(function(response) {
+                if (response.ok) {
+                    console.log('Manual timezone set to:', timezone);
+                    location.reload(); // Reload to apply new timezone
+                }
+            }).catch(function(error) {
+                console.error('Error setting manual timezone:', error);
+            });
+        }
+    };
 
     function loadTodayStats() {
         fetch('{{ route("talent.today-stats") }}')

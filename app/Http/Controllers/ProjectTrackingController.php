@@ -17,53 +17,49 @@ class ProjectTrackingController extends Controller
     /**
      * Display the project tracking page
      */
-        public function index()
-        {
-            $user = Auth::user();
-            $timezone = session('timezone', $user->timezone ?? 'UTC');
+            public function index()
+    {
+        $user = Auth::user();
+        $timezone = $user->timezone ?? 'UTC';
 
-            // Get current active work session
-            $currentWorkSession = WorkSession::where('user_id', $user->id)
-                ->whereIn('status', ['active', 'paused'])
-                ->latest()
-                ->first();
+        // Get current active work session
+        $currentWorkSession = WorkSession::where('user_id', $user->id)
+            ->whereIn('status', ['active', 'paused'])
+            ->latest()
+            ->first();
 
-            // Get active projects
-            $activeProjects = ProjectTracking::where('user_id', $user->id)
-                ->where('status', 'active')
-                ->latest()
-                ->get();
+        // Get active projects
+        $activeProjects = ProjectTracking::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->latest()
+            ->get();
 
-            // Get recent completed projects
-            $recentProjects = ProjectTracking::where('user_id', $user->id)
-                ->where('status', 'completed')
-                ->latest()
-                ->limit(10)
-                ->get();
+        // Get recent completed projects
+        $recentProjects = ProjectTracking::where('user_id', $user->id)
+            ->where('status', 'completed')
+            ->latest()
+            ->limit(10)
+            ->get();
 
-            // Get today's statistics
-            $todayStats = $this->getTodayStatsForView();
+        // Get today's statistics
+        $todayStats = $this->getTodayStatsForView();
 
-            return view('users.Talent.project-tracking', compact(
-                'currentWorkSession',
-                'activeProjects',
-                'recentProjects',
-                'todayStats',
-                'timezone',
-            ));
-        }
+        return view('users.Talent.project-tracking', compact(
+            'currentWorkSession',
+            'activeProjects',
+            'recentProjects',
+            'todayStats',
+            'timezone',
+        ));
+    }
 
     /**
      * Start a new work session (stopwatch)
      */
     public function startWorkSession(Request $request)
     {
-        $request->validate([
-            'timezone' => 'nullable|string',
-        ]);
-
         $user = Auth::user();
-        $timezone = $request->timezone ?? session('timezone', 'UTC');
+        $timezone = $user->timezone ?? 'UTC';
 
         // End any existing active session
         $existingSession = WorkSession::where('user_id', $user->id)
@@ -73,16 +69,16 @@ class ProjectTrackingController extends Controller
         if ($existingSession) {
             $existingSession->update([
                 'status' => 'completed',
-                'ended_at' => now(), // Always use UTC
+                'ended_at' => Carbon::now('UTC'),
                 'total_working_time' => $existingSession->current_working_time,
             ]);
         }
 
-        // Create new work session
+        // Create new work session - store in UTC but display in user timezone
         $workSession = WorkSession::create([
             'user_id' => $user->id,
             'status' => 'active',
-            'started_at' => now(), // Always use UTC
+            'started_at' => Carbon::now('UTC'),
         ]);
 
         Log::info('Work session started', [
@@ -101,11 +97,10 @@ class ProjectTrackingController extends Controller
     {
         $request->validate([
             'pause_reason' => 'required|string|max:255',
-            'timezone' => 'nullable|string',
         ]);
 
         $user = Auth::user();
-        $timezone = $request->timezone ?? session('timezone', 'UTC');
+        $timezone = $user->timezone ?? 'UTC';
 
         $workSession = WorkSession::where('user_id', $user->id)
             ->where('status', 'active')
@@ -117,7 +112,7 @@ class ProjectTrackingController extends Controller
 
         $workSession->update([
             'status' => 'paused',
-            'paused_at' => now(), // Always use UTC
+            'paused_at' => Carbon::now('UTC'),
             'pause_reason' => $request->pause_reason,
         ]);
 
@@ -136,12 +131,8 @@ class ProjectTrackingController extends Controller
      */
     public function resumeWorkSession(Request $request)
     {
-        $request->validate([
-            'timezone' => 'nullable|string',
-        ]);
-
         $user = Auth::user();
-        $timezone = $request->timezone ?? session('timezone', 'UTC');
+        $timezone = $user->timezone ?? 'UTC';
 
         $workSession = WorkSession::where('user_id', $user->id)
             ->where('status', 'paused')
@@ -152,12 +143,12 @@ class ProjectTrackingController extends Controller
         }
 
         // Calculate pause duration
-        $pauseDuration = $workSession->paused_at->diffInSeconds(now()); // Always use UTC
+        $pauseDuration = $workSession->paused_at->diffInSeconds(Carbon::now('UTC'));
         $newTotalPausedTime = $workSession->total_paused_time + $pauseDuration;
 
         $workSession->update([
             'status' => 'active',
-            'resumed_at' => now(), // Always use UTC
+            'resumed_at' => Carbon::now('UTC'),
             'total_paused_time' => $newTotalPausedTime,
             'paused_at' => null,
         ]);
@@ -177,12 +168,8 @@ class ProjectTrackingController extends Controller
      */
     public function endWorkSession(Request $request)
     {
-        $request->validate([
-            'timezone' => 'nullable|string',
-        ]);
-
         $user = Auth::user();
-        $timezone = $request->timezone ?? session('timezone', 'UTC');
+        $timezone = $user->timezone ?? 'UTC';
 
         $workSession = WorkSession::where('user_id', $user->id)
             ->whereIn('status', ['active', 'paused'])
@@ -196,7 +183,7 @@ class ProjectTrackingController extends Controller
 
         $workSession->update([
             'status' => 'completed',
-            'ended_at' => now(), // Always use UTC
+            'ended_at' => Carbon::now('UTC'),
             'total_working_time' => $finalWorkingTime,
         ]);
 
@@ -223,11 +210,10 @@ class ProjectTrackingController extends Controller
             'project_link' => 'nullable|url|max:500',
             'role' => 'required|in:talent,talent_qc',
             'notes' => 'nullable|string',
-            'timezone' => 'nullable|string',
         ]);
 
         $user = Auth::user();
-        $timezone = $request->timezone ?? session('timezone', 'UTC');
+        $timezone = $user->timezone ?? 'UTC';
 
         $project = ProjectTracking::create([
             'user_id' => $user->id,
@@ -237,7 +223,7 @@ class ProjectTrackingController extends Controller
             'project_link' => $request->project_link,
             'role' => $request->role,
             'status' => 'active',
-            'start_at' => now(), // Always use UTC
+            'start_at' => Carbon::now('UTC'),
             'notes' => $request->notes,
         ]);
 
@@ -256,12 +242,8 @@ class ProjectTrackingController extends Controller
      */
     public function endProject(Request $request, $id)
     {
-        $request->validate([
-            'timezone' => 'nullable|string',
-        ]);
-
         $user = Auth::user();
-        $timezone = $request->timezone ?? session('timezone', 'UTC');
+        $timezone = $user->timezone ?? 'UTC';
 
         $project = ProjectTracking::where('user_id', $user->id)
             ->where('id', $id)
@@ -272,11 +254,15 @@ class ProjectTrackingController extends Controller
             return redirect()->back()->with('error', 'Project not found or already completed');
         }
 
-        $workingDuration = $project->calculateWorkingDuration();
+        // Set the end time using UTC for storage
+        $endTime = Carbon::now('UTC');
+
+        // Calculate duration using the actual end time
+        $workingDuration = $project->start_at->diffInSeconds($endTime);
 
         $project->update([
             'status' => 'completed',
-            'end_at' => now(), // Always use UTC
+            'end_at' => $endTime,
             'working_duration' => $workingDuration,
         ]);
 
@@ -298,7 +284,7 @@ class ProjectTrackingController extends Controller
         public function getWorkSessionStatus()
     {
         $user = Auth::user();
-        $timezone = session('timezone', $user->timezone ?? 'UTC');
+        $timezone = $user->timezone ?? 'UTC';
 
         $workSession = WorkSession::where('user_id', $user->id)
             ->whereIn('status', ['active', 'paused'])
@@ -333,7 +319,7 @@ class ProjectTrackingController extends Controller
     public function getTodayStats()
     {
         $user = Auth::user();
-        $timezone = session('timezone', $user->timezone ?? 'UTC');
+        $timezone = $user->timezone ?? 'UTC';
         $today = Carbon::now($timezone)->startOfDay();
 
         // Get all work sessions (completed and active) for today
@@ -386,7 +372,7 @@ class ProjectTrackingController extends Controller
     private function getTodayStatsForView()
     {
         $user = Auth::user();
-        $timezone = session('timezone', $user->timezone ?? 'UTC');
+        $timezone = $user->timezone ?? 'UTC';
         $today = Carbon::now($timezone)->startOfDay();
 
         // Get all work sessions (completed and active) for today
