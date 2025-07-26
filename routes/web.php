@@ -125,11 +125,32 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
 
     // Feedback routes
     Route::post('/projects/{project}/feedback/talent', [CompanyController::class, 'storeTalentFeedback'])->name('talent.project.feedback');
+
+    // Project Tracking Routes
+    Route::get('/project-tracking', [App\Http\Controllers\ProjectTrackingController::class, 'index'])->name('talent.project-tracking');
+    Route::post('/work-session/start', [App\Http\Controllers\ProjectTrackingController::class, 'startWorkSession'])->name('talent.work-session.start');
+    Route::post('/work-session/pause', [App\Http\Controllers\ProjectTrackingController::class, 'pauseWorkSession'])->name('talent.work-session.pause');
+    Route::post('/work-session/resume', [App\Http\Controllers\ProjectTrackingController::class, 'resumeWorkSession'])->name('talent.work-session.resume');
+    Route::post('/work-session/end', [App\Http\Controllers\ProjectTrackingController::class, 'endWorkSession'])->name('talent.work-session.end');
+    Route::get('/work-session/status', [App\Http\Controllers\ProjectTrackingController::class, 'getWorkSessionStatus'])->name('talent.work-session.status');
+    Route::post('/project/start', [App\Http\Controllers\ProjectTrackingController::class, 'startProject'])->name('talent.project.start');
+    Route::post('/project/{id}/end', [App\Http\Controllers\ProjectTrackingController::class, 'endProject'])->name('talent.project.end');
+    Route::get('/today-stats', [App\Http\Controllers\ProjectTrackingController::class, 'getTodayStats'])->name('talent.today-stats');
 });
 
 // Add this new route for invitation acceptance
 Route::get('/register/{token}', [RegisteredUserController::class, 'showInvitationRegistrationForm'])->middleware('guest')->name('register.invitation');
 Route::post('/register/store', [RegisteredUserController::class, 'store'])->middleware('guest')->name('register.invitation.store');
+
+// Timezone setting route
+Route::post('/set-timezone', function (\Illuminate\Http\Request $request) {
+    $request->validate(['timezone' => 'required|string']);
+    session(['timezone' => $request->timezone]);
+    if (Auth::check()) {
+        Auth::user()->update(['timezone' => $request->timezone]);
+    }
+    return response()->json(['success' => true]);
+})->name('set.timezone');
 
 // Company Onboarding Routes
 // Route::middleware(['auth', 'verified'])->group(function () {

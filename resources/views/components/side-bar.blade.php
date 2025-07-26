@@ -181,6 +181,18 @@
                         <span class="ml-3">Report</span>
                     </a>
                 </li>
+
+                {{-- Project Tracking --}}
+                <li>
+                    <a href="{{ route('talent.project-tracking') }}"
+                       class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
+                   group {{ Request::is('talent/project-tracking*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                        <svg class="w-6 h-6 {{ Request::is('talent/project-tracking*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="ml-3">Project Tracking</span>
+                    </a>
+                </li>
             @endif
 
             {{-- Profile Link (Common for all roles except company) --}}
