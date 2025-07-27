@@ -16,6 +16,11 @@ class CompanyTalent extends Model
         'job_role'
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     // Relationship with Company
     public function company()
     {

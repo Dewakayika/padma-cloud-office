@@ -1,0 +1,145 @@
+<?php
+
+namespace App\Http\Controllers\Company;
+
+use App\Http\Controllers\Controller;
+use App\Models\Company;
+use App\Services\GoogleAppsScriptService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
+class DeveloperModeController extends Controller
+{
+    protected $gasService;
+
+    public function __construct(GoogleAppsScriptService $gasService)
+    {
+        $this->gasService = $gasService;
+    }
+
+    /**
+     * Save API configuration
+     */
+    public function saveApiConfig(Request $request)
+    {
+        $request->validate([
+            'gas_deployment_id' => 'required|string|max:255',
+            'gas_hmac_key' => 'required|string|max:500',
+        ]);
+
+        try {
+            $company = Company::where('user_id', Auth::user()->id)->first();
+
+            if (!$company) {
+                return back()->with('error', 'Company not found.');
+            }
+
+            $company->update([
+                'gas_deployment_id' => $request->gas_deployment_id,
+                'gas_hmac_key' => $request->gas_hmac_key,
+                'gas_access_link' => "https://script.google.com/macros/s/{$request->gas_deployment_id}/exec",
+                'gas_api_enabled' => true,
+            ]);
+
+            return back()->with('success', 'API configuration saved successfully!');
+
+        } catch (\Exception $e) {
+            Log::error('Error saving API config', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Failed to save API configuration.');
+        }
+    }
+
+    /**
+     * Test API with dummy data
+     */
+    public function testApi(Request $request)
+    {
+        $request->validate([
+            'talent_id' => 'nullable|string|max:50',
+            'talent_name' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $company = Company::where('user_id', Auth::user()->id)->first();
+
+            if (!$company || !$company->gas_api_enabled) {
+                return back()->with('error', 'API not configured. Please configure your API settings first.');
+            }
+
+            // Generate test data
+            $testData = $this->gasService->generateTestData(
+                $request->talent_id ?? 'T1',
+                $request->talent_name ?? 'Alice'
+            );
+
+            // Send to Google Apps Script
+            $result = $this->gasService->sendToGoogleAppsScript(
+                $company->gas_deployment_id,
+                $company->gas_hmac_key,
+                $testData
+            );
+
+            // Log the API endpoint URL to console
+            Log::info('GAS API Test - Full URL:', [
+                'url' => $result['url'] ?? 'No URL generated',
+                'deployment_id' => $company->gas_deployment_id,
+                'test_data' => $testData
+            ]);
+
+            // Update company with test results
+            $company->update([
+                'gas_last_test' => now(),
+                'gas_last_response' => $result,
+            ]);
+
+            if ($result['success']) {
+                return back()->with('success', 'API test successful! Response: ' . $result['body']);
+            } else {
+                return back()->with('error', 'API test failed: ' . ($result['error'] ?? $result['body']));
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error testing API', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Failed to test API: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Disable API
+     */
+    public function disableApi()
+    {
+        try {
+            $company = Company::where('user_id', Auth::user()->id)->first();
+
+            if ($company) {
+                $company->update([
+                    'gas_api_enabled' => false,
+                ]);
+            }
+
+            return back()->with('success', 'API disabled successfully!');
+
+        } catch (\Exception $e) {
+            Log::error('Error disabling API', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Failed to disable API.');
+        }
+    }
+
+    /**
+     * Get API status and configuration
+     */
+    public function getApiStatus()
+    {
+        $company = Company::where('user_id', Auth::user()->id)->first();
+
+        return response()->json([
+            'enabled' => $company ? $company->gas_api_enabled : false,
+            'deployment_id' => $company ? $company->gas_deployment_id : null,
+            'access_link' => $company ? $company->gas_access_link : null,
+            'last_test' => $company ? $company->gas_last_test : null,
+            'last_response' => $company ? json_decode($company->gas_last_response, true) : null,
+        ]);
+    }
+}

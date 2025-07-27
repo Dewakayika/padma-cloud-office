@@ -28,4 +28,9 @@ class ProjectType extends Model
         return $this->hasMany(ProjectSop::class);
     }
 
+    // Relationship with Company
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }

@@ -63,6 +63,19 @@
                     </a>
                 </li>
 
+                {{-- Talent Work Monitor --}}
+                <li>
+                    <a href="{{ route('company.project-tracking.monitor') }}"
+                       class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
+                        group {{ Request::is('company/project-tracking-monitor*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                        <svg class="shrink-0 w-6 h-6 transition duration-75
+                        {{ Request::is('company/project-tracking-monitor*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="ml-3">Talent Work Monitor</span>
+                    </a>
+                </li>
+
                 <li>
                     <a href="{{ url('/company/statistics') }}"
                        class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
@@ -107,11 +120,13 @@
                         group {{ Request::is('company/ewallet') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                         <svg class="shrink-0 w-6 h-6 transition duration-75
                         {{ Request::is('company/ewallet') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                         </svg>
                         <span class="ml-3">E-Wallet</span>
                     </a>
                 </li>
+
+
 
                 {{-- Settings --}}
                 <li>
@@ -157,6 +172,18 @@
                 </a>
             </li>
 
+              {{-- Project Tracking --}}
+                <li>
+                    <a href="{{ route('talent.project-tracking') }}"
+                       class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
+                   group {{ Request::is('talent/project-tracking*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                        <svg class="w-6 h-6 {{ Request::is('talent/project-tracking*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="ml-3">Project Tracking</span>
+                    </a>
+                </li>
+
             {{-- Manage Projects --}}
                 <li>
                     <a href="{{ url('/talent/manage-projects') }}"
@@ -181,6 +208,8 @@
                         <span class="ml-3">Report</span>
                     </a>
                 </li>
+
+
             @endif
 
             {{-- Profile Link (Common for all roles except company) --}}

@@ -85,16 +85,6 @@ class CompanyController extends Controller
             return redirect()->route('home')->with('error', 'Company not found.');
         }
 
-        // Check if the company is onboarded
-        // if ($company->onboarding_step < 4) {
-        //     return redirect()->route('company.onboarding.step', $company->onboarding_step);
-        // }
-
-        // // Already onboarded
-        // if ($company->onboarding_step == 4) {
-        //     return redirect()->route('company.index');
-        // }
-
         // Get filter parameters
         $year = request('year', date('Y'));
         $projectType = request('project_type');
@@ -622,12 +612,12 @@ class CompanyController extends Controller
         // Check if a specific project type is selected for SOP details
         $projectType = null;
         $sops = null;
-        
+
         if ($request->has('project_type_id')) {
             $projectType = ProjectType::where('id', $request->project_type_id)
                                     ->where('company_id', $company->id)
                                     ->first();
-            
+
             if ($projectType) {
                 $sops = ProjectSop::where('project_type_id', $request->project_type_id)
                                  ->where('company_id', $company->id)
@@ -743,7 +733,7 @@ class CompanyController extends Controller
     public function inviteUserByEmail(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email',
             'role' => 'required|in:talent,talent_qc',
         ]);
 
@@ -755,6 +745,9 @@ class CompanyController extends Controller
             return redirect()->back()->with('error', 'User is not associated with a company.');
         }
 
+        // Check if user already exists in the system
+        $existingUser = User::where('email', $email)->first();
+
         // Check if an invitation already exists for this email and company
         $existingInvitation = Invitation::where('email', $email)
             ->where('company_id', $company->id)
@@ -762,6 +755,17 @@ class CompanyController extends Controller
 
         if ($existingInvitation) {
             return redirect()->back()->with('warning', 'An invitation has already been sent to this email for this company.');
+        }
+
+        // Check if user is already a member of this company
+        if ($existingUser) {
+            $existingMembership = CompanyTalent::where('company_id', $company->id)
+                ->where('talent_id', $existingUser->id)
+                ->first();
+
+            if ($existingMembership) {
+                return redirect()->back()->with('warning', 'This user is already a member of your company.');
+            }
         }
 
         // Generate a unique invitation token
@@ -778,11 +782,20 @@ class CompanyController extends Controller
                 'expires_at' => now()->addDays(7),
             ]);
 
-            // Send invitation email
-            $invitationLink = url('/register?token=' . $token);
-            Mail::to($email)->send(new UserInvitation($invitationLink, $invitingUser, $company));
+            // Send invitation email based on whether user exists or not
+            if ($existingUser) {
+                // User exists - send invitation to join company
+                $invitationLink = url('/invitations/accept/' . $token);
+                Mail::to($email)->send(new UserInvitation($invitationLink, $invitingUser, $company, true));
+                $message = 'Invitation sent to existing user ' . $email . '. They can log in and accept the invitation.';
+            } else {
+                // New user - send registration invitation
+                $invitationLink = url('/register?token=' . $token);
+                Mail::to($email)->send(new UserInvitation($invitationLink, $invitingUser, $company, false));
+                $message = 'Invitation email sent to ' . $email . ' for registration.';
+            }
 
-            return redirect()->back()->with('success', 'Invitation email sent to ' . $email);
+            return redirect()->back()->with('success', $message);
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to send invitation');
@@ -871,7 +884,7 @@ class CompanyController extends Controller
             // Handle CSV upload
             if ($request->has('sops')) {
                 $sopsData = json_decode($request->sops, true);
-                
+
                 if (!is_array($sopsData)) {
                     return response()->json([
                         'success' => false,

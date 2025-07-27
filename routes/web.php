@@ -86,6 +86,12 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/company/notification-settings/test', [App\Http\Controllers\CompanyController::class, 'testNotificationWebhook'])->name('company.notification-settings.test');
     Route::get('/company/sop-template/csv', [App\Http\Controllers\CompanyController::class, 'downloadSopCsvTemplate'])->name('company.sop.csv.template');
 
+        // Developer Mode Routes
+    Route::post('/company/developer/api-config', [App\Http\Controllers\Company\DeveloperModeController::class, 'saveApiConfig'])->name('company.developer.api-config.save');
+    Route::post('/company/developer/api-test', [App\Http\Controllers\Company\DeveloperModeController::class, 'testApi'])->name('company.developer.api-test');
+    Route::post('/company/developer/api-disable', [App\Http\Controllers\Company\DeveloperModeController::class, 'disableApi'])->name('company.developer.api-disable');
+    Route::get('/company/developer/api-status', [App\Http\Controllers\Company\DeveloperModeController::class, 'getApiStatus'])->name('company.developer.api-status');
+
     // Project Management Routes
     Route::get('/company/manage/projects', [CompanyController::class, 'manageProjects'])->name('company.manage.projects');
     Route::get('/company/project/{slug}', [CompanyController::class, 'detailProject'])->name('company.project.detail');
@@ -97,9 +103,58 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/projects/{project}/feedback/company', [CompanyController::class, 'storeCompanyFeedback'])->name('company.project.feedback');
     Route::get('/company/ewallet', [EwalletController::class, 'eWallet'])->name('company.e-wallet');
 
-    // Onboarding Routes
-    Route::get('/onboarding', [CompanyOnboardingController::class, 'showOnboarding'])->name('company.start.onboarding');
-    Route::get('/onboarding/{step?}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
+    // Project Tracking Monitor Routes
+    Route::get('/company/project-tracking-monitor', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'index'])->name('company.project-tracking.monitor');
+    Route::get('/company/project-tracking-monitor/realtime', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'getRealTimeData'])->name('company.project-tracking.realtime');
+
+    // Debug route for testing
+    Route::get('/company/debug-data', function() {
+        $user = Auth::user();
+        $company = \App\Models\Company::where('user_id', $user->id)->first();
+
+        // Get all work sessions
+        $allWorkSessions = \App\Models\WorkSession::whereIn('status', ['active', 'paused'])->with('user')->get();
+
+        // Get all project tracking
+        $allProjectTracking = \App\Models\ProjectTracking::where('status', 'active')->with('user')->get();
+
+        // Get company talents
+        $companyTalents = $company ? \App\Models\CompanyTalent::where('company_id', $company->id)->get() : collect();
+
+        return response()->json([
+            'user_id' => $user->id,
+            'company_id' => $company ? $company->id : null,
+            'company_name' => $company ? $company->company_name : null,
+            'all_work_sessions' => $allWorkSessions->map(function($session) {
+                return [
+                    'id' => $session->id,
+                    'user_id' => $session->user_id,
+                    'user_name' => $session->user->name ?? 'Unknown',
+                    'status' => $session->status,
+                    'started_at' => $session->started_at,
+                ];
+            }),
+            'all_project_tracking' => $allProjectTracking->map(function($project) {
+                return [
+                    'id' => $project->id,
+                    'user_id' => $project->user_id,
+                    'user_name' => $project->user->name ?? 'Unknown',
+                    'project_type' => $project->project_type,
+                    'start_at' => $project->start_at,
+                ];
+            }),
+            'company_talents' => $companyTalents->map(function($talent) {
+                return [
+                    'id' => $talent->id,
+                    'talent_id' => $talent->talent_id,
+                    'job_role' => $talent->job_role,
+                ];
+            }),
+        ]);
+    })->name('company.debug-data');
+
+    // Company Onboarding Routes
+    Route::get('/onboarding/{step}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
     Route::post('/onboarding/{step}', [CompanyOnboardingController::class, 'postStep'])->name('company.onboarding.step.post');
 
     // Project Management Routes
@@ -109,12 +164,17 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/company/invitation/{id}/resend', [CompanyController::class, 'resendInvitation'])->name('company.invitation.resend');
     Route::delete('/company/invitation/{id}/cancel', [CompanyController::class, 'cancelInvitation'])->name('company.invitation.cancel');
 
+    // Onboarding Routes
+    Route::get('/onboarding', [CompanyOnboardingController::class, 'showOnboarding'])->name('company.start.onboarding');
+    Route::get('/onboarding/{step?}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
+    Route::post('/onboarding/{step}', [CompanyOnboardingController::class, 'postStep'])->name('company.onboarding.step.post');
 });
+
 
 // Talent Routes
 Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/', [TalentController::class, 'index'])->name('talent.landing.page');
-    Route::get('/company/{slug}', [TalentController::class, 'detailCompany'])->name('[talent#company');
+    Route::get('/company/{slug}', [TalentController::class, 'detailCompany'])->name('talent.company');
     Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage.projects');
     Route::get('/project-detail/{id}', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
     Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
@@ -125,11 +185,90 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
 
     // Feedback routes
     Route::post('/projects/{project}/feedback/talent', [CompanyController::class, 'storeTalentFeedback'])->name('talent.project.feedback');
+
+    // Project Tracking Routes
+    Route::get('/project-tracking', [App\Http\Controllers\ProjectTrackingController::class, 'index'])->name('talent.project-tracking');
+    Route::post('/work-session/start', [App\Http\Controllers\ProjectTrackingController::class, 'startWorkSession'])->name('talent.work-session.start');
+    Route::post('/work-session/pause', [App\Http\Controllers\ProjectTrackingController::class, 'pauseWorkSession'])->name('talent.work-session.pause');
+    Route::post('/work-session/resume', [App\Http\Controllers\ProjectTrackingController::class, 'resumeWorkSession'])->name('talent.work-session.resume');
+    Route::post('/work-session/end', [App\Http\Controllers\ProjectTrackingController::class, 'endWorkSession'])->name('talent.work-session.end');
+    Route::get('/work-session/status', [App\Http\Controllers\ProjectTrackingController::class, 'getWorkSessionStatus'])->name('talent.work-session.status');
+    Route::post('/project/start', [App\Http\Controllers\ProjectTrackingController::class, 'startProject'])->name('talent.project.start');
+    Route::post('/project/{id}/end', [App\Http\Controllers\ProjectTrackingController::class, 'endProject'])->name('talent.project.end');
+    Route::get('/today-stats', [App\Http\Controllers\ProjectTrackingController::class, 'getTodayStats'])->name('talent.today-stats');
+    Route::get('/project-types/{companySlug}', [App\Http\Controllers\ProjectTrackingController::class, 'getProjectTypesByCompanySlug'])->name('talent.project-types.by-company');
+    Route::post('/additional-info/save', [TalentController::class, 'saveAdditionalInfo'])->name('talent.additional-info.save');
 });
 
-// Add this new route for invitation acceptance
+// Invitation Routes (Public - no company middleware required)
+Route::get('/invitations/{token}', [App\Http\Controllers\InvitationController::class, 'show'])->name('invitations.show');
+Route::get('/invitations/accept/{token}', [App\Http\Controllers\InvitationController::class, 'accept'])->name('invitations.accept');
+Route::post('/invitations/decline/{token}', [App\Http\Controllers\InvitationController::class, 'decline'])->name('invitations.decline');
+
+// Registration routes for invitations
 Route::get('/register/{token}', [RegisteredUserController::class, 'showInvitationRegistrationForm'])->middleware('guest')->name('register.invitation');
 Route::post('/register/store', [RegisteredUserController::class, 'store'])->middleware('guest')->name('register.invitation.store');
+
+// Timezone setting route
+Route::post('/set-timezone', function (\Illuminate\Http\Request $request) {
+    $request->validate(['timezone' => 'required|string']);
+    $timezone = $request->timezone;
+
+    // Validate timezone is valid
+    if (!empty($timezone) && in_array($timezone, timezone_identifiers_list())) {
+        // Store in session
+        session(['timezone' => $timezone]);
+
+        // Update user's timezone in database
+        if (Auth::check()) {
+            Auth::user()->update(['timezone' => $timezone]);
+        }
+
+        // Set application timezone using helper
+        \App\Helpers\TimezoneHelper::setAppTimezone($timezone);
+
+        return response()->json(['success' => true, 'timezone' => $timezone]);
+    } else {
+        // If invalid timezone, use UTC
+        session(['timezone' => 'UTC']);
+        \App\Helpers\TimezoneHelper::setAppTimezone('UTC');
+
+        return response()->json(['success' => false, 'message' => 'Invalid timezone, using UTC', 'timezone' => 'UTC']);
+    }
+})->name('set.timezone');
+
+// Get all available timezones
+Route::get('/timezones', function () {
+    return response()->json([
+        'timezones' => \App\Helpers\TimezoneHelper::getAllTimezones(),
+        'all_php_timezones' => \App\Helpers\TimezoneHelper::getAllPhpTimezones()
+    ]);
+})->name('timezones.list');
+
+// Profile timezone update route
+Route::post('/profile/timezone', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'timezone' => 'required|string|max:100'
+    ]);
+
+    $timezone = $request->timezone;
+
+    // Validate timezone is valid
+    if (!in_array($timezone, timezone_identifiers_list())) {
+        return redirect()->back()->with('error', 'Invalid timezone selected!');
+    }
+
+    $user = Auth::user();
+    $user->update(['timezone' => $timezone]);
+
+    // Update session timezone
+    session(['timezone' => $timezone]);
+
+    // Set application timezone
+    \App\Helpers\TimezoneHelper::setAppTimezone($timezone);
+
+    return redirect()->back()->with('success', 'Timezone updated successfully!');
+})->middleware(['auth'])->name('profile.timezone.update');
 
 // Company Onboarding Routes
 // Route::middleware(['auth', 'verified'])->group(function () {

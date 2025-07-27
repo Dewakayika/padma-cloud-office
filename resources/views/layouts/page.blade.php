@@ -33,7 +33,7 @@
 
             @if (Auth::check())
                 {{-- Sidebar --}}
-                <x-talent-responsive-sidebar/>
+                {{-- <x-talent-responsive-sidebar/> --}}
                 {{-- Navbar --}}
                 <x-nav-page />
 

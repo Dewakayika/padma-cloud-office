@@ -31,6 +31,12 @@ class Company extends Model
         'primary_use_case',
         'nda_agreed',
         'collaboration_tools',
+        'gas_deployment_id',
+        'gas_hmac_key',
+        'gas_access_link',
+        'gas_api_enabled',
+        'gas_last_test',
+        'gas_last_response',
     ];
 
     /**
@@ -118,5 +124,13 @@ class Company extends Model
     {
         return CurrencyConverter::convert($amount, $this->currency, $toCurrency);
     }
+
+    /**
+     * The attributes that should be cast.
+     */
+    protected $casts = [
+        'gas_last_test' => 'datetime',
+        'gas_last_response' => 'array',
+    ];
 
 }

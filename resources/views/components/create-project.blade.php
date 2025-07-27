@@ -14,9 +14,10 @@
                 <input type="hidden" name="company_id" value="{{ $company->id }}">
                     <input type="hidden" name="user_id" value="{{ auth()->user()->id }}">
 
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {{-- Project Name --}}
                         <div class="mt-4">
-                            <x-label for="project_name" value="{{ __('Project Name') }}"/>
+                            <x-label for="project_name" value="{{ __('Project Name') }} *"/>
                             <x-input
                                 id="project_name"
                                 class="block mt-1 w-full"
@@ -31,7 +32,7 @@
                         </div>
 
                         <div class="mt-4">
-                            <x-label for="project_type_id" value="{{ __('Project Type') }}"/>
+                            <x-label for="project_type_id" value="{{ __('Project Type *') }}"/>
                             <select
                                 id="project_type_id"
                                 name="project_type_id"
@@ -41,7 +42,8 @@
                                 @foreach($projectTypes as $type)
                                 <option
                                     value="{{ $type->id }}"
-                                    data-rate="{{ $type->project_rate }}"
+                                    data-qc-rate="{{ $type->qc_rate }}"
+                                    data-project-rate="{{ $type->project_rate }}"
                                     {{ old('project_type_id') == $type->id ? 'selected' : '' }}>
                                     {{ $type->project_name }}
                                 </option>
@@ -51,21 +53,59 @@
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
 
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {{-- Project Rate (hidden until selected) --}}
                         <div class="mt-4" id="project_rate_container" style="display: none;">
-                            <x-label for="project_rate" value="{{ __('Project Rate') }}"/>
+                            <x-label for="project_rate" value="{{ __('Project Rate ('. $company->currency .')') }}"/>
                             <x-input
                                 id="project_rate"
                                 class="block mt-1 w-full"
                                 type="number"
                                 name="project_rate"
                                 readonly="readonly"/>
+                            <p class="text-xs text-gray-500 mt-1">This is the rate for the project in {{ $company->currency }}</p>
                         </div>
+
+                        {{-- QC Rate (hidden until selected) --}}
+                        <div class="mt-4" id="qc_rate_container" style="display: none;">
+                            <x-label for="qc_rate" value="{{ __('QC Rate (%)') }}"/>
+                            <x-input
+                                id="qc_rate"
+                                class="block mt-1 w-full"
+                                type="number"
+                                name="qc_rate"
+                                min="0"
+                                step="1"/>
+                            @error('qc_rate')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                            <p class="text-xs text-gray-500 mt-1">This is the rate for the QC in %</p>
+                        </div>
+
+                        {{-- Bonuses (hidden some project types selected) --}}
+                        <div class="mt-4" id="bonuses_container" style="display: none;">
+                            <x-label for="bonuses" value="{{ __('Bonuses') }}"/>
+                            <x-input
+                                id="bonuses"
+                                class="block mt-1 w-full"
+                                type="number"
+                                name="bonuses"
+                                :value="0"         
+                                min="0"
+                                step="0.01"/>
+                            @error('bonuses')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                         {{-- Project Volume --}}
                         <div class="mt-4">
-                            <x-label for="project_volume" value="{{ __('Project Volume') }}"/>
+                            <x-label for="project_volume" value="{{ __('Project Volume *') }}"/>
                             <x-input
                                 id="project_volume"
                                 class="block mt-1 w-full"
@@ -82,7 +122,7 @@
 
                         {{-- Project Link --}}
                         <div class="mt-4">
-                            <x-label for="project_file" value="{{ __('Project File Link*') }}"/>
+                            <x-label for="project_file" value="{{ __('Project File Link *') }}"/>
                             <x-input
                                 id="project_file"
                                 class="block mt-1 w-full"
@@ -90,45 +130,48 @@
                                 name="project_file"
                                 :value="old('project_file')"
                                 placeholder="https://example.com"/>
-                            <p class="text-xs text-gray-500 mt-1">Add any relevant project links or references</p>
                             @error('project_file')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
 
-                        {{-- QC Rate --}}
-                        <div class="mt-4">
-                            <x-label for="qc_rate" value="{{ __('QC Rate') }}"/>
-                            <x-input
-                                id="qc_rate"
-                                class="block mt-1 w-full"
-                                type="number"
-                                name="qc_rate"
-                                :value="old('qc_rate')"
-                                required="required"
-                                min="0"
-                                step="0.01"/>
-                            @error('qc_rate')
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    
+                        {{-- QC Type Selection Default Self QC --}}
+                            <div class="mt-4">
+                            <x-label for="qc_type" value="{{ __('QC Type*') }}"/>
+                            <select
+                                id="qc_type"
+                                name="qc_type"
+                                class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                required="required">
+                                <option value="self" {{ old('qc_type', 'self') == 'self' ? 'selected' : '' }}>Self QC</option>
+                                <option value="talent" {{ old('qc_type') == 'talent' ? 'selected' : '' }}>Talent QC</option>
+                            </select>
+                            @error('qc_type')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Bonuses --}}
-                        <div class="mt-4">
-                            <x-label for="bonuses" value="{{ __('Bonuses (Optional)') }}"/>
-                            <x-input
-                                id="bonuses"
-                                class="block mt-1 w-full"
-                                type="number"
-                                name="bonuses"
-                                :value="old('bonuses')"
-                                min="0"
-                                step="0.01"/>
-                            @error('bonuses')
+                        {{-- QC Agent Selection (Dynamic) --}}
+                        <div class="mt-4" id="qc_agent_container" style="display: none;">
+                            <x-label for="qc_agent" value="{{ __('Select QC Agent*') }}"/>
+                            <select
+                                id="qc_agent"
+                                name="qc_agent"
+                                class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                                <option value="">Select QC Agent</option>
+                                {{-- Options will be populated dynamically via JavaScript --}}
+                            </select>
+                            @error('qc_agent')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
 
+                        
                         {{-- Talent Selection (Optional) --}}
                         <div class="mt-4">
                             <x-label for="talent" value="{{ __('Assign Talent (Optional)') }}"/>
@@ -150,52 +193,20 @@
                             @enderror
                         </div>
 
-                        {{-- QC Type Selection --}}
-                            <div class="mt-4">
-                            <x-label for="qc_type" value="{{ __('QC Type*') }}"/>
-                            <select
-                                id="qc_type"
-                                name="qc_type"
-                                class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-                                required="required">
-                                <option value="">Select QC Type</option>
-                                <option value="self" {{ old('qc_type') == 'self' ? 'selected' : '' }}>Self QC</option>
-                                <option value="talent" {{ old('qc_type') == 'talent' ? 'selected' : '' }}>Talent QC</option>
-                            </select>
-                            @error('qc_type')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
+                        <div class="flex items-center justify-end mt-4">
+                                            {{-- Cancel Button --}}
+                                            <x-secondary-button id="cancelCreateProjectButton" type="button" class="ms-4">
+                                                {{ __('Cancel') }}
+                                            </x-secondary-button>
+                                            {{-- Create Project Button --}}
+                            <x-button class="ms-4">
+                                                {{ __('Create Project') }}
+                            </x-button>
                         </div>
-
-                        {{-- QC Agent Selection (Dynamic) --}}
-                        <div class="mt-4" id="qc_agent_container" style="display: none;">
-                            <x-label for="qc_agent" value="{{ __('Select QC Agent*') }}"/>
-                            <select
-                                id="qc_agent"
-                                name="qc_agent"
-                                class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                                <option value="">Select QC Agent</option>
-                                {{-- Options will be populated dynamically via JavaScript --}}
-                            </select>
-                            @error('qc_agent')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-                            {{-- Cancel Button --}}
-                            <x-secondary-button id="cancelCreateProjectButton" type="button" class="ms-4">
-                                {{ __('Cancel') }}
-                            </x-secondary-button>
-                            {{-- Create Project Button --}}
-            <x-button class="ms-4">
-                                {{ __('Create Project') }}
-            </x-button>
-        </div>
-    </form>
-</div>
+                    </form>
+                </div>
+                </div>
             </div>
-        </div>
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -212,6 +223,7 @@
                         // Add self as the only option
                         qcAgentSelect.innerHTML += `<option value="{{ auth()->id() }}">{{ auth()->user()->name }} (Self)</option>`;
                         qcAgentSelect.value = "{{ auth()->id() }}";
+                        qcAgentContainer.style.display = 'block';
                     } else if (selectedType === 'talent') {
                         // Add talent options
                         @foreach($talents as $talent)
@@ -219,12 +231,10 @@
                     {{ $talent->name }}
                 </option>`;
                         @endforeach
+                        qcAgentContainer.style.display = 'block';
+                    } else {
+                        qcAgentContainer.style.display = 'none';
                     }
-
-                    // Show/hide the QC agent container
-                    qcAgentContainer.style.display = selectedType
-                        ? 'block'
-                        : 'none';
                 }
 
                 // Initial update
@@ -274,3 +284,42 @@
                 }
             });
         </script>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const projectTypeSelect = document.getElementById('project_type_id');
+    const qcRateInput = document.getElementById('qc_rate');
+    const projectRateInput = document.getElementById('project_rate');
+    const qcRateContainer = document.getElementById('qc_rate_container');
+    const projectRateContainer = document.getElementById('project_rate_container');
+    const bonusesContainer = document.getElementById('bonuses_container');
+
+    function hideFields() {
+        qcRateContainer.style.display = 'none';
+        projectRateContainer.style.display = 'none';
+        bonusesContainer.style.display = 'none';
+        qcRateInput.value = '';
+        projectRateInput.value = '';
+    }
+
+    if (projectTypeSelect && qcRateInput && projectRateInput) {
+        hideFields();
+        projectTypeSelect.addEventListener('change', function() {
+            const selectedOption = projectTypeSelect.options[projectTypeSelect.selectedIndex];
+            const qcRate = selectedOption.getAttribute('data-qc-rate');
+            const projectRate = selectedOption.getAttribute('data-project-rate');
+            if (selectedOption.value) {
+                qcRateContainer.style.display = '';
+                projectRateContainer.style.display = '';
+                bonusesContainer.style.display = '';
+                qcRateInput.value = qcRate || '';
+                projectRateInput.value = projectRate || '';
+            } else {
+                hideFields();
+            }
+        });
+    }
+});
+</script>
+@endpush

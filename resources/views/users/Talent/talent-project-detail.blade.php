@@ -168,7 +168,7 @@
                             <div>
                                 <p class="{{ $labelText }}">Project File:</p>
                                 @if ($project->project_file)
-                                    <a href="{{ Storage::url($project->project_file) }}" class="{{ $linkText }}" target="_blank">Download File</a>
+                                    <a href="{{ $project->project_file }}" class="{{ $linkText }}" target="_blank">Download File</a>
                                 @else
                                     <span class="{{ $mutedText }}">No file available</span>
                                 @endif
