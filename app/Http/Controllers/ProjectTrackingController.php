@@ -255,26 +255,48 @@ class ProjectTrackingController extends Controller
         $user = Auth::user();
         $timezone = $user->timezone ?? 'UTC';
 
-        $project = ProjectTracking::create([
-            'user_id' => $user->id,
-            'project_type' => $request->project_type,
-            'project_title' => $request->project_title,
-            'project_code' => $request->project_code,
-            'project_link' => $request->project_link,
-            'role' => $request->role,
-            'status' => 'active',
-            'start_at' => Carbon::now('UTC'),
-            'notes' => $request->notes,
-        ]);
+        try {
+            $project = ProjectTracking::create([
+                'user_id' => $user->id,
+                'project_type' => $request->project_type,
+                'project_title' => $request->project_title,
+                'project_code' => $request->project_code,
+                'project_link' => $request->project_link,
+                'role' => $request->role,
+                'status' => 'active',
+                'start_at' => Carbon::now('UTC'),
+                'notes' => $request->notes,
+            ]);
 
-        Log::info('Project started', [
-            'user_id' => $user->id,
-            'project_id' => $project->id,
-            'project_title' => $request->project_title,
-            'timezone' => $timezone
-        ]);
+            // Send data to Google Apps Script if API is enabled
+            $apiResult = $project->sendToGoogleAppsScript();
 
-        return redirect()->back()->with('success', 'Project started successfully');
+            Log::info('Project started successfully', [
+                'user_id' => $user->id,
+                'project_id' => $project->id,
+                'project_title' => $request->project_title,
+                'project_type' => $request->project_type,
+                'timezone' => $timezone,
+                'api_sent' => $apiResult['success'],
+                'api_url' => $apiResult['url'],
+                'created_at' => $project->created_at
+            ]);
+
+            // Store API URL in session for opening in new tab
+            if ($apiResult['success'] && $apiResult['url']) {
+                session(['api_url_to_open' => $apiResult['url']]);
+            }
+
+            return redirect()->back()->with('success', 'Project started successfully');
+        } catch (\Exception $e) {
+            Log::error('Failed to start project', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+                'request_data' => $request->all()
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to start project. Please try again.');
+        }
     }
 
     /**
@@ -307,7 +329,7 @@ class ProjectTrackingController extends Controller
         ]);
 
         // Send data to Google Apps Script if API is enabled
-        $project->sendToGoogleAppsScript();
+        $apiResult = $project->sendToGoogleAppsScript();
 
         Log::info('Project ended', [
             'user_id' => $user->id,
@@ -315,8 +337,15 @@ class ProjectTrackingController extends Controller
             'project_title' => $project->project_title,
             'working_duration' => $workingDuration,
             'formatted_duration' => $project->formatted_working_duration,
-            'timezone' => $timezone
+            'timezone' => $timezone,
+            'api_sent' => $apiResult['success'],
+            'api_url' => $apiResult['url']
         ]);
+
+        // Store API URL in session for opening in new tab
+        if ($apiResult['success'] && $apiResult['url']) {
+            session(['api_url_to_open' => $apiResult['url']]);
+        }
 
         return redirect()->back()->with('success', 'Project completed successfully. Duration: ' . $project->formatted_working_duration);
     }

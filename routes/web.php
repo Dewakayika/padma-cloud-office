@@ -175,16 +175,14 @@ Route::middleware(['auth', 'company'])->group(function () {
 Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::get('/', [TalentController::class, 'index'])->name('talent.landing.page');
     Route::get('/company/{slug}', [TalentController::class, 'detailCompany'])->name('talent.company');
-    Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage.projects');
-    Route::get('/project-detail/{id}', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
+    Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage-projects');
+    Route::get('/project/{id}', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
     Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
     Route::get('/e-wallet', [TalentController::class, 'eWallet'])->name('talent.e-wallet');
     Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
-    Route::post('/talent/project/{id}', [TalentController::class, 'applyProject'])->name('talent.projects.apply');
-    Route::post('/projects/{project}/records', [TalentController::class, 'storeProjectRecord'])->name('talent.project-records.store');
-
-    // Feedback routes
-    Route::post('/projects/{project}/feedback/talent', [CompanyController::class, 'storeTalentFeedback'])->name('talent.project.feedback');
+    Route::post('/project/{id}/apply', [TalentController::class, 'applyProject'])->name('talent.project.apply');
+    Route::post('/project/{project}/record', [TalentController::class, 'storeProjectRecord'])->name('talent.project.record');
+    Route::post('/additional-info/save', [TalentController::class, 'saveAdditionalInfo'])->name('talent.additional-info.save');
 
     // Project Tracking Routes
     Route::get('/project-tracking', [App\Http\Controllers\ProjectTrackingController::class, 'index'])->name('talent.project-tracking');
@@ -197,7 +195,12 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
     Route::post('/project/{id}/end', [App\Http\Controllers\ProjectTrackingController::class, 'endProject'])->name('talent.project.end');
     Route::get('/today-stats', [App\Http\Controllers\ProjectTrackingController::class, 'getTodayStats'])->name('talent.today-stats');
     Route::get('/project-types/{companySlug}', [App\Http\Controllers\ProjectTrackingController::class, 'getProjectTypesByCompanySlug'])->name('talent.project-types.by-company');
-    Route::post('/additional-info/save', [TalentController::class, 'saveAdditionalInfo'])->name('talent.additional-info.save');
+
+    // Clear API URL from session
+    Route::post('/clear-api-url', function() {
+        session()->forget('api_url_to_open');
+        return response()->json(['success' => true]);
+    })->name('clear.api.url');
 });
 
 // Invitation Routes (Public - no company middleware required)

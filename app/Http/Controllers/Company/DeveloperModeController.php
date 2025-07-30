@@ -51,7 +51,7 @@ class DeveloperModeController extends Controller
     }
 
     /**
-     * Test API with dummy data
+     * Test API with dummy data (matching GAS reference code)
      */
     public function testApi(Request $request)
     {
@@ -67,24 +67,30 @@ class DeveloperModeController extends Controller
                 return back()->with('error', 'API not configured. Please configure your API settings first.');
             }
 
-            // Generate test data
-            $testData = $this->gasService->generateTestData(
+            // Generate the exact same URL structure as GAS reference code
+            $fullUrl = $this->gasService->generateAutoLink(
+                $company->gas_deployment_id,
+                $company->gas_hmac_key,
                 $request->talent_id ?? 'T1',
                 $request->talent_name ?? 'Alice'
             );
 
-            // Send to Google Apps Script
-            $result = $this->gasService->sendToGoogleAppsScript(
-                $company->gas_deployment_id,
-                $company->gas_hmac_key,
-                $testData
-            );
+            // Test the URL by making a request
+            $response = \Illuminate\Support\Facades\Http::timeout(30)->get($fullUrl);
+
+            $result = [
+                'success' => $response->successful(),
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'url' => $fullUrl
+            ];
 
             // Log the API endpoint URL to console
-            Log::info('GAS API Test - Full URL:', [
-                'url' => $result['url'] ?? 'No URL generated',
+            Log::info('GAS API Test - Full URL (matching reference):', [
+                'url' => $fullUrl,
                 'deployment_id' => $company->gas_deployment_id,
-                'test_data' => $testData
+                'response_status' => $response->status(),
+                'response_body' => $response->body()
             ]);
 
             // Update company with test results
@@ -94,14 +100,18 @@ class DeveloperModeController extends Controller
             ]);
 
             if ($result['success']) {
-                return back()->with('success', 'API test successful! Response: ' . $result['body']);
+                return back()->with('success', 'API test successful! Check the logs for the full URL.');
             } else {
-                return back()->with('error', 'API test failed: ' . ($result['error'] ?? $result['body']));
+                return back()->with('error', 'API test failed: ' . ($result['body'] ?? 'Unknown error'));
             }
 
         } catch (\Exception $e) {
-            Log::error('Error testing API', ['error' => $e->getMessage()]);
-            return back()->with('error', 'Failed to test API: ' . $e->getMessage());
+            Log::error('GAS API Test Error', [
+                'error' => $e->getMessage(),
+                'company_id' => $company->id ?? null
+            ]);
+
+            return back()->with('error', 'API test failed: ' . $e->getMessage());
         }
     }
 

@@ -99,11 +99,32 @@ class ProjectTracking extends Model
             $company = $this->user->companyTalent->first()->company ?? null;
 
             if (!$company || !$company->gas_api_enabled) {
-                return false;
+                \Log::info('GAS API not enabled', [
+                    'project_id' => $this->id,
+                    'company_id' => $company->id ?? null,
+                    'api_enabled' => $company->gas_api_enabled ?? false
+                ]);
+                return ['success' => false, 'url' => null, 'reason' => 'API not enabled'];
             }
 
             $gasService = app(\App\Services\GoogleAppsScriptService::class);
+
+            \Log::info('Generating project tracking data', [
+                'project_id' => $this->id,
+                'project_title' => $this->project_title,
+                'project_type' => $this->project_type,
+                'status' => $this->status,
+                'user_id' => $this->user_id,
+                'user_name' => $this->user->name
+            ]);
+
             $data = $gasService->generateProjectTrackingData($this);
+
+            \Log::info('Generated data for GAS API', [
+                'project_id' => $this->id,
+                'generated_data' => $data,
+                'data_keys' => array_keys($data)
+            ]);
 
             $result = $gasService->sendToGoogleAppsScript(
                 $company->gas_deployment_id,
@@ -112,20 +133,29 @@ class ProjectTracking extends Model
             );
 
             // Log the result
-            \Log::info('ProjectTracking GAS API call', [
+            \Log::info('ProjectTracking GAS API call completed', [
                 'project_id' => $this->id,
                 'company_id' => $company->id,
-                'result' => $result
+                'company_name' => $company->company_name,
+                'deployment_id' => $company->gas_deployment_id,
+                'result_success' => $result['success'],
+                'result_url' => $result['url'] ?? null,
+                'result_status' => $result['status'] ?? null
             ]);
 
-            return $result['success'];
+            return [
+                'success' => $result['success'],
+                'url' => $result['url'] ?? null,
+                'data' => $data
+            ];
 
         } catch (\Exception $e) {
             \Log::error('Error sending to GAS', [
                 'project_id' => $this->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
-            return false;
+            return ['success' => false, 'url' => null, 'error' => $e->getMessage()];
         }
     }
 }

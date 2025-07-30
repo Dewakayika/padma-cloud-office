@@ -32,6 +32,27 @@
             <x-alert type="warning" :message="session('warning')" />
         @endif
 
+        {{-- API Status Notification --}}
+        @php
+            $user = Auth::user();
+            $companyTalent = $user->companyTalent->first();
+            $company = $companyTalent ? $companyTalent->company : null;
+            $apiEnabled = $company && $company->gas_api_enabled;
+        @endphp
+
+        @if($apiEnabled)
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/20 dark:border-blue-800">
+                <div class="flex items-center">
+                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        API Integration Active - Data will be sent to {{ $company->company_name }} when projects start/end
+                    </span>
+                </div>
+            </div>
+        @endif
+
         {{-- Timezone Info --}}
         <div class="bg-green-50 border border-green-200 rounded-lg p-3 dark:bg-green-900/20 dark:border-green-800">
             <div class="flex items-center justify-between mb-3">
@@ -464,6 +485,21 @@
 {{-- Timer Script --}}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // Check for API URL to open in new tab
+    @if(session('api_url_to_open'))
+        const apiUrl = '{{ session('api_url_to_open') }}';
+        console.log('Opening API URL in new tab:', apiUrl);
+        window.open(apiUrl, '_blank');
+        // Clear the session data
+        fetch('{{ route("clear.api.url") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+            }
+        });
+    @endif
+
     const currentWorkSession = @json($currentWorkSession ?? null);
     const stopwatchDisplay = document.getElementById("stopwatch-display");
     const statusDisplay = document.getElementById("timer-status");
@@ -720,6 +756,7 @@ document.addEventListener("DOMContentLoaded", function () {
             'End Project',
             `Are you sure you want to end the project "${projectTitle}"? This action cannot be undone.`,
             function() {
+                console.log('Ending project:', projectId, projectTitle);
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '{{ route("talent.project.end", ":id") }}'.replace(':id', projectId);
@@ -735,5 +772,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         );
     };
+
+    // Add API debugging
+    @if($apiEnabled)
+        console.log('API Integration is enabled for company:', '{{ $company->company_name }}');
+        console.log('Deployment ID:', '{{ $company->gas_deployment_id }}');
+    @else
+        console.log('API Integration is not enabled');
+    @endif
 });
 </script>
