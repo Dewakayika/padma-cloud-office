@@ -32,15 +32,17 @@
                                 <span>E-Wallet</span>
                             </div>
                         </a>
-                        <a href="{{ route('talent.statistic') }}" class="block px-4 py-2 hover:bg-gray-100 {{ request()->routeIs('talent.statistic') ? 'bg-purple-50 text-purple-600' : '' }}">
-                            <div class="flex items-center space-x-3">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M5 5v14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                    <path d="M5 14c4-1 6-3 8-5s4-4 6-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                </svg>
-                                <span>Analytics</span>
-                            </div>
-                        </a>
+                        @if(request()->route('companySlug'))
+                            <a href="{{ route('talent.statistic', request()->route('companySlug')) }}" class="block px-4 py-2 hover:bg-gray-100 {{ request()->routeIs('talent.statistic') ? 'bg-purple-50 text-purple-600' : '' }}">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M5 5v14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        <path d="M5 14c4-1 6-3 8-5s4-4 6-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    <span>Analytics</span>
+                                </div>
+                            </a>
+                        @endif
                         <a href="" class="block px-4 py-2 hover:bg-gray-100 {{ request()->routeIs('talent.documentation') ? 'bg-purple-50 text-purple-600' : '' }}">
                             <div class="flex items-center space-x-3">
                                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -104,7 +106,8 @@
                 </button>
 
                 <!-- Analytics - Always visible -->
-                <button type="button" onclick="window.location.href='{{ route('talent.statistic') }}'"
+                @if(request()->route('companySlug'))
+                <button type="button" onclick="window.location.href='{{ route('talent.statistic', request()->route('companySlug')) }}'"
                     class="relative p-1.5 sm:p-2 text-gray-500 dark:text-white rounded-lg hover:bg-gray-100 focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 {{ request()->routeIs('talent.statistic') ? 'bg-purple-100 text-purple-600 hover:bg-purple-100' : '' }} hidden md:block">
                     <span class="sr-only">Analytics</span>
                     <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -112,6 +115,7 @@
                         <path d="M5 14c4-1 6-3 8-5s4-4 6-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                 </button>
+                @endif
 
                 <!-- Documentation - Hidden on mobile -->
                 <button type="button" onclick="window.location.href=''"

@@ -11,7 +11,7 @@
                     Manage Projects
                 </h1>
                 <div class="flex items-center gap-2">
-                    <form action="{{ route('talent.manage.projects') }}" method="GET" class="flex items-center gap-2">
+                    <form action="{{ route('talent.manage-projects', request()->route('companySlug')) }}" method="GET" class="flex items-center gap-2">
                         <div class="relative">
                             <input type="text"
                                    name="search"
@@ -32,19 +32,19 @@
             <div class="flex justify-between items-center mb-6">
                 {{-- Project Status Tabs --}}
                 <div class="inline-flex rounded-lg shadow-sm">
-                    <a href="{{ route('talent.manage.projects', array_merge(request()->query(), ['status' => 'all'])) }}"
+                    <a href="{{ route('talent.manage-projects', array_merge([request()->route('companySlug')], request()->query(), ['status' => 'all'])) }}"
                        class="px-4 py-2 text-sm font-medium {{ request('status', 'all') == 'all' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-black' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         All Projects
                     </a>
-                    <a href="{{ route('talent.manage.projects', array_merge(request()->query(), ['status' => 'ongoing'])) }}"
+                    <a href="{{ route('talent.manage-projects', array_merge([request()->route('companySlug')], request()->query(), ['status' => 'ongoing'])) }}"
                        class="px-4 py-2 text-sm font-medium {{ request('status') == 'ongoing' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-black' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         Ongoing
                     </a>
-                    <a href="{{ route('talent.manage.projects', array_merge(request()->query(), ['status' => 'qc'])) }}"
+                    <a href="{{ route('talent.manage-projects', array_merge([request()->route('companySlug')], request()->query(), ['status' => 'qc'])) }}"
                        class="px-4 py-2 text-sm font-medium {{ request('status') == 'qc' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-black' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border-t border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         QC
                     </a>
-                    <a href="{{ route('talent.manage.projects', array_merge(request()->query(), ['status' => 'completed'])) }}"
+                    <a href="{{ route('talent.manage-projects', array_merge([request()->route('companySlug')], request()->query(), ['status' => 'completed'])) }}"
                        class="px-4 py-2 text-sm font-medium {{ request('status') == 'completed' ? 'bg-purple-100 text-purple-600 dark:bg-white dark:text-black' : 'bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-300' }} border border-gray-200 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-purple-500">
                         Completed
                     </a>
@@ -52,7 +52,7 @@
 
                 {{-- Sort and Filter Options --}}
                 <div class="flex items-center space-x-2">
-                    <form action="{{ route('talent.manage.projects') }}" method="GET" class="flex items-center gap-2">
+                    <form action="{{ route('talent.manage-projects', request()->route('companySlug')) }}" method="GET" class="flex items-center gap-2">
                         @foreach(request()->except('sort') as $key => $value)
                             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                         @endforeach
@@ -126,7 +126,7 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <a href="{{ route('talent.project.detail', $project->id) }}"
+                                            <a href="{{ route('talent.project.detail', [$project->id, request()->route('companySlug')]) }}"
                                                class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">
                                                 Details
                                             </a>

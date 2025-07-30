@@ -11,6 +11,7 @@ use App\Models\ProjectType;
 use App\Models\ProjectSop;
 use App\Models\ProjectRecord;
 use App\Models\Feedback;
+use App\Models\CompanyTalent;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -19,6 +20,28 @@ use Illuminate\Support\Facades\DB;
 
 class TalentController extends Controller
 {
+    /**
+     * Helper method to validate company access for talent
+     */
+    private function validateCompanyAccess($companySlug, $user)
+    {
+        // Find company by slug and verify talent has access to it
+        $company = Company::where('company_name', 'LIKE', '%' . str_replace('-', ' ', $companySlug) . '%')
+            ->orWhere('company_name', 'LIKE', '%' . ucwords(str_replace('-', ' ', $companySlug)) . '%')
+            ->firstOrFail();
+
+        // Verify that the talent is associated with this company
+        $companyTalent = CompanyTalent::where('company_id', $company->id)
+            ->where('talent_id', $user->id)
+            ->first();
+
+        if (!$companyTalent) {
+            abort(403, 'You do not have access to this company.');
+        }
+
+        return $company;
+    }
+
     /**
      * Display the talent registration form.
      */
@@ -93,12 +116,10 @@ class TalentController extends Controller
         return view('users.Talent.landing-page', compact('companies', 'projects'));
     }
 
-    public function detailCompany($slug)
+            public function detailCompany($companySlug)
     {
         $user = auth()->user();
-        $company = Company::where('company_name', 'LIKE', '%' . str_replace('-', ' ', $slug) . '%')
-            ->orWhere('company_name', 'LIKE', '%' . ucwords(str_replace('-', ' ', $slug)) . '%')
-            ->firstOrFail();
+        $company = $this->validateCompanyAccess($companySlug, $user);
 
         // Score Card Data
         $onGoingProjects = Project::where('company_id', $company->id)
@@ -179,16 +200,15 @@ class TalentController extends Controller
         ));
     }
 
-    public function manageProjects(Request $request)
+            public function manageProjects(Request $request, $companySlug)
     {
         $user = auth()->user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
 
-        // Base query for projects
-        $query = Project::whereHas('company', function($query) use ($user) {
-            $query->whereHas('companyTalent', function($q) use ($user) {
-                $q->where('talent', $user->id);
-            });
-        })->with(['projectType', 'User']);
+        // Base query for projects - now filtered by specific company
+        $query = Project::where('company_id', $company->id)
+            ->where('talent', $user->id)
+            ->with(['projectType', 'User']);
 
         // Status filtering
         $status = $request->get('status', ['project assign', 'draf', 'qc', 'revision', 'done']);
@@ -232,7 +252,7 @@ class TalentController extends Controller
 
         $projects = $query->paginate(10);
 
-        return view('users.Talent.talent-manage-projects', compact('projects'));
+        return view('users.Talent.talent-manage-projects', compact('projects', 'company'));
     }
 
     /**
@@ -241,16 +261,20 @@ class TalentController extends Controller
      * @param  \App\Models\Project  $id
      * @return \Illuminate\View\View|\Illuminate\Http\Response
      */
-    public function projectDetail(Project $id)
+                public function projectDetail(Project $id, $companySlug)
     {
+        $user = auth()->user();
+
         // Laravel's route model binding will automatically find the Project by the {id} from the route
         $project = $id;
 
         // Debug output
         \Log::info('Project Status:', ['status' => $project->status]);
 
+        $company = $this->validateCompanyAccess($companySlug, $user);
+
         // Check if the authenticated user is the assigned talent for this project
-        if ($project->assignedTalent && $project->assignedTalent->id !== auth()->id()) {
+        if ($project->talent !== $user->id) {
             abort(403, 'You are not authorized to view this project.');
         }
 
@@ -292,6 +316,7 @@ class TalentController extends Controller
 
         return view('users.Talent.talent-project-detail', compact(
             'project',
+            'company',
             'assignTimestamp',
             'doneTimestamp',
             'sopList',
@@ -300,9 +325,12 @@ class TalentController extends Controller
         ));
     }
 
-    public function report()
+            public function report($companySlug)
     {
-        return view('users.Talent.report');
+        $user = auth()->user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
+
+        return view('users.Talent.report', compact('company'));
     }
 
 
@@ -312,9 +340,12 @@ class TalentController extends Controller
         return view('users.Talent.e-wallet');
     }
 
-    public function statistic()
+        public function statistic($companySlug)
     {
-        return view('users.Talent.statistic');
+        $user = auth()->user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
+
+        return view('users.Talent.statistic', compact('company'));
     }
 
     /**
@@ -324,10 +355,10 @@ class TalentController extends Controller
      * @param  \App\Models\Project  $id // Laravel will bind the Project model based on the {id} route parameter
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function applyProject(Request $request, Project $id)
+        public function applyProject(Request $request, Project $id, $companySlug)
     {
-
         $user = Auth::user(); // The authenticated talent
+        $company = $this->validateCompanyAccess($companySlug, $user);
 
         // Update the Project table
         $id->talent = $user->id; // Using $id as the Project model instance
@@ -354,7 +385,7 @@ class TalentController extends Controller
      * @param  \App\Models\Project  $project
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function storeProjectRecord(Request $request, Project $project)
+        public function storeProjectRecord(Request $request, Project $project, $companySlug)
     {
         $request->validate([
             'project_title' => 'required|string|max:255',
@@ -366,6 +397,7 @@ class TalentController extends Controller
         ]);
 
         $user = auth()->user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
 
         // Check if user is a talent and has access to this project
         if ($user->role !== 'talent') {

@@ -161,23 +161,24 @@
             <li>
                 <a href="{{ $companySlug ? url('/talent/company/' . $companySlug) : '#' }}"
                    class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
-                   group {{ Request::is('talent/company/*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                   group {{ Request::is('talent/company/*') && !Request::is('talent/company/*/*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                     <svg class="shrink-0 w-6 h-6 transition duration-75
-                        {{ Request::is('talent/company/*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}"
+                        {{ Request::is('talent/company/*') && !Request::is('talent/company/*/*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}"
                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z"
-                              clip-rule="evenodd" />
+                            clip-rule="evenodd" />
                     </svg>
                     <span class="ms-3">Company Detail</span>
                 </a>
             </li>
 
               {{-- Project Tracking --}}
+                @if(request()->route('companySlug'))
                 <li>
-                    <a href="{{ route('talent.project-tracking') }}"
+                    <a href="{{ route('talent.project-tracking', request()->route('companySlug')) }}"
                        class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
-                   group {{ Request::is('talent/project-tracking*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                        <svg class="w-6 h-6 {{ Request::is('talent/project-tracking*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                   group {{ Request::is('talent/company/*/project-tracking*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                        <svg class="w-6 h-6 {{ Request::is('talent/company/*/project-tracking*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span class="ml-3">Project Tracking</span>
@@ -186,10 +187,10 @@
 
             {{-- Manage Projects --}}
                 <li>
-                    <a href="{{ url('/talent/manage-projects') }}"
+                    <a href="{{ route('talent.manage-projects', request()->route('companySlug')) }}"
                        class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
-                   group {{ Request::is('talent/manage-projects') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                        <svg class="w-6 h-6 {{ Request::is('talent/manage-projects') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                   group {{ Request::is('talent/company/*/manage-projects*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                        <svg class="w-6 h-6 {{ Request::is('talent/company/*/manage-projects*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
                         </svg>
                         <span class="ml-3">Manage Projects</span>
@@ -199,15 +200,16 @@
 
                 {{-- Report --}}
                 <li>
-                    <a href="{{ url('/talent/report') }}"
+                    <a href="{{ route('talent.report', request()->route('companySlug')) }}"
                        class="flex items-center p-2 text-gray-900 rounded-md dark:text-white
-                   group {{ Request::is('talent/report*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                        <svg class="w-6 h-6 {{ Request::is('talent/report') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                   group {{ Request::is('talent/company/*/report*') ? 'bg-red-500 text-white dark:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                        <svg class="w-6 h-6 {{ Request::is('talent/company/*/report*') ? 'text-white dark:text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
                         </svg>
                         <span class="ml-3">Report</span>
                     </a>
                 </li>
+                @endif
 
 
             @endif

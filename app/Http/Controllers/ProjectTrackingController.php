@@ -15,12 +15,35 @@ use Carbon\Carbon;
 class ProjectTrackingController extends Controller
 {
     /**
+     * Helper method to validate company access for talent
+     */
+    private function validateCompanyAccess($companySlug, $user)
+    {
+        // Find company by slug and verify talent has access to it
+        $company = \App\Models\Company::where('company_name', 'LIKE', '%' . str_replace('-', ' ', $companySlug) . '%')
+            ->orWhere('company_name', 'LIKE', '%' . ucwords(str_replace('-', ' ', $companySlug)) . '%')
+            ->firstOrFail();
+
+        // Verify that the talent is associated with this company
+        $companyTalent = CompanyTalent::where('company_id', $company->id)
+            ->where('talent_id', $user->id)
+            ->first();
+
+        if (!$companyTalent) {
+            abort(403, 'You do not have access to this company.');
+        }
+
+        return $company;
+    }
+
+    /**
      * Display the project tracking page
      */
-    public function index()
+        public function index($companySlug)
     {
         $user = Auth::user();
         $timezone = $user->timezone ?? 'UTC';
+        $company = $this->validateCompanyAccess($companySlug, $user);
 
         // Get current active work session
         $currentWorkSession = WorkSession::where('user_id', $user->id)
@@ -51,33 +74,21 @@ class ProjectTrackingController extends Controller
             ->orderBy('end_at', 'desc')
             ->get();
 
-        // Get project types for the user's validated company
+        // Get project types for the validated company
         $projectTypes = collect();
-        $currentCompany = null;
+        $currentCompany = $company; // Use the validated company from the route
 
         if ($user->role === 'talent') {
-            // Get the talent's company association
-            $companyTalent = \App\Models\CompanyTalent::where('talent_id', $user->id)
-                ->with('company')
-                ->first();
+            // Get project types from the validated company
+            $projectTypes = \App\Models\ProjectType::where('company_id', $currentCompany->id)->get();
 
-            if ($companyTalent && $companyTalent->company) {
-                $currentCompany = $companyTalent->company;
-
-                // Validate company by slug and get project types
-                $companySlug = $currentCompany->slug;
-
-                // Get project types from the validated company
-                $projectTypes = \App\Models\ProjectType::where('company_id', $currentCompany->id)->get();
-
-                Log::info('Project types fetched for talent', [
-                    'user_id' => $user->id,
-                    'company_id' => $currentCompany->id,
-                    'company_name' => $currentCompany->company_name,
-                    'company_slug' => $companySlug,
-                    'project_types_count' => $projectTypes->count()
-                ]);
-            }
+            Log::info('Project types fetched for talent', [
+                'user_id' => $user->id,
+                'company_id' => $currentCompany->id,
+                'company_name' => $currentCompany->company_name,
+                'company_slug' => $companySlug,
+                'project_types_count' => $projectTypes->count()
+            ]);
         }
 
         return view('users.Talent.project-tracking', compact(
@@ -89,6 +100,7 @@ class ProjectTrackingController extends Controller
             'allCompletedProjects',
             'timezone',
             'projectTypes',
+            'company',
             'currentCompany',
         ));
     }
@@ -96,9 +108,10 @@ class ProjectTrackingController extends Controller
     /**
      * Start a new work session (stopwatch)
      */
-    public function startWorkSession(Request $request)
+        public function startWorkSession(Request $request, $companySlug)
     {
         $user = Auth::user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
         $timezone = $user->timezone ?? 'UTC';
 
         // End any existing active session
@@ -133,13 +146,14 @@ class ProjectTrackingController extends Controller
     /**
      * Pause the current work session
      */
-    public function pauseWorkSession(Request $request)
+        public function pauseWorkSession(Request $request, $companySlug)
     {
         $request->validate([
             'pause_reason' => 'required|string|max:255',
         ]);
 
         $user = Auth::user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
         $timezone = $user->timezone ?? 'UTC';
 
         $workSession = WorkSession::where('user_id', $user->id)
@@ -169,9 +183,10 @@ class ProjectTrackingController extends Controller
     /**
      * Resume the current work session
      */
-    public function resumeWorkSession(Request $request)
+        public function resumeWorkSession(Request $request, $companySlug)
     {
         $user = Auth::user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
         $timezone = $user->timezone ?? 'UTC';
 
         $workSession = WorkSession::where('user_id', $user->id)
@@ -206,9 +221,10 @@ class ProjectTrackingController extends Controller
     /**
      * End the current work session
      */
-    public function endWorkSession(Request $request)
+        public function endWorkSession(Request $request, $companySlug)
     {
         $user = Auth::user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
         $timezone = $user->timezone ?? 'UTC';
 
         $workSession = WorkSession::where('user_id', $user->id)
@@ -241,7 +257,7 @@ class ProjectTrackingController extends Controller
     /**
      * Start a new project
      */
-    public function startProject(Request $request)
+        public function startProject(Request $request, $companySlug)
     {
         $request->validate([
             'project_type' => 'required|string|max:255',
@@ -253,6 +269,7 @@ class ProjectTrackingController extends Controller
         ]);
 
         $user = Auth::user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
         $timezone = $user->timezone ?? 'UTC';
 
         try {
@@ -302,9 +319,10 @@ class ProjectTrackingController extends Controller
     /**
      * End a project
      */
-    public function endProject(Request $request, $id)
+        public function endProject(Request $request, $id, $companySlug)
     {
         $user = Auth::user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
         $timezone = $user->timezone ?? 'UTC';
 
         $project = ProjectTracking::where('user_id', $user->id)
@@ -353,9 +371,10 @@ class ProjectTrackingController extends Controller
     /**
      * Get current work session status (for AJAX)
      */
-        public function getWorkSessionStatus()
+            public function getWorkSessionStatus($companySlug)
     {
         $user = Auth::user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
         $timezone = $user->timezone ?? 'UTC';
 
         $workSession = WorkSession::where('user_id', $user->id)
@@ -388,9 +407,10 @@ class ProjectTrackingController extends Controller
     /**
      * Get today's statistics
      */
-    public function getTodayStats()
+        public function getTodayStats($companySlug)
     {
         $user = Auth::user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
         $timezone = $user->timezone ?? 'UTC';
         $today = Carbon::now($timezone)->startOfDay();
 

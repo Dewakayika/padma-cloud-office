@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CompanyOnboardingController;
 use App\Http\Controllers\EwalletController;
+use App\Http\Controllers\ProjectTrackingController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -86,7 +87,7 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/company/notification-settings/test', [App\Http\Controllers\CompanyController::class, 'testNotificationWebhook'])->name('company.notification-settings.test');
     Route::get('/company/sop-template/csv', [App\Http\Controllers\CompanyController::class, 'downloadSopCsvTemplate'])->name('company.sop.csv.template');
 
-        // Developer Mode Routes
+    // Developer Mode Routes
     Route::post('/company/developer/api-config', [App\Http\Controllers\Company\DeveloperModeController::class, 'saveApiConfig'])->name('company.developer.api-config.save');
     Route::post('/company/developer/api-test', [App\Http\Controllers\Company\DeveloperModeController::class, 'testApi'])->name('company.developer.api-test');
     Route::post('/company/developer/api-disable', [App\Http\Controllers\Company\DeveloperModeController::class, 'disableApi'])->name('company.developer.api-disable');
@@ -106,52 +107,6 @@ Route::middleware(['auth', 'company'])->group(function () {
     // Project Tracking Monitor Routes
     Route::get('/company/project-tracking-monitor', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'index'])->name('company.project-tracking.monitor');
     Route::get('/company/project-tracking-monitor/realtime', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'getRealTimeData'])->name('company.project-tracking.realtime');
-
-    // Debug route for testing
-    Route::get('/company/debug-data', function() {
-        $user = Auth::user();
-        $company = \App\Models\Company::where('user_id', $user->id)->first();
-
-        // Get all work sessions
-        $allWorkSessions = \App\Models\WorkSession::whereIn('status', ['active', 'paused'])->with('user')->get();
-
-        // Get all project tracking
-        $allProjectTracking = \App\Models\ProjectTracking::where('status', 'active')->with('user')->get();
-
-        // Get company talents
-        $companyTalents = $company ? \App\Models\CompanyTalent::where('company_id', $company->id)->get() : collect();
-
-        return response()->json([
-            'user_id' => $user->id,
-            'company_id' => $company ? $company->id : null,
-            'company_name' => $company ? $company->company_name : null,
-            'all_work_sessions' => $allWorkSessions->map(function($session) {
-                return [
-                    'id' => $session->id,
-                    'user_id' => $session->user_id,
-                    'user_name' => $session->user->name ?? 'Unknown',
-                    'status' => $session->status,
-                    'started_at' => $session->started_at,
-                ];
-            }),
-            'all_project_tracking' => $allProjectTracking->map(function($project) {
-                return [
-                    'id' => $project->id,
-                    'user_id' => $project->user_id,
-                    'user_name' => $project->user->name ?? 'Unknown',
-                    'project_type' => $project->project_type,
-                    'start_at' => $project->start_at,
-                ];
-            }),
-            'company_talents' => $companyTalents->map(function($talent) {
-                return [
-                    'id' => $talent->id,
-                    'talent_id' => $talent->talent_id,
-                    'job_role' => $talent->job_role,
-                ];
-            }),
-        ]);
-    })->name('company.debug-data');
 
     // Company Onboarding Routes
     Route::get('/onboarding/{step}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
@@ -173,28 +128,38 @@ Route::middleware(['auth', 'company'])->group(function () {
 
 // Talent Routes
 Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
+    // Talent Landing Page (shows all companies)
     Route::get('/', [TalentController::class, 'index'])->name('talent.landing.page');
-    Route::get('/company/{slug}', [TalentController::class, 'detailCompany'])->name('talent.company');
-    Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage-projects');
-    Route::get('/project/{id}', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
-    Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
-    Route::get('/e-wallet', [TalentController::class, 'eWallet'])->name('talent.e-wallet');
-    Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
-    Route::post('/project/{id}/apply', [TalentController::class, 'applyProject'])->name('talent.project.apply');
-    Route::post('/project/{project}/record', [TalentController::class, 'storeProjectRecord'])->name('talent.project.record');
     Route::post('/additional-info/save', [TalentController::class, 'saveAdditionalInfo'])->name('talent.additional-info.save');
+    Route::get('/e-wallet', [TalentController::class, 'eWallet'])->name('talent.e-wallet');
 
-    // Project Tracking Routes
-    Route::get('/project-tracking', [App\Http\Controllers\ProjectTrackingController::class, 'index'])->name('talent.project-tracking');
-    Route::post('/work-session/start', [App\Http\Controllers\ProjectTrackingController::class, 'startWorkSession'])->name('talent.work-session.start');
-    Route::post('/work-session/pause', [App\Http\Controllers\ProjectTrackingController::class, 'pauseWorkSession'])->name('talent.work-session.pause');
-    Route::post('/work-session/resume', [App\Http\Controllers\ProjectTrackingController::class, 'resumeWorkSession'])->name('talent.work-session.resume');
-    Route::post('/work-session/end', [App\Http\Controllers\ProjectTrackingController::class, 'endWorkSession'])->name('talent.work-session.end');
-    Route::get('/work-session/status', [App\Http\Controllers\ProjectTrackingController::class, 'getWorkSessionStatus'])->name('talent.work-session.status');
-    Route::post('/project/start', [App\Http\Controllers\ProjectTrackingController::class, 'startProject'])->name('talent.project.start');
-    Route::post('/project/{id}/end', [App\Http\Controllers\ProjectTrackingController::class, 'endProject'])->name('talent.project.end');
-    Route::get('/today-stats', [App\Http\Controllers\ProjectTrackingController::class, 'getTodayStats'])->name('talent.today-stats');
-    Route::get('/project-types/{companySlug}', [App\Http\Controllers\ProjectTrackingController::class, 'getProjectTypesByCompanySlug'])->name('talent.project-types.by-company');
+    // Company-specific routes - all routes now include company slug
+    Route::prefix('company/{companySlug}')->group(function () {
+        // Company detail view
+        Route::get('/', [TalentController::class, 'detailCompany'])->name('talent.company');
+
+        // Project management routes
+        Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage-projects');
+        Route::get('/project/{id}', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
+        Route::post('/project/{id}/apply', [TalentController::class, 'applyProject'])->name('talent.project.apply');
+        Route::post('/project/{project}/record', [TalentController::class, 'storeProjectRecord'])->name('talent.project.record');
+
+        // Reporting and statistics
+        Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
+        Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
+
+        // Project tracking routes
+        Route::get('/project-tracking', [ProjectTrackingController::class, 'index'])->name('talent.project-tracking');
+        Route::post('/work-session/start', [ProjectTrackingController::class, 'startWorkSession'])->name('talent.work-session.start');
+        Route::post('/work-session/pause', [ProjectTrackingController::class, 'pauseWorkSession'])->name('talent.work-session.pause');
+        Route::post('/work-session/resume', [ProjectTrackingController::class, 'resumeWorkSession'])->name('talent.work-session.resume');
+        Route::post('/work-session/end', [ProjectTrackingController::class, 'endWorkSession'])->name('talent.work-session.end');
+        Route::get('/work-session/status', [ProjectTrackingController::class, 'getWorkSessionStatus'])->name('talent.work-session.status');
+        Route::post('/project/start', [ProjectTrackingController::class, 'startProject'])->name('talent.project.start');
+        Route::post('/project/{id}/end', [ProjectTrackingController::class, 'endProject'])->name('talent.project.end');
+        Route::get('/today-stats', [ProjectTrackingController::class, 'getTodayStats'])->name('talent.today-stats');
+        Route::get('/project-types', [ProjectTrackingController::class, 'getProjectTypesByCompanySlug'])->name('talent.project-types.by-company');
+    });
 
     // Clear API URL from session
     Route::post('/clear-api-url', function() {
@@ -273,7 +238,5 @@ Route::post('/profile/timezone', function (\Illuminate\Http\Request $request) {
     return redirect()->back()->with('success', 'Timezone updated successfully!');
 })->middleware(['auth'])->name('profile.timezone.update');
 
-// Company Onboarding Routes
-// Route::middleware(['auth', 'verified'])->group(function () {
-// });
+
 

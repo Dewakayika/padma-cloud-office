@@ -93,7 +93,7 @@
                         <div class="flex justify-center space-x-4 mb-6">
                             {{-- Start Work Button --}}
                             @if(!$currentWorkSession || $currentWorkSession->status === 'completed')
-                            <form action="{{ route('talent.work-session.start') }}" method="POST">
+                            <form action="{{ route('talent.work-session.start', request()->route('companySlug')) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="inline-flex items-center px-6 py-3 bg-green-600 border border-transparent rounded-lg font-semibold text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@
                                     <div x-show="openPause" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
                                     <div @click.outside="openPause = false" class="bg-white dark:bg-gray-800 p-6 rounded-xl w-full max-w-md shadow-xl">
                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pause Work Session</h3>
-                                        <form action="{{ route('talent.work-session.pause') }}" method="POST">
+                                        <form action="{{ route('talent.work-session.pause', request()->route('companySlug')) }}" method="POST">
                                             @csrf
                                             <div class="mb-4">
                                                 <label for="pause_reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for pause</label>
@@ -140,7 +140,7 @@
 
                             {{-- Resume Button --}}
                             @if($currentWorkSession && $currentWorkSession->status === 'paused')
-                            <form action="{{ route('talent.work-session.resume') }}" method="POST">
+                            <form action="{{ route('talent.work-session.resume', request()->route('companySlug')) }}" method="POST">
                                     @csrf
                                 <button type="submit" class="inline-flex items-center px-6 py-3 bg-blue-600 border border-transparent rounded-lg font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,7 +223,7 @@
                             <div x-show="openNewProject" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
                                 <div @click.outside="openNewProject = false" class="bg-white dark:bg-gray-800 p-6 rounded-xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Start New Project</h3>
-                                    <form action="{{ route('talent.project.start') }}" method="POST">
+                                    <form action="{{ route('talent.project.start', request()->route('companySlug')) }}" method="POST">
                                         @csrf
                                         <div class="space-y-4">
                                                                                         <div>
@@ -689,7 +689,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     function loadTodayStats() {
-        fetch('{{ route("talent.today-stats") }}')
+        fetch('{{ route("talent.today-stats", request()->route("companySlug")) }}')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -737,7 +737,7 @@ document.addEventListener("DOMContentLoaded", function () {
             function() {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = '{{ route("talent.work-session.end") }}';
+                form.action = '{{ route("talent.work-session.end", request()->route("companySlug")) }}';
 
                 const csrfToken = document.createElement('input');
                 csrfToken.type = 'hidden';
@@ -759,7 +759,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.log('Ending project:', projectId, projectTitle);
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = '{{ route("talent.project.end", ":id") }}'.replace(':id', projectId);
+                form.action = '{{ route("talent.project.end", [":id", request()->route("companySlug")]) }}'.replace(':id', projectId);
 
                 const csrfToken = document.createElement('input');
                 csrfToken.type = 'hidden';
