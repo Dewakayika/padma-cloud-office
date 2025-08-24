@@ -355,21 +355,26 @@ class TalentController extends Controller
      * @param  \App\Models\Project  $id // Laravel will bind the Project model based on the {id} route parameter
      * @return \Illuminate\Http\RedirectResponse
      */
-        public function applyProject(Request $request, Project $id, $companySlug)
+        public function applyProject(Request $request, $id, $companySlug)
     {
         $user = Auth::user(); // The authenticated talent
         $company = $this->validateCompanyAccess($companySlug, $user);
 
+        // Find the project and validate it belongs to the company
+        $project = Project::where('id', $id)
+            ->where('company_id', $company->id)
+            ->firstOrFail();
+
         // Update the Project table
-        $id->talent = $user->id; // Using $id as the Project model instance
-        $id->status = 'project assign'; // Or a status code representing 'assigned'
-        $id->save();
+        $project->talent = $user->id;
+        $project->status = 'project assign'; // Or a status code representing 'assigned'
+        $project->save();
 
         // Create a log entry in the ProjectLog table
         ProjectLog::create([
             'user_id' => $user->id, // The user who applied
-            'project_id' => $id->id, // Using $id as the Project model instance
-            'company_id' => $id->company_id, // Using $id as the Project model instance
+            'project_id' => $project->id,
+            'company_id' => $project->company_id,
             'talent_id' => $user->id, // The talent who applied
             'timestamp' => now(),
             'status' => 'project assign', // Or a more descriptive log status
