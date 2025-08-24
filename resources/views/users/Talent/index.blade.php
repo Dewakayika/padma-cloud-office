@@ -298,7 +298,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <a href="{{ route('talent.project.detail', $project->id) }}"
+                                    <a href="{{ route('talent.project.detail', [request()->route('companySlug'), $project->id]) }}"
                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-center text-white bg-purple-700 rounded-lg hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800">
                                         Detail
                                     </a>

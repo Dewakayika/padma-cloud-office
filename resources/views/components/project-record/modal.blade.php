@@ -9,7 +9,7 @@
                     </h5>
                 </div>
 
-                <form action="{{ route('talent.project-records.store', $project->id) }}" method="POST" id="sopForm" class="flex flex-col h-full">
+                <form action="{{ route('talent.project.record', [request()->route('companySlug'), $project->id]) }}" method="POST" id="sopForm" class="flex flex-col h-full">
                     @csrf
                     <input type="hidden" name="project_id" value="{{ $project->id }}">
                     <input type="hidden" name="company_id" value="{{ $project->company_id }}">
@@ -41,6 +41,7 @@
                         </div>
 
                         <!-- SOP Table -->
+                        @if($sopList && count($sopList) > 0)
                         <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-700 sticky top-0">
@@ -82,6 +83,15 @@
                                 </tbody>
                             </table>
                         </div>
+                        @else
+                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No SOP Checklist</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">This project doesn't have a SOP checklist. You can submit your project directly.</p>
+                        </div>
+                        @endif
 
                         <!-- Hidden input for passed SOPs -->
                         <input type="hidden" name="passed_sops" id="passedSops" value="">
@@ -136,10 +146,13 @@
                         button.classList.add('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
                     });
 
-                    // Close the modal using Bootstrap's modal method
-                    const modalInstance = bootstrap.Modal.getInstance(modal);
-                    if (modalInstance) {
-                        modalInstance.hide();
+                    // Close the modal using Alpine.js
+                    const modal = document.getElementById('projectRecordModal');
+                    if (modal && modal.closest('[x-data]')) {
+                        const alpineComponent = Alpine.$data(modal.closest('[x-data]'));
+                        if (alpineComponent && typeof alpineComponent.open !== 'undefined') {
+                            alpineComponent.open = false;
+                        }
                     }
                 });
             });
@@ -157,7 +170,7 @@
                         statusBadge.textContent = 'Pending';
                         this.textContent = 'Pass';
                         this.classList.remove('bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500');
-                        this.classList.add('bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500');
+                        this.classList.add('bg-green-600', 'hover:bg-green-700', 'focus:ring-red-500');
                     } else {
                         // Pass
                         passedSops.add(sopId);
@@ -172,16 +185,38 @@
                     passedSopsInput.value = Array.from(passedSops).join(',');
 
                     // Enable/disable save button based on whether all SOPs are passed
-                    saveRecordBtn.disabled = passedSops.size !== {{ count($sopList) }};
+                    updateSaveButtonState();
                 });
             });
 
+            // Function to update save button state
+            function updateSaveButtonState() {
+                const sopCount = {{ count($sopList ?? []) }};
+                if (sopCount === 0) {
+                    // No SOPs - enable save button immediately
+                    saveRecordBtn.disabled = false;
+                } else {
+                    // Has SOPs - enable only when all are passed
+                    saveRecordBtn.disabled = passedSops.size !== sopCount;
+                }
+            }
+
+            // Initialize save button state
+            updateSaveButtonState();
+
             // Form submission
             document.getElementById('sopForm').addEventListener('submit', function(e) {
-                if (passedSops.size !== {{ count($sopList) }}) {
+                const sopCount = {{ count($sopList ?? []) }};
+                console.log('Form submitted. SOP count:', sopCount, 'Passed SOPs:', passedSops.size);
+
+                if (sopCount > 0 && passedSops.size !== sopCount) {
                     e.preventDefault();
                     alert('Please pass all SOPs before saving.');
+                    return;
                 }
+
+                console.log('Form validation passed, submitting...');
+                // Form is valid, let it submit
             });
         });
     </script>

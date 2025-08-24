@@ -126,7 +126,7 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <a href="{{ route('talent.project.detail', [$project->id, request()->route('companySlug')]) }}"
+                                            <a href="{{ route('talent.project.detail', [request()->route('companySlug'), $project->id]) }}"
                                                class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">
                                                 Details
                                             </a>

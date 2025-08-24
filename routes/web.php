@@ -159,6 +159,14 @@ Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
         Route::post('/project/{id}/end', [ProjectTrackingController::class, 'endProject'])->name('talent.project.end');
         Route::get('/today-stats', [ProjectTrackingController::class, 'getTodayStats'])->name('talent.today-stats');
         Route::get('/project-types', [ProjectTrackingController::class, 'getProjectTypesByCompanySlug'])->name('talent.project-types.by-company');
+
+        // Feedback route
+        Route::post('/project/{project}/feedback', [TalentController::class, 'storeTalentFeedback'])->name('talent.project.feedback');
+
+        // Debug route to test basic functionality
+        Route::get('/debug', function() {
+            return response()->json(['message' => 'Talent route working', 'user' => auth()->user()]);
+        })->name('talent.debug');
     });
 
     // Clear API URL from session

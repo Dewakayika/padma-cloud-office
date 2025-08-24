@@ -319,7 +319,7 @@ class ProjectTrackingController extends Controller
     /**
      * End a project
      */
-        public function endProject(Request $request, $id, $companySlug)
+    public function endProject(Request $request, $companySlug, $id)
     {
         $user = Auth::user();
         $company = $this->validateCompanyAccess($companySlug, $user);

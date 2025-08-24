@@ -418,94 +418,122 @@ class CompanyController extends Controller
     // Detail Project
     public function detailProject($slug)
     {
+        // Find the project by slug
+        $id = explode('-', $slug)[0];
+        $project = Project::with([
+            'projectType',
+            'assignedQcAgent',
+            'projectLogs' => function($query) {
+                $query->orderBy('timestamp', 'asc');
+            },
+            'projectRecords' => function($query) {
+                $query->orderBy('created_at', 'asc');
+            },
+            'user',
+            'company'
+        ])->findOrFail($id);
 
-            // Find the project by slug
-            $id = explode('-', $slug)[0];
-            $project = Project::with([
-                'projectType',
-                'assignedQcAgent',
-                'projectLogs' => function($query) {
-                    $query->orderBy('timestamp', 'asc');
-                },
-                'projectRecords' => function($query) {
-                    $query->orderBy('created_at', 'asc');
-                },
-                'user',
-                'company'
-            ])->findOrFail($id);
+        // Get the company
+        $company = Company::where('user_id', auth()->id())->first();
 
-            // Get the company
-            $company = Company::where('user_id', auth()->id())->first();
+        if (!$company || $project->company_id !== $company->id) {
+            return redirect()->route('company.manage.projects')
+                ->with('error', 'Project not found or unauthorized access.');
+        }
 
-            if (!$company || $project->company_id !== $company->id) {
-                return redirect()->route('company.manage.projects')
-                    ->with('error', 'Project not found or unauthorized access.');
-            }
+        // Get current user and timezone
+        $currentUser = auth()->user();
+        $userTimezone = $currentUser->timezone ?? config('app.timezone');
 
-            // Get assign and done timestamps
-            $assignTimestamp = $project->projectLogs
-                ->where('status', 'project assign')
-                ->first()?->timestamp;
+        // Convert project timestamps to user's timezone
+        $project->created_at_local = \Carbon\Carbon::parse($project->created_at)->setTimezone($userTimezone);
+        $project->updated_at_local = \Carbon\Carbon::parse($project->updated_at)->setTimezone($userTimezone);
+        if ($project->finish_date) {
+            $project->finish_date_local = \Carbon\Carbon::parse($project->finish_date)->setTimezone($userTimezone);
+        }
 
-            $doneTimestamp = $project->projectLogs
-                ->where('status', 'done')
-                ->first()?->timestamp;
+        // Get assign and done timestamps and convert to user's timezone
+        $assignTimestamp = $project->projectLogs
+            ->where('status', 'project assign')
+            ->first()?->timestamp;
 
-            // Calculate total time if project is done
-            if ($project->status === 'done' && $assignTimestamp && $doneTimestamp) {
-                $totalTime = $assignTimestamp->diffInSeconds($doneTimestamp);
-                $days = floor($totalTime / (24 * 3600));
-                $hours = floor(($totalTime % (24 * 3600)) / 3600);
-                $minutes = floor(($totalTime % 3600) / 60);
-                $seconds = $totalTime % 60;
+        if ($assignTimestamp) {
+            $assignTimestamp = \Carbon\Carbon::parse($assignTimestamp)->setTimezone($userTimezone);
+        }
 
-                $project->total_time = [
-                    'days' => $days,
-                    'hours' => $hours,
-                    'minutes' => $minutes,
-                    'seconds' => $seconds,
-                    'total_seconds' => $totalTime,
-                    'start_date' => $assignTimestamp,
-                    'end_date' => $doneTimestamp
-                ];
-            }
+        $doneTimestamp = $project->projectLogs
+            ->where('status', 'done')
+            ->first()?->timestamp;
 
-            // Get project records
-            $projectRecords = $project->projectRecords()
-                ->with(['talent', 'qc'])
-                ->orderBy('created_at', 'asc')
-                ->get();
+        if ($doneTimestamp) {
+            $doneTimestamp = \Carbon\Carbon::parse($doneTimestamp)->setTimezone($userTimezone);
+        }
 
-            // Add status timeline data
-            $project->status_timeline = $project->projectLogs->map(function($log) {
-                return [
-                    'status' => $log->status,
-                    'timestamp' => $log->timestamp,
-                    'user' => $log->user->name ?? 'System',
-                    'message' => $log->message
-                ];
-            });
+        // Calculate total time if project is done
+        if ($project->status === 'done' && $assignTimestamp && $doneTimestamp) {
+            $totalTime = $assignTimestamp->diffInSeconds($doneTimestamp);
+            $days = floor($totalTime / (24 * 3600));
+            $hours = floor(($totalTime % (24 * 3600)) / 3600);
+            $minutes = floor(($totalTime % 3600) / 60);
+            $seconds = $totalTime % 60;
 
-            // Feedback logic
-            $currentUser = auth()->user();
-            $companyFeedbackExists = Feedback::where('project_id', $project->id)
-                ->where('from_user_id', $currentUser->id)
-                ->where('role', 'company')
-                ->exists();
-            $talentFeedbackExists = Feedback::where('project_id', $project->id)
-                ->where('from_user_id', $currentUser->id)
-                ->where('role', 'talent')
-                ->exists();
+            $project->total_time = [
+                'days' => $days,
+                'hours' => $hours,
+                'minutes' => $minutes,
+                'seconds' => $seconds,
+                'total_seconds' => $totalTime,
+                'start_date' => $assignTimestamp,
+                'end_date' => $doneTimestamp
+            ];
+        }
 
-            return view('users.Company.company-project-detail', compact(
-                'project',
-                'assignTimestamp',
-                'doneTimestamp',
-                'projectRecords',
-                'companyFeedbackExists',
-                'talentFeedbackExists'
-            ));
+        // Get project records
+        $projectRecords = $project->projectRecords()
+            ->with(['talent', 'qc'])
+            ->orderBy('created_at', 'asc')
+            ->get();
 
+        // Convert all project record timestamps to user's timezone
+        $projectRecords->each(function($record) use ($userTimezone) {
+            $record->created_at_local = \Carbon\Carbon::parse($record->created_at)->setTimezone($userTimezone);
+            $record->updated_at_local = \Carbon\Carbon::parse($record->updated_at)->setTimezone($userTimezone);
+        });
+
+        // Add status timeline data with timezone conversion
+        $project->status_timeline = $project->projectLogs->map(function($log) use ($userTimezone) {
+            $timestamp = \Carbon\Carbon::parse($log->timestamp)->setTimezone($userTimezone);
+            return [
+                'status' => $log->status,
+                'timestamp' => $timestamp,
+                'user' => $log->user->name ?? 'System',
+                'message' => $log->message
+            ];
+        });
+
+        // Feedback logic
+        $companyFeedbackExists = Feedback::where('project_id', $project->id)
+            ->where('from_user_id', $currentUser->id)
+            ->where('role', 'company')
+            ->exists();
+        $talentFeedbackExists = Feedback::where('project_id', $project->id)
+            ->where('from_user_id', $currentUser->id)
+            ->where('role', 'talent')
+            ->exists();
+
+        // Check if current user is QC agent for this project
+        $isQcAgent = $project->assignedQcAgent && $project->assignedQcAgent->id === $currentUser->id;
+
+        return view('users.Company.company-project-detail', compact(
+            'project',
+            'assignTimestamp',
+            'doneTimestamp',
+            'projectRecords',
+            'companyFeedbackExists',
+            'talentFeedbackExists',
+            'isQcAgent',
+            'userTimezone'
+        ));
     }
 
     // Project Overview List

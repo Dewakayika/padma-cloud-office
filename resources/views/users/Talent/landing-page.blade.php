@@ -8,8 +8,8 @@
             onclick="switchTab('studios')"
             id="studios-tab"
             class="px-6 py-3 text-sm font-medium border-b-2 transition-colors duration-200"
-            :class="activeTab === 'studios' 
-                ? 'text-gray-600 dark:text-white border-purple-500 dark:border-purple-400' 
+            :class="activeTab === 'studios'
+                ? 'text-gray-600 dark:text-white border-purple-500 dark:border-purple-400'
                 : 'text-gray-400 dark:text-gray-400 border-transparent hover:text-gray-600 dark:hover:text-gray-300'">
             Studios
         </button>
@@ -17,8 +17,8 @@
             onclick="switchTab('current-tasks')"
             id="current-tasks-tab"
             class="px-6 py-3 text-sm font-medium border-b-2 transition-colors duration-200 relative"
-            :class="activeTab === 'current-tasks' 
-                ? 'text-gray-600 dark:text-white border-purple-500 dark:border-purple-400' 
+            :class="activeTab === 'current-tasks'
+                ? 'text-gray-600 dark:text-white border-purple-500 dark:border-purple-400'
                 : 'text-gray-400 dark:text-white border-transparent hover:text-gray-600 dark:hover:text-gray-300'">
             Available Task
             @if($projects->count() > 0)

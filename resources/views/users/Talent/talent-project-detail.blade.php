@@ -93,8 +93,9 @@
                 <div class="text-center">
                     <div id="project-timer-area"
                          data-project-status="{{ $project->status }}"
-                         data-assign-timestamp="{{ $assignTimestamp }}"
-                         data-done-timestamp="{{ $doneTimestamp }}">
+                         data-assign-timestamp="{{ $assignTimestamp ? $assignTimestamp->toISOString() : '' }}"
+                         data-done-timestamp="{{ $doneTimestamp ? $doneTimestamp->toISOString() : '' }}"
+                         data-user-timezone="{{ auth()->user()->timezone ?? 'UTC' }}">
 
                         @php
                             $activeStatuses = ['project assign', 'qc', 'draf', 'revision'];
@@ -103,8 +104,9 @@
 
                         @if ($isTimerActive)
                              <div class="grid grid-cols-4 gap-4" id="elapsed-timer"
-                                  data-assign-timestamp="{{ $assignTimestamp }}"
-                                  data-done-timestamp="{{ $doneTimestamp }}">
+                                  data-assign-timestamp="{{ $assignTimestamp ? $assignTimestamp->toISOString() : '' }}"
+                                  data-done-timestamp="{{ $doneTimestamp ? $doneTimestamp->toISOString() : '' }}"
+                                  data-user-timezone="{{ auth()->user()->timezone ?? 'UTC' }}">
                                  @foreach(['days', 'hours', 'minutes', 'seconds'] as $unit)
                                  <div class="text-center">
                                      <div class="text-3xl font-bold {{ $whiteText }}" id="{{ $unit }}">00</div>
@@ -151,10 +153,10 @@
                             @php
                                 $infoItems = [
                                     'Project Name' => $project->project_name,
-                                    'Last Update' => $project->updated_at->format('D, d M Y'),
+                                    'Last Update' => $project->updated_at->setTimezone(auth()->user()->timezone ?? 'UTC')->format('D, d M Y'),
                                     'QC Talent' => $project->assignedQcAgent->name ?? 'Not Assigned',
-                                    'Project Finish Date' => $project->finish_date ? $project->finish_date->format('D, d M Y') : 'Not finish yet',
-                                    'Project Assign Date' => $assignTimestamp ? \Carbon\Carbon::parse($assignTimestamp)->format('D, d M Y') : 'Not Assigned Yet',
+                                    'Project Finish Date' => $project->finish_date ? $project->finish_date->setTimezone(auth()->user()->timezone ?? 'UTC')->format('D, d M Y') : 'Not finish yet',
+                                    'Project Assign Date' => $assignTimestamp ? $assignTimestamp->format('D, d M Y') : 'Not Assigned Yet',
                                 ];
                             @endphp
 
@@ -206,12 +208,12 @@
                                         </button>
                                         <!-- Draft Modal -->
                                         <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                            <x-project-record.modal :project="$project" />
+                                            <x-project-record.modal :project="$project" :sopList="$sopList" />
                                         </div>
                                     </div>
                                 @endif
 
-                                @if ($project->status === 'draf')
+                                @if ($project->status === 'draf' && $project->assignedQcAgent && $project->assignedQcAgent->id === auth()->id())
                                     <div x-data="{ open: false }">
                                         <button @click="open = true" type="button" class="{{ $primaryButton }}">
                                             <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -262,7 +264,7 @@
                                                 -
                                             @endif
                                             </td>
-                                            <td class="{{ $tableCell }}">{{ $log->timestamp->format('D, d M Y') }}</td>
+                                            <td class="{{ $tableCell }}">{{ $log->timestamp->setTimezone(auth()->user()->timezone ?? 'UTC')->format('D, d M Y') }}</td>
                                             <td class="{{ $tableCell }}">
                                                 @if ($log->status === 'draf' && $projectRecord)
                                                     <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $badgeBlue }}">Project Draf Submission</a>
@@ -430,7 +432,7 @@
                                 <div class="{{ $timelineContent }}">
                                     <h4 class="{{ $subHeadingText }}">{{ $displayText }}</h4>
                                     <p class="{{ $mutedText }}">
-                                        {{ $log->timestamp->setTimezone(session('timezone', config('app.timezone')))->format('D, d M Y | h:i A') }}
+                                        {{ $log->timestamp->setTimezone(auth()->user()->timezone ?? 'UTC')->format('D, d M Y | h:i A') }}
                                     </p>
                                 </div>
                             </div>
@@ -447,42 +449,14 @@
 </div>
 
 @if($project->status === 'draf')
-    <div class="fixed bottom-6 right-6 z-50">
-        <div x-data="{ open: false }">
-            <button @click="open = true" type="button" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 transition-all duration-200 transform hover:scale-105">
-                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-                <span>Make it Done</span>
-            </button>
-
-            <!-- Confirmation Modal -->
-            <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Confirm Project Completion</h3>
-                    <p class="text-gray-600 mb-6">Are you sure you want to mark this project as done? This action cannot be undone.</p>
-
-                    <form action="{{ route('company.project.complete', $project->id) }}" method="POST">
-                        @csrf
-                        <div class="mb-4">
-                            <label for="completion_message" class="block text-sm font-medium text-gray-700 mb-2">Completion Message (Optional)</label>
-                            <textarea name="completion_message" id="completion_message" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
-                        </div>
-
-                        <div class="flex justify-end space-x-3">
-                            <button type="button" @click="open = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                                Cancel
-                            </button>
-                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                Confirm Completion
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- Removed project completion functionality - this should be a company action --}}
 @endif
+
+<!-- Message Modal Component -->
+<x-project-record.message-modal />
+
+<!-- Talent Feedback Modal Component -->
+<x-talent-feedback-modal :project="$project" :feedback-exists="$talentFeedbackExists" :companySlug="$companySlug" />
 
 @endsection
 
@@ -495,8 +469,10 @@
         const assignTimestamp = timerElement.dataset.assignTimestamp;
         const doneTimestamp = timerElement.dataset.doneTimestamp;
         const projectStatus = document.getElementById('project-timer-area').dataset.projectStatus;
+        const userTimezone = timerElement.dataset.userTimezone || 'UTC';
 
         if (assignTimestamp) {
+            // Parse the ISO timestamp and convert to user's local timezone
             const startDate = new Date(assignTimestamp);
             let endDate = doneTimestamp ? new Date(doneTimestamp) : null;
 
@@ -556,7 +532,3 @@
 </script>
 @endpush
 
-<!-- Message Modal Component -->
-<x-project-record.message-modal />
-
-<x-feedback-modal :project="$project" :role="$role" :feedback-exists="$feedbackExists" />
