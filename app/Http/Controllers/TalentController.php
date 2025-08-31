@@ -522,7 +522,14 @@ class TalentController extends Controller
             'subjected_tax' => $request->subjected_tax,
         ]);
 
-        return redirect()->back()->with('success', 'Additional information saved successfully.');
+        $returnTab = $request->input('return_tab');
+        $redirectUrl = route('profile.show');
+
+        if ($returnTab) {
+            $redirectUrl .= '?tab=' . $returnTab;
+        }
+
+        return redirect($redirectUrl)->with('success', 'Additional information saved successfully.');
     }
 
     /**

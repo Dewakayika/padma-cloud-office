@@ -1,5 +1,5 @@
 
-                    <div>
+<div>
     {{-- Project Type Info Cards --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <!-- Project Name Card -->

@@ -160,7 +160,7 @@
         const url = new URL(window.location);
         url.searchParams.set('project_type_id', projectTypeId);
         url.searchParams.set('tab', 'sop-details');
-        
+
         // Navigate to the updated URL to load the SOP data
         window.location.href = url.toString();
     }
@@ -238,6 +238,12 @@ function updateSopSectionDisplay() {
     const sopEmptyState = document.getElementById('sop-empty-state');
     const sopManualSection = document.getElementById('sop-manual-section');
     const sopCsvPreviewSection = document.getElementById('sop-csv-preview-section');
+
+    console.log('Updating SOP section display:', {
+        manualSops: manualSopList ? manualSopList.children.length : 0,
+        csvData: window.sopCsvPreviewData ? window.sopCsvPreviewData.length : 0
+    });
+
     if (manualSopList && manualSopList.children.length > 0) {
         sopEmptyState.classList.add('hidden');
         sopManualSection.classList.remove('hidden');
@@ -260,26 +266,53 @@ function handleCsvUploadPreview(event) {
     const reader = new FileReader();
     reader.onload = function(evt) {
         const lines = evt.target.result.split(/\r?\n/).filter(Boolean);
+        console.log('CSV lines:', lines);
+
         if (lines.length < 2) {
-            window.location.href = window.location.pathname + '?error=CSV must have at least one SOP row.';
+            alert('CSV must have at least one SOP row.');
             return;
         }
-        const headers = lines[0].split(',');
+        // Parse CSV with proper handling of quoted fields
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+
+        const headers = parseCSVLine(lines[0]);
         const sopFormulaIdx = headers.indexOf('sop_formula');
         const descIdx = headers.indexOf('description');
+
+        console.log('Headers:', headers, 'SOP Formula Index:', sopFormulaIdx, 'Description Index:', descIdx);
+
         if (sopFormulaIdx === -1) {
-            window.location.href = window.location.pathname + '?error=CSV missing sop_formula column.';
+            alert('CSV missing sop_formula column.');
             return;
         }
         window.sopCsvPreviewData = [];
         for (let i = 1; i < lines.length; i++) {
-            const cols = lines[i].split(',');
+            const cols = parseCSVLine(lines[i]);
             if (!cols[sopFormulaIdx]) continue;
             window.sopCsvPreviewData.push({
-                sop_formula: cols[sopFormulaIdx].trim(),
-                description: descIdx !== -1 ? cols[descIdx].trim() : ''
+                sop_formula: cols[sopFormulaIdx].replace(/"/g, '').trim(),
+                description: descIdx !== -1 ? cols[descIdx].replace(/"/g, '').trim() : ''
             });
         }
+        console.log('Parsed CSV data:', window.sopCsvPreviewData);
         renderCsvPreviewTable();
         updateSopSectionDisplay();
     };
@@ -288,8 +321,13 @@ function handleCsvUploadPreview(event) {
 
 function renderCsvPreviewTable() {
     const tbody = document.getElementById('sop-csv-preview-body');
+    console.log('Rendering CSV preview table, tbody:', tbody);
     tbody.innerHTML = '';
-    if (!window.sopCsvPreviewData) return;
+    if (!window.sopCsvPreviewData) {
+        console.log('No CSV preview data available');
+        return;
+    }
+    console.log('Rendering', window.sopCsvPreviewData.length, 'SOP rows');
     window.sopCsvPreviewData.forEach((sop, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `

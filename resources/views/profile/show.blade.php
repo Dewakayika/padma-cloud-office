@@ -17,7 +17,7 @@
         <!-- Tab Navigation -->
         <div class=" dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 mb-6">
             <nav class="flex space-x-8 px-4" aria-label="Tabs" id="profile-tabs">
-                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-blue-600 text-blue-600 dark:text-white active" data-target="profile-tab1">Profile Settings</a>
+                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab1">Profile Settings</a>
                 @if(Auth::user()->role === 'company')
                     <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab2">Legal & Verification</a>
                     <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab3">Billing & Tax</a>
@@ -77,6 +77,7 @@
                         <form method="POST" action="{{ route('company.onboarding.step.post', ['step' => 1]) }}" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="from_settings" value="1">
+                            <input type="hidden" name="return_tab" value="legal">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Company Name *</label>
@@ -151,6 +152,7 @@
                         <form method="POST" action="{{ route('company.onboarding.step.post', ['step' => 3]) }}">
                             @csrf
                             <input type="hidden" name="from_settings" value="1">
+                            <input type="hidden" name="return_tab" value="billing">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Invoice Recipient *</label>
@@ -233,6 +235,7 @@
                         <form method="POST" action="{{ route('company.onboarding.step.post', ['step' => 4]) }}">
                             @csrf
                             <input type="hidden" name="from_settings" value="1">
+                            <input type="hidden" name="return_tab" value="collaboration">
                             <div class="space-y-6">
                                 <div>
                                     <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Primary Use Case *</label>
@@ -300,6 +303,7 @@
                     <div class="flex flex-col md:flex-row md:space-x-2">
                         <form method="POST" action="{{ route('company.notification-settings.save') }}" class="mb-2 md:mb-0 flex-1">
                             @csrf
+                            <input type="hidden" name="return_tab" value="notifications">
                             <div class="mb-4">
                                 <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Discord Webhook URL *</label>
                                 <input type="url" name="discord_webhook_url" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('discord_webhook_url', optional($company->notification)->discord_webhook_url) }}" required placeholder="Paste your Discord webhook URL here">
@@ -312,6 +316,7 @@
                         </form>
                         <form method="POST" action="{{ route('company.notification-settings.test') }}" class="self-end">
                             @csrf
+                            <input type="hidden" name="return_tab" value="notifications">
                             <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">Test Webhook</button>
                         </form>
                     </div>
@@ -348,6 +353,7 @@
                             <!-- API Configuration Form -->
                             <form method="POST" action="{{ route('company.developer.api-config.save') }}" class="mb-8">
                                 @csrf
+                                <input type="hidden" name="return_tab" value="developer">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Deployment ID *</label>
@@ -497,6 +503,7 @@
 
                     <form method="POST" action="{{ route('profile.timezone.update') }}" class="space-y-6">
                         @csrf
+                        <input type="hidden" name="return_tab" value="timezone">
 
                         <div>
                             <label for="timezone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -563,6 +570,7 @@
 
                         <form method="POST" action="{{ route('talent.additional-info.save') }}" class="space-y-6">
                             @csrf
+                            <input type="hidden" name="return_tab" value="additional">
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
@@ -662,29 +670,83 @@
         const tabs = document.querySelectorAll('.profile-tab-link');
         const tabContents = document.querySelectorAll('#profile-tab-content > div');
 
+        // Function to get active tab from URL parameter or default to first tab
+        function getActiveTab() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTabParam = urlParams.get('tab');
+
+            // Map tab parameters to actual tab IDs
+            const tabMap = {
+                'profile': 'profile-tab1',
+                'legal': 'profile-tab2',
+                'billing': 'profile-tab3',
+                'collaboration': 'profile-tab4',
+                'notifications': 'profile-tab5',
+                'timezone': 'profile-tab6',
+                'developer': 'profile-tab7',
+                'additional': 'profile-tab8'
+            };
+
+            return tabMap[activeTabParam] || 'profile-tab1';
+        }
+
+        // Function to update URL with current tab
+        function updateUrlWithTab(tabId) {
+            const tabParamMap = {
+                'profile-tab1': 'profile',
+                'profile-tab2': 'legal',
+                'profile-tab3': 'billing',
+                'profile-tab4': 'collaboration',
+                'profile-tab5': 'notifications',
+                'profile-tab6': 'timezone',
+                'profile-tab7': 'developer',
+                'profile-tab8': 'additional'
+            };
+
+            const param = tabParamMap[tabId];
+            if (param) {
+                const url = new URL(window.location);
+                url.searchParams.set('tab', param);
+                window.history.replaceState({}, '', url);
+            }
+        }
+
+        // Function to activate a specific tab
+        function activateTab(targetId) {
+            // Remove active styles from all tabs
+            tabs.forEach(t => t.classList.remove('border-blue-600', 'text-blue-600', 'dark:text-white', 'active'));
+            tabs.forEach(t => t.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-300'));
+
+            // Hide all tab contents
+            tabContents.forEach(content => content.classList.add('hidden'));
+
+            // Find and activate the target tab
+            const targetTab = document.querySelector(`[data-target="${targetId}"]`);
+            if (targetTab) {
+                targetTab.classList.add('border-blue-600', 'text-blue-600', 'dark:text-white', 'active');
+                targetTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-300');
+            }
+
+            // Show corresponding content
+            const targetContent = document.getElementById(targetId);
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+
+            // Update URL
+            updateUrlWithTab(targetId);
+        }
+
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                // Remove active styles from all tabs
-                tabs.forEach(t => t.classList.remove('border-blue-600', 'text-blue-600', 'active'));
-                tabs.forEach(t => t.classList.add('border-transparent', 'text-gray-500'));
-
-                // Hide all tab contents
-                tabContents.forEach(content => content.classList.add('hidden'));
-
-                // Activate clicked tab
-                tab.classList.add('border-blue-600', 'text-blue-600', 'active');
-                tab.classList.remove('border-transparent', 'text-gray-500');
-
-                // Show corresponding content
                 const targetId = tab.getAttribute('data-target');
-                document.getElementById(targetId).classList.remove('hidden');
+                activateTab(targetId);
             });
         });
 
-        // Show the first tab by default
-        if (tabs.length > 0) {
-            tabs[0].click();
-        }
+        // Activate the appropriate tab on page load
+        const activeTabId = getActiveTab();
+        activateTab(activeTabId);
 
         // Update current time in timezone settings
         function updateCurrentTime() {

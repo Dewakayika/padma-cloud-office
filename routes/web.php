@@ -241,7 +241,14 @@ Route::post('/profile/timezone', function (\Illuminate\Http\Request $request) {
     // Set application timezone
     \App\Helpers\TimezoneHelper::setAppTimezone($timezone);
 
-    return redirect()->back()->with('success', 'Timezone updated successfully!');
+    $returnTab = $request->input('return_tab');
+    $redirectUrl = route('profile.show');
+
+    if ($returnTab) {
+        $redirectUrl .= '?tab=' . $returnTab;
+    }
+
+    return redirect($redirectUrl)->with('success', 'Timezone updated successfully!');
 })->middleware(['auth'])->name('profile.timezone.update');
 
 

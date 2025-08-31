@@ -1928,7 +1928,14 @@ class CompanyController extends Controller
             ]
         );
 
-        return redirect()->back()->with('success', 'Notification settings updated successfully.');
+        $returnTab = $request->input('return_tab');
+        $redirectUrl = route('profile.show');
+
+        if ($returnTab) {
+            $redirectUrl .= '?tab=' . $returnTab;
+        }
+
+        return redirect($redirectUrl)->with('success', 'Notification settings updated successfully.');
     }
 
     public function testNotificationWebhook(Request $request)
@@ -1945,10 +1952,17 @@ class CompanyController extends Controller
             ['content' => 'This is a test notification from Padma Cloud Office!']
         );
 
+        $returnTab = $request->input('return_tab');
+        $redirectUrl = route('profile.show');
+
+        if ($returnTab) {
+            $redirectUrl .= '?tab=' . $returnTab;
+        }
+
         if ($response->successful()) {
-            return redirect()->back()->with('success', 'Test notification sent to Discord!');
+            return redirect($redirectUrl)->with('success', 'Test notification sent to Discord!');
         } else {
-            return redirect()->back()->with('error', 'Failed to send test notification. Status: ' . $response->status() . ' Body: ' . $response->body());
+            return redirect($redirectUrl)->with('error', 'Failed to send test notification. Status: ' . $response->status() . ' Body: ' . $response->body());
         }
     }
 

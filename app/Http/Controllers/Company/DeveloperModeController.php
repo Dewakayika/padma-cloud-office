@@ -42,7 +42,14 @@ class DeveloperModeController extends Controller
                 'gas_api_enabled' => true,
             ]);
 
-            return back()->with('success', 'API configuration saved successfully!');
+            $returnTab = $request->input('return_tab');
+            $redirectUrl = route('profile.show');
+
+            if ($returnTab) {
+                $redirectUrl .= '?tab=' . $returnTab;
+            }
+
+            return redirect($redirectUrl)->with('success', 'API configuration saved successfully!');
 
         } catch (\Exception $e) {
             Log::error('Error saving API config', ['error' => $e->getMessage()]);

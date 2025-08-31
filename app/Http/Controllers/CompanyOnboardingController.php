@@ -59,7 +59,7 @@ class CompanyOnboardingController extends Controller
                     // Handle file upload
                     if ($request->hasFile('business_license')) {
                         $file = $request->file('business_license');
-                        
+
                         // Delete old file if exists
                         if ($company->business_license_path && Storage::disk('public')->exists($company->business_license_path)) {
                             Storage::disk('public')->delete($company->business_license_path);
@@ -120,14 +120,16 @@ class CompanyOnboardingController extends Controller
                 break;
         }
 
-        // Check if the request came from settings page
-        if ($request->has('from_settings') || $request->header('Referer') && str_contains($request->header('Referer'), '/company/onboarding-settings')) {
-            return redirect()->route('profile.show')->with('success', 'Information updated successfully!');
-        }
+        // Check if the request came from settings page or profile page
+        if ($request->has('from_settings') || $request->header('Referer') && (str_contains($request->header('Referer'), '/company/onboarding-settings') || str_contains($request->header('Referer'), '/user/profile'))) {
+            $returnTab = $request->input('return_tab');
+            $redirectUrl = route('profile.show');
 
-        // Check if the request came from profile page
-        if ($request->header('Referer') && str_contains($request->header('Referer'), '/user/profile')) {
-            return redirect()->route('profile.show')->with('success', 'Company information updated successfully!');
+            if ($returnTab) {
+                $redirectUrl .= '?tab=' . $returnTab;
+            }
+
+            return redirect($redirectUrl)->with('success', 'Information updated successfully!');
         }
 
         // Redirect to next step or dashboard
