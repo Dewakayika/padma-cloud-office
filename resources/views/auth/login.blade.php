@@ -7,7 +7,7 @@
         <!-- Left Side - Hidden on mobile, visible on desktop -->
         <div class="hidden lg:flex lg:w-1/3 bg-gray-50 p-8 lg:p-12 flex-col">
             <div class="mb-8 lg:mb-12">
-                <a href="{{ route('home') }}" class="text-gray-600 hover:text-gray-800 flex items-center">
+                <a href="/" class="text-gray-600 hover:text-gray-800 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -21,7 +21,7 @@
             <div class="mt-auto pt-8">
                 <p class="text-gray-600">
                     Don't have an account?
-                    <a href="{{ route('company.register') }}" class="text-blue-600 hover:text-red-700 font-medium">Register</a>
+                    <a href="{{ route('signup') }}" class="text-blue-600 hover:text-red-700 font-medium">Register</a>
                 </p>
             </div>
         </div>
@@ -58,15 +58,15 @@
 
                     <div>
                         <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-                        <input id="email" 
+                        <input id="email"
                                class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                       focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all duration-200
-                                      text-base" 
-                               type="email" 
+                                      text-base"
+                               type="email"
                                name="email"
-                               value="{{ old('email') }}" 
-                               required 
-                               autofocus 
+                               value="{{ old('email') }}"
+                               required
+                               autofocus
                                placeholder="Enter your email address" />
                     </div>
 
@@ -76,21 +76,21 @@
                             withConfirmation="false"
                             label="Password"
                             confirmationLabel="Confirm Password"
-                            required="true" 
+                            required="true"
                             passwordPlaceholder="Enter your secure password"
                             />
                     </div>
 
                     <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                         <label class="flex items-center">
-                            <input type="checkbox" 
-                                   name="remember" 
+                            <input type="checkbox"
+                                   name="remember"
                                    class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
                             <span class="ml-3 text-sm text-gray-700">Remember me</span>
                         </label>
 
                         @if (Route::has('password.request'))
-                            <a class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200" 
+                            <a class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
                                href="{{ route('password.request') }}">
                                 Forgot password?
                             </a>
@@ -98,9 +98,9 @@
                     </div>
 
                     <div class="pt-2">
-                        <button type="submit" 
+                        <button type="submit"
                                 class="w-full py-4 px-6 bg-black text-white font-semibold rounded-xl hover:bg-gray-800
-                                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black 
+                                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black
                                        transition-all duration-200 text-base">
                             Sign In
                         </button>

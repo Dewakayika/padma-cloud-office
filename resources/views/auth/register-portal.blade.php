@@ -48,7 +48,7 @@
             <div class="text-center pb-8">
                 <p class="text-gray-600">
                     Already have an account?
-                    <a href="{{ route('login') }}" class="text-blue-500 hover:text-blue-600 font-semibold">Sign in</a>
+                    <a href="/login" class="text-blue-500 hover:text-blue-600 font-semibold">Sign in</a>
                 </p>
             </div>
         </div>

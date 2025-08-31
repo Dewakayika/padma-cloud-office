@@ -19,9 +19,7 @@ Route::get('/', function () {
 
 
 // Register Portal
-Route::get('/signup', function () {
-    return view('auth.register-portal');
-})->name('signup');
+Route::get('/signup', function () {return view('auth.register-portal');})->name('signup');
 
 // Register Company
 Route::get('/register/company', [CompanyController::class, 'create'])->name('company.register');

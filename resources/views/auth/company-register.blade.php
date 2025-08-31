@@ -8,7 +8,7 @@
         <div class="hidden lg:flex lg:w-1/3 bg-gray-50 p-8 lg:p-12 flex-col">
             <!-- Back to Home Link -->
             <div class="mb-8 lg:mb-12">
-                <a href="{{ route('home') }}" class="text-gray-600 hover:text-gray-800 flex items-center">
+                <a href="/" class="text-gray-600 hover:text-gray-800 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -56,7 +56,7 @@
             <div class="mt-auto pt-8">
                 <p class="text-gray-600">
                     Already have an account?
-                    <a href="{{ route('login') }}" class="text-blue-600 hover:text-red-700 font-medium">Sign in</a>
+                    <a href="/login" class="text-blue-600 hover:text-red-700 font-medium">Sign in</a>
                 </p>
             </div>
         </div>
@@ -66,7 +66,7 @@
             <div class="w-full max-w-sm sm:max-w-md">
                 <!-- Mobile Header -->
                 <div class="lg:hidden mb-8">
-                    <a href="{{ route('home') }}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-6">
+                    <a href="/" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-6">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
@@ -244,8 +244,8 @@
                             passwordConfirmationName="password_confirmation"
                             label="Password"
                             confirmationLabel="Confirm Password"
-    
-                            required="true" 
+
+                            required="true"
                             passwordPlaceholder="Enter your secure password"
                             confirmationPlaceholder="Re-enter your password to confirm"/>
 

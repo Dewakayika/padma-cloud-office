@@ -9,8 +9,8 @@
         totalSteps: 4,
         formData: {
             step1: {
-                name: '',
-                email: ''
+                name: '{{ old('name', '') }}',
+                email: '{{ old('email', '') }}'
             },
             step2: {
                 phone_number: '',
@@ -29,20 +29,9 @@
                 terms: false
             }
         },
-        passwordRules: {
-            minLength: false,
-            upperCase: false,
-            specialChar: false,
-            matching: false
-        },
-        checkPassword() {
-            // removed, now handled by component
-        },
         validateStep1() {
-            // Remove checkPassword();
             return this.formData.step1.name !== '' &&
-                   this.formData.step1.email !== '' &&
-                   this.$refs.passwordField && this.$refs.passwordField.__x && Object.values(this.$refs.passwordField.__x.$data.passwordRules).every(rule => rule === true);
+                   this.formData.step1.email !== '';
         },
         validateStep2() {
             return this.formData.step2.phone_number !== '' &&
@@ -58,7 +47,6 @@
             return this.formData.step4.bank_name !== '' &&
                    this.formData.step4.bank_account !== '' &&
                    this.formData.step4.swift_code !== '' &&
-                   this.formData.step4.subjected_tax !== '' &&
                    this.formData.step4.terms === true;
         },
         canProceed() {
@@ -81,7 +69,7 @@
         <div class="hidden lg:flex lg:w-1/3 bg-gray-50 p-8 lg:p-12 flex-col">
             <!-- Back to Home Link -->
             <div class="mb-8 lg:mb-12">
-                <a href="{{ route('home') }}" class="text-gray-600 hover:text-gray-800 flex items-center">
+                <a href="/" class="text-gray-600 hover:text-gray-800 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -174,7 +162,7 @@
             <div class="mt-auto pt-8">
                 <p class="text-gray-600">
                     Already have an account?
-                    <a href="{{ route('login') }}" class="text-blue-600 hover:text-green-700 font-medium">Sign in</a>
+                    <a href="/login" class="text-blue-600 hover:text-green-700 font-medium">Sign in</a>
                 </p>
             </div>
         </div>
@@ -184,7 +172,7 @@
             <div class="w-full max-w-sm sm:max-w-md">
                 <!-- Mobile Header -->
                 <div class="lg:hidden mb-8">
-                    <a href="{{ route('home') }}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-6">
+                    <a href="/" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-6">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
@@ -246,7 +234,6 @@
                                         focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                         transition-all duration-200 text-base @error('name') border-red-500 @enderror"
                                     placeholder="Enter your name"
-                                    value="{{ old('name') }}"
                                     required />
                             </div>
                             @error('name')
@@ -268,7 +255,6 @@
                                         focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                         transition-all duration-200 text-base @error('email') border-red-500 @enderror"
                                     placeholder="Enter your email"
-                                    value="{{ old('email') }}"
                                     required />
                                 @error('email')
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -289,8 +275,8 @@
                             passwordConfirmationName="password_confirmation"
                             label="Password"
                             confirmationLabel="Confirm Password"
-    
-                            required="true" 
+
+                            required="true"
                             passwordPlaceholder="Enter your secure password"
                             confirmationPlaceholder="Re-enter your password to confirm"/>
                     </div>
@@ -426,7 +412,7 @@
                         <!-- Subjected Tax -->
                         <div class="space-y-2 mt-6">
                             <label for="subjected_tax" class="block text-sm font-semibold text-gray-700">
-                                Subjected Tax<span class="text-red-500">*</span>
+                                Subjected Tax
                             </label>
                             <input type="text"
                                 name="subjected_tax"
@@ -435,8 +421,7 @@
                                 class="block w-full px-4 py-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500
                                     focus:outline-none focus:ring-2 focus:ring-black focus:border-black
                                     transition-all duration-200 text-base"
-                                placeholder="Enter your tax information"
-                                required />
+                                placeholder="Enter your tax information" />
                         </div>
 
                         <!-- Terms and Privacy -->
@@ -511,7 +496,7 @@
                 <div class="lg:hidden mt-10 pt-8 border-t border-gray-200 text-center">
                     <p class="text-gray-600">
                         Already have an account?
-                        <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200">Sign in</a>
+                        <a href="/login" class="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200">Sign in</a>
                     </p>
                 </div>
             </div>

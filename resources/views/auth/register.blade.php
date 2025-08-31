@@ -26,7 +26,7 @@
             <div class="mt-auto pt-8">
                 <p class="text-gray-600">
                     Already have an account?
-                    <a href="{{ route('login') }}" class="text-blue-600 hover:text-red-700 font-medium">Sign in</a>
+                    <a href="/login" class="text-blue-600 hover:text-red-700 font-medium">Sign in</a>
                 </p>
             </div>
         </div>
