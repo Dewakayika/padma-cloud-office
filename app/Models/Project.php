@@ -78,6 +78,14 @@ class Project extends Model
     }
 
     /**
+     * Get the talent QC agent for the project (alias for qcAgent).
+     */
+    public function talentQc()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'qc_agent');
+    }
+
+    /**
      * Get the project records for the project.
      */
     public function projectRecords()

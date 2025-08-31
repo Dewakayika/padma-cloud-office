@@ -18,15 +18,17 @@ class UserInvitation extends Mailable
     public $invitationLink;
     public $invitingUser;
     public $company;
+    public $isExistingUser;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($invitationLink, User $invitingUser, Company $company)
+    public function __construct($invitationLink, User $invitingUser, Company $company, $isExistingUser = false)
     {
         $this->invitationLink = $invitationLink;
         $this->invitingUser = $invitingUser;
         $this->company = $company;
+        $this->isExistingUser = $isExistingUser;
     }
 
     /**

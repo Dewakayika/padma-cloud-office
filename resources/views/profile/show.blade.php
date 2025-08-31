@@ -1,49 +1,800 @@
-
 @extends('layouts.app')
-@section('title', 'Profile')
+@section('title', 'Company Profile & Settings')
 @section('meta_description', 'Ini adalah halaman dashboard untuk pengguna terdaftar.')
 
-
 @section('content')
-<div class="sm:p-4 sm:ml-64 dark:bg-gray-900 min-h-screen">
+<div class="md:p-4 sm:ml-64">
     <div class="py-4 md:p-4">
-    <div>
-        <div class="max-w-7xl lg:ml-64 sm:mx-3 mx-auto py-10 lg:px-8">
-            @if (Laravel\Fortify\Features::canUpdateProfileInformation())
-                @livewire('profile.update-profile-information-form')
 
-                <x-section-border />
-            @endif
+        @if(session('success'))
+        <x-alert type="success" :message="session('success')" />
+        @endif
 
-            @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords())) 
+        @if(session('error'))
+            <x-alert type="error" :message="session('error')" />
+        @endif
+
+        <!-- Tab Navigation -->
+        <div class=" dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 mb-6">
+            <nav class="flex space-x-8 px-4" aria-label="Tabs" id="profile-tabs">
+                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab1">Profile Settings</a>
+                @if(Auth::user()->role === 'company')
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab2">Legal & Verification</a>
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab3">Billing & Tax</a>
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab4">Collaboration Preferences</a>
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab5">Notification Settings</a>
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab7">Developer Mode</a>
+                @endif
+                @if(Auth::user()->role === 'talent')
+                    <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab8">Additional Information</a>
+                @endif
+                <a href="javascript:void(0);" class="profile-tab-link py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-300 hover:text-blue-600 hover:border-blue-300" data-target="profile-tab6">Timezone Settings</a>
+            </nav>
+        </div>
+
+        <div id="profile-tab-content" class="mt-6">
+            <!-- Tab 1: Profile Settings -->
+            <div id="profile-tab1" class="block">
+                @if (Laravel\Fortify\Features::canUpdateProfileInformation())
+                    @livewire('profile.update-profile-information-form')
+                    <x-section-border />
+                @endif
+                @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords()))
+                    <div class="mt-10 sm:mt-0">
+                        @livewire('profile.update-password-form')
+                    </div>
+                    <x-section-border />
+                @endif
+                @if (Laravel\Fortify\Features::canManageTwoFactorAuthentication())
+                    <div class="mt-10 sm:mt-0">
+                        @livewire('profile.two-factor-authentication-form')
+                    </div>
+                    <x-section-border />
+                @endif
                 <div class="mt-10 sm:mt-0">
-                    @livewire('profile.update-password-form')
+                    @livewire('profile.logout-other-browser-sessions-form')
                 </div>
-
-                <x-section-border />
-            @endif
-
-            @if (Laravel\Fortify\Features::canManageTwoFactorAuthentication())
-                <div class="mt-10 sm:mt-0">
-                    @livewire('profile.two-factor-authentication-form')
-                </div>
-
-                <x-section-border />
-            @endif
-
-            <div class="mt-10 sm:mt-0">
-                @livewire('profile.logout-other-browser-sessions-form')
+                @if (Laravel\Jetstream\Jetstream::hasAccountDeletionFeatures())
+                    <x-section-border />
+                    <div class="mt-10 sm:mt-0">
+                        @livewire('profile.delete-user-form')
+                    </div>
+                @endif
             </div>
 
-            @if (Laravel\Jetstream\Jetstream::hasAccountDeletionFeatures())
-                <x-section-border />
+            <!-- Tab 2: Legal & Verification -->
+            <div id="profile-tab2" class="hidden">
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
+                    <div class="flex justify-between items-start">
+                    <div class="mb-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Legal & Verification</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Verify your company to unlock faster payments and build trust</p>
+                    </div>
 
-                <div class="mt-10 sm:mt-0">
-                    @livewire('profile.delete-user-form')
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <form method="POST" action="{{ route('company.onboarding.step.post', ['step' => 1]) }}" enctype="multipart/form-data">
+                            @csrf
+                            <input type="hidden" name="from_settings" value="1">
+                            <input type="hidden" name="return_tab" value="legal">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Company Name *</label>
+                                    <input type="text" name="company_name" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('company_name', $company->company_name) }}" required placeholder="Enter the formal company name">
+                                    <span class="text-xs text-gray-400 mt-1">This should match exactly with your business license</span>
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Registration Number *</label>
+                                    <input type="text" name="registration_number" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('registration_number', $company->registration_number) }}" required placeholder="e.g., 123456789">
+                                    <span class="text-xs text-gray-400 mt-1">This helps us verify your company's legal status</span>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Company Address *</label>
+                                    <textarea name="address" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required rows="3" placeholder="Enter your company's registered address">{{ old('address', $company->address) }}</textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Business License (Optional)</label>
+                                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                                        <input type="file" name="business_license" class="sr-only" id="business_license">
+                                        <label for="business_license" class="cursor-pointer flex flex-col items-center">
+                                            <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                            <span class="text-gray-500 dark:text-gray-400">Click to upload business license</span>
+                                            <span class="text-xs text-gray-400">PDF, JPG, PNG up to 10MB</span>
+                                        </label>
+                                        @if($company->business_license_path)
+                                            <p class="text-xs mt-2">Current: <a href="{{ asset('storage/' . $company->business_license_path) }}" target="_blank" class="text-blue-600 underline">View License</a></p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex justify-end">
+                                <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                    </div>
+                    @else
+                        <div class="text-center py-8">
+                            <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
+                        </div>
+                    @endif
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tab 3: Billing & Tax -->
+            <div id="profile-tab3" class="hidden">
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
+                <div class="flex justify-between items-start">
+                    <div class="mb-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Billing & Tax</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Set up billing for seamless transactions with Indonesian talent</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <form method="POST" action="{{ route('company.onboarding.step.post', ['step' => 3]) }}">
+                            @csrf
+                            <input type="hidden" name="from_settings" value="1">
+                            <input type="hidden" name="return_tab" value="billing">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Invoice Recipient *</label>
+                                    <input type="text" name="invoice_recipient" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('invoice_recipient', $company->invoice_recipient) }}" required placeholder="Company or person name">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Billing Email *</label>
+                                    <input type="email" name="billing_email" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('billing_email', $company->billing_email) }}" required placeholder="billing@company.com">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Billing Address *</label>
+                                    <input type="text" name="billing_address" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('billing_address', $company->billing_address) }}" required placeholder="Enter your billing address">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">ZIP/Postal Code *</label>
+                                    <input type="text" name="zip_code" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('zip_code', $company->zip_code) }}" required placeholder="12345">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Country *</label>
+                                    <input type="text" name="country" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('country', $company->country) }}" required placeholder="Select country">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Tax ID / VAT Number</label>
+                                    <input type="text" name="tax_id" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('tax_id', $company->tax_id) }}" placeholder="e.g., VAT123456789">
+                                    <span class="text-xs text-gray-400 mt-1">Required for proper invoicing and tax compliance</span>
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Currency *</label>
+                                    <select name="currency" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                                        <option value="">Select currency</option>
+                                        @foreach(\App\Models\Company::currencyOptions() as $value => $label)
+                                            <option value="{{ $value }}" {{ old('currency', $company->currency) == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Payment Schedule *</label>
+                                    <input type="date" name="payment_schedule" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('payment_schedule', $company->payment_schedule) }}" required>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex justify-end">
+                                <button type="submit" class="px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            @endif
+                @else
+                    <div class="text-center py-8">
+                        <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
+                    </div>
+                @endif
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tab 4: Collaboration Preferences -->
+            <div id="profile-tab4" class="hidden">
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
+                <div class="flex justify-between items-start">
+                    <div class="mb-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Collaboration Preferences</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Configure your workflow and tools to match with Indonesian talent</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <form method="POST" action="{{ route('company.onboarding.step.post', ['step' => 4]) }}">
+                            @csrf
+                            <input type="hidden" name="from_settings" value="1">
+                            <input type="hidden" name="return_tab" value="collaboration">
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Primary Use Case *</label>
+                                    <input type="text" name="primary_use_case" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('primary_use_case', $company->primary_use_case) }}" required placeholder="e.g., Animation, Illustration, 3D Modeling">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Preferred Tools & Software</label>
+                                    <div class="grid grid-cols-2 md:grid-cols-2 gap-3">
+                                        @php
+                                            $tools = ['Clip Studio Paint (CSP)', 'Adobe Photoshop (PSD)', 'Adobe After Effects', 'Blender', 'Maya', 'Google Drive', 'Dropbox', 'Figma', 'Asana', 'Slack'];
+                                            $selected = old('collaboration_tools', json_decode($company->collaboration_tools ?? '[]', true));
+                                        @endphp
+                                        @foreach($tools as $tool)
+                                            <label class="inline-flex items-center">
+                                                <input type="checkbox" name="collaboration_tools[]" value="{{ $tool }}" @if(in_array($tool, $selected)) checked @endif class="rounded border-gray-300">
+                                                <span class="ml-2 text-sm">{{ $tool }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded dark:bg-blue-900/20 dark:border-blue-600">
+                                    <div class="font-semibold text-blue-700 dark:text-blue-300 mb-2">NDA Agreement *</div>
+                                    <p class="text-sm text-blue-700 dark:text-blue-300 mb-3">To ensure confidentiality when working with Indonesian talent, please review and sign our standard NDA. This agreement will apply to your studio and all talent who will join your projects.</p>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="nda_agreed" value="1" @if(old('nda_agreed', $company->nda_agreed)) checked @endif required class="rounded border-gray-300">
+                                        <span class="ml-2 text-sm">I agree to the NDA terms for my studio and all talent who will join our projects</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex justify-end">
+                                <button type="submit" class="px-6 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @else
+                    <div class="text-center py-8">
+                        <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
+                    </div>
+                @endif
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tab 5: Notification Settings -->
+            <div id="profile-tab5" class="hidden">
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-8">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2">Discord Notification Settings</h3>
+                    <div class="flex flex-col md:flex-row md:space-x-2">
+                        <form method="POST" action="{{ route('company.notification-settings.save') }}" class="mb-2 md:mb-0 flex-1">
+                            @csrf
+                            <input type="hidden" name="return_tab" value="notifications">
+                            <div class="mb-4">
+                                <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Discord Webhook URL *</label>
+                                <input type="url" name="discord_webhook_url" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('discord_webhook_url', optional($company->notification)->discord_webhook_url) }}" required placeholder="Paste your Discord webhook URL here">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Discord Channel (optional)</label>
+                                <input type="text" name="discord_channel" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('discord_channel', optional($company->notification)->discord_channel) }}" placeholder="#channel-name">
+                            </div>
+                            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">Save Notification Settings</button>
+                        </form>
+                        <form method="POST" action="{{ route('company.notification-settings.test') }}" class="self-end">
+                            @csrf
+                            <input type="hidden" name="return_tab" value="notifications">
+                            <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">Test Webhook</button>
+                        </form>
+                    </div>
+                    </div>
+                @endif
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tab 7: Developer Mode -->
+            <div id="profile-tab7" class="hidden">
+                @if(Auth::user()->role === 'company')
+                    @php $company = \App\Models\Company::where('user_id', Auth::user()->id)->first(); @endphp
+                    @if($company)
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                            <div class="mb-6">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Google Apps Script API Configuration</h3>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configure your Google Apps Script API to receive real-time project tracking data</p>
+                            </div>
+
+                            <!-- API Configuration Form -->
+                            <form method="POST" action="{{ route('company.developer.api-config.save') }}" class="mb-8">
+                                @csrf
+                                <input type="hidden" name="return_tab" value="developer">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Deployment ID *</label>
+                                        <input type="text" name="gas_deployment_id" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('gas_deployment_id', $company->gas_deployment_id) }}" required placeholder="e.g., AKfycbzbSw9WWBqsOmOMTlc4Y9Ld2jK6j4OUsCr1df8Af_UvWJPz5A4xUjJC95sx58mTjDPA7A">
+                                        <span class="text-xs text-gray-400 mt-1">Your Google Apps Script deployment ID</span>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">HMAC Key *</label>
+                                        <input type="text" name="gas_hmac_key" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('gas_hmac_key', $company->gas_hmac_key) }}" required placeholder="e.g., 7puhATp8KQkFqT8UNOpQ5aPbHJSz4cN9Ha2IowW1ndg=">
+                                        <span class="text-xs text-gray-400 mt-1">Your HMAC key for data verification</span>
+                                    </div>
+                                </div>
+                                <div class="mt-6 flex justify-end">
+                                    <button type="submit" class="px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition">Save API Configuration</button>
+                                </div>
+                            </form>
+
+                            <!-- API Status -->
+                            <div class="mb-8">
+                                <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-white">API Status</h4>
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                                            @if($company->gas_api_enabled)
+                                                <span class="ml-2 px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">Enabled</span>
+                                            @else
+                                                <span class="ml-2 px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">Disabled</span>
+                                            @endif
+                                        </div>
+                                        @if($company->gas_api_enabled)
+                                            <form method="POST" action="{{ route('company.developer.api-disable') }}" class="inline">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 transition">Disable API</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                    @if($company->gas_access_link)
+                                        <div class="mt-2">
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Access Link:</span>
+                                            <a href="{{ $company->gas_access_link }}" target="_blank" class="ml-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 break-all">{{ $company->gas_access_link }}</a>
+                                        </div>
+                                    @endif
+                                    @if($company->gas_last_test)
+                                        <div class="mt-2">
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Last Test:</span>
+                                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">{{ $company->gas_last_test->format('Y-m-d H:i:s') }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- API Testing -->
+                            @if($company->gas_api_enabled)
+                                <div class="mb-8">
+                                    <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-white">Test API</h4>
+                                    <form method="POST" action="{{ route('company.developer.api-test') }}" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                        @csrf
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Test Talent ID</label>
+                                                <input type="text" name="talent_id" class="form-input w-full bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-600 dark:border-gray-500 dark:text-white" value="T1" placeholder="T1">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Test Talent Name</label>
+                                                <input type="text" name="talent_name" class="form-input w-full bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 dark:bg-gray-600 dark:border-gray-500 dark:text-white" value="Alice" placeholder="Alice">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">Test API with Dummy Data</button>
+                                    </form>
+                                </div>
+
+                                <!-- API URL Display -->
+                                @if($company->gas_last_response && isset($company->gas_last_response['url']))
+                                    <div class="mb-8">
+                                        <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-white">Last Test API URL</h4>
+                                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                            <div class="mb-2">
+                                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Full API Endpoint:</span>
+                                            </div>
+                                            <div class="bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 p-3">
+                                                <code class="text-xs text-gray-800 dark:text-gray-200 break-all">{{ $company->gas_last_response['url'] }}</code>
+                                            </div>
+                                            <div class="mt-3 flex space-x-2">
+                                                <button onclick="copyToClipboard('{{ $company->gas_last_response['url'] }}')" class="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700 transition">
+                                                    Copy URL
+                                                </button>
+                                                <a href="{{ $company->gas_last_response['url'] }}" target="_blank" class="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700 transition">
+                                                    Open in Browser
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- API Documentation -->
+                                <div class="mb-8">
+                                    <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-white">API Documentation</h4>
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                        <h5 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">JSON Structure:</h5>
+                                        <pre class="text-xs text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-800 p-3 rounded overflow-x-auto"><code>{
+  "lastUpdate": "2025-07-26T12:00:00.000Z",
+  "talentId": "T1",
+  "talentName": "Alice",
+  "workingTime": "02:30",
+  "projectCode": "AE_s",
+  "projectName": "After Effect Storyboard",
+  "workTitle": "Initial Draft",
+  "role": "Talent",
+  "link": "https://drive.google.com/drive/u/0/folders/1W7XyVx32NlevvLXKWQHeUqzJkWckO29t"
+}</code></pre>
+                                        <div class="mt-3 text-sm text-blue-700 dark:text-blue-300">
+                                            <p><strong>Endpoint:</strong> https://script.google.com/macros/s/&lt;DEPLOYMENT_ID&gt;/exec</p>
+                                            <p><strong>Parameters:</strong> data=&lt;BASE64URL-ENCODED JSON&gt;&sig=&lt;BASE64URL-ENCODED HMAC-SHA256&gt;</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="text-center py-8">
+                            <p class="text-gray-500 dark:text-gray-400">Company information not found.</p>
+                        </div>
+                    @endif
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for company accounts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tab 6: Timezone Settings -->
+            <div id="profile-tab6" class="hidden">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-8">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2">Timezone Settings</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Configure your timezone to ensure all timestamps and schedules are displayed in your local time.</p>
+
+                    <form method="POST" action="{{ route('profile.timezone.update') }}" class="space-y-6">
+                        @csrf
+                        <input type="hidden" name="return_tab" value="timezone">
+
+                        <div>
+                            <label for="timezone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Select Your Timezone
+                            </label>
+                            <select id="timezone" name="timezone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="">Choose your timezone...</option>
+                                @foreach(\App\Helpers\TimezoneHelper::getAllTimezones() as $value => $label)
+                                    <option value="{{ $value }}" {{ Auth::user()->timezone == $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Current timezone: <span class="font-mono">{{ Auth::user()->timezone ?? 'UTC' }}</span>
+                            </p>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-900/20 dark:border-blue-800">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                        Timezone Information
+                                    </h3>
+                                    <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                        <p>• Your timezone affects how all dates and times are displayed</p>
+                                        <p>• Project tracking timestamps will be stored in your local time</p>
+                                        <p>• Work sessions and project durations will use your timezone</p>
+                                        <p>• You can change this setting at any time</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                <span class="font-medium">Current Local Time:</span>
+                                <span class="font-mono ml-2" id="current-local-time">
+                                    {{ now()->format('Y-m-d H:i:s') }}
+                                </span>
+                            </div>
+                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                                Save Timezone Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 8: Additional Information (Talent Only) -->
+            <div id="profile-tab8" class="hidden">
+                @if(Auth::user()->role === 'talent')
+                    @php $talent = \App\Models\Talent::where('user_id', Auth::user()->id)->first(); @endphp
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <div class="mb-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Additional Information</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add additional information about your skills, experience, and preferences to help companies better understand your capabilities.</p>
+                        </div>
+
+                        <form method="POST" action="{{ route('talent.additional-info.save') }}" class="space-y-6">
+                            @csrf
+                            <input type="hidden" name="return_tab" value="additional">
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Phone Number</label>
+                                    <input type="text" name="phone_number" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('phone_number', $talent->phone_number ?? '') }}" placeholder="+62 812-3456-7890">
+                                    <span class="text-xs text-gray-400 mt-1">Your contact phone number</span>
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Gender</label>
+                                    <select name="gender" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        <option value="">Select gender</option>
+                                        <option value="male" {{ old('gender', $talent->gender ?? '') == 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ old('gender', $talent->gender ?? '') == 'female' ? 'selected' : '' }}>Female</option>
+                                        <option value="other" {{ old('gender', $talent->gender ?? '') == 'other' ? 'selected' : '' }}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Address</label>
+                                <textarea name="address" rows="3" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter your full address...">{{ old('address', $talent->address ?? '') }}</textarea>
+                                <span class="text-xs text-gray-400 mt-1">Your complete residential address</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Date of Birth</label>
+                                    <input type="date" name="date_of_birth" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('date_of_birth', $talent->date_of_birth ?? '') }}">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">ID Card Number</label>
+                                    <input type="text" name="id_card" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value="{{ old('id_card', $talent->id_card ?? '') }}" placeholder="1234567890123456">
+                                    <span class="text-xs text-gray-400 mt-1">KTP or passport number</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-900/20 dark:border-blue-800">
+                                <h4 class="font-semibold text-blue-800 dark:text-blue-200 mb-3">Banking Information</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Bank Name</label>
+                                        <input type="text" name="bank_name" class="form-input w-full bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-600 dark:border-gray-500 dark:text-white" value="{{ old('bank_name', $talent->bank_name ?? '') }}" placeholder="e.g., BCA, Mandiri">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Bank Account Number</label>
+                                        <input type="text" name="bank_account" class="form-input w-full bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-600 dark:border-gray-500 dark:text-white" value="{{ old('bank_account', $talent->bank_account ?? '') }}" placeholder="1234567890">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Swift Code</label>
+                                        <input type="text" name="swift_code" class="form-input w-full bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-600 dark:border-gray-500 dark:text-white" value="{{ old('swift_code', $talent->swift_code ?? '') }}" placeholder="BCAIIDJA">
+                                        <span class="text-xs text-gray-400 mt-1">For international transfers</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">Tax Status</label>
+                                <select name="subjected_tax" class="form-input w-full bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    <option value="">Select tax status</option>
+                                    <option value="yes" {{ old('subjected_tax', $talent->subjected_tax ?? '') == 'yes' ? 'selected' : '' }}>Subject to Tax</option>
+                                    <option value="no" {{ old('subjected_tax', $talent->subjected_tax ?? '') == 'no' ? 'selected' : '' }}>Not Subject to Tax</option>
+                                    <option value="exempt" {{ old('subjected_tax', $talent->subjected_tax ?? '') == 'exempt' ? 'selected' : '' }}>Tax Exempt</option>
+                                </select>
+                                <span class="text-xs text-gray-400 mt-1">Your tax status for payment processing</span>
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                                    Save Additional Information
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                @else
+                    <div class="text-center py-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">Access Restricted</h3>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">This section is only available for talent accounts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
-    </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabs = document.querySelectorAll('.profile-tab-link');
+        const tabContents = document.querySelectorAll('#profile-tab-content > div');
+
+        // Function to get active tab from URL parameter or default to first tab
+        function getActiveTab() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTabParam = urlParams.get('tab');
+
+            // Map tab parameters to actual tab IDs
+            const tabMap = {
+                'profile': 'profile-tab1',
+                'legal': 'profile-tab2',
+                'billing': 'profile-tab3',
+                'collaboration': 'profile-tab4',
+                'notifications': 'profile-tab5',
+                'timezone': 'profile-tab6',
+                'developer': 'profile-tab7',
+                'additional': 'profile-tab8'
+            };
+
+            return tabMap[activeTabParam] || 'profile-tab1';
+        }
+
+        // Function to update URL with current tab
+        function updateUrlWithTab(tabId) {
+            const tabParamMap = {
+                'profile-tab1': 'profile',
+                'profile-tab2': 'legal',
+                'profile-tab3': 'billing',
+                'profile-tab4': 'collaboration',
+                'profile-tab5': 'notifications',
+                'profile-tab6': 'timezone',
+                'profile-tab7': 'developer',
+                'profile-tab8': 'additional'
+            };
+
+            const param = tabParamMap[tabId];
+            if (param) {
+                const url = new URL(window.location);
+                url.searchParams.set('tab', param);
+                window.history.replaceState({}, '', url);
+            }
+        }
+
+        // Function to activate a specific tab
+        function activateTab(targetId) {
+            // Remove active styles from all tabs
+            tabs.forEach(t => t.classList.remove('border-blue-600', 'text-blue-600', 'dark:text-white', 'active'));
+            tabs.forEach(t => t.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-300'));
+
+            // Hide all tab contents
+            tabContents.forEach(content => content.classList.add('hidden'));
+
+            // Find and activate the target tab
+            const targetTab = document.querySelector(`[data-target="${targetId}"]`);
+            if (targetTab) {
+                targetTab.classList.add('border-blue-600', 'text-blue-600', 'dark:text-white', 'active');
+                targetTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-300');
+            }
+
+            // Show corresponding content
+            const targetContent = document.getElementById(targetId);
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+
+            // Update URL
+            updateUrlWithTab(targetId);
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.getAttribute('data-target');
+                activateTab(targetId);
+            });
+        });
+
+        // Activate the appropriate tab on page load
+        const activeTabId = getActiveTab();
+        activateTab(activeTabId);
+
+        // Update current time in timezone settings
+        function updateCurrentTime() {
+            const timeElement = document.getElementById('current-local-time');
+            if (timeElement) {
+                const now = new Date();
+                const timeString = now.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                timeElement.textContent = timeString;
+            }
+        }
+
+        // Update time every second if timezone tab is active
+        setInterval(() => {
+            const timezoneTab = document.getElementById('profile-tab6');
+            if (timezoneTab && !timezoneTab.classList.contains('hidden')) {
+                updateCurrentTime();
+            }
+        }, 1000);
+
+        // Copy to clipboard function
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success message
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                button.classList.add('bg-green-600');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-600');
+                    button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                alert('Failed to copy URL to clipboard');
+            });
+        }
+    });
+</script>
+@endpush
 @endsection

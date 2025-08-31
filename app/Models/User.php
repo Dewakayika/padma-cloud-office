@@ -30,7 +30,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-
+        'timezone',
     ];
 
     /**
@@ -124,5 +124,21 @@ class User extends Authenticatable
     public function qcProjectRecords()
     {
         return $this->hasMany(ProjectRecord::class, 'qc_id');
+    }
+
+    /**
+     * Get the work sessions for this user.
+     */
+    public function workSessions()
+    {
+        return $this->hasMany(WorkSession::class);
+    }
+
+    /**
+     * Get the project tracking records for this user.
+     */
+    public function projectTracking()
+    {
+        return $this->hasMany(ProjectTracking::class);
     }
 }

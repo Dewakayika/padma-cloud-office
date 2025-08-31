@@ -31,7 +31,6 @@
     $badgeRed = $badgeBase . ' bg-red-500 dark:bg-red-600';
     $badgeGray = $badgeBase . ' bg-gray-500 dark:bg-gray-600';
 
-
     // Common layout styles
     $gridContainer = 'grid grid-cols-1 lg:grid-cols-3 gap-6';
     $gridInfo = 'grid grid-cols-2 gap-x-8 gap-y-4';
@@ -45,6 +44,9 @@
 
     $role = auth()->user()->role;
     $feedbackExists = $role === 'company' ? $companyFeedbackExists : $talentFeedbackExists;
+
+    $isQcAgent = $role === 'qc';
+    $userTimezone = session('timezone', config('app.timezone'));
 @endphp
 
 @section('content')
@@ -74,9 +76,6 @@
             <div class="absolute inset-0 bg-black bg-opacity-70 dark:bg-opacity-80"></div>
             <div class="absolute inset-0 flex items-center justify-between px-6">
                 <div class="{{ $flexContainer }}">
-                    {{-- <div class="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
-                        <img src="{{ $project->company->logo_url ?? 'https://webtoons-static.pstatic.net/image/favicon/favicon.ico' }}" alt="{{ $project->projectType->project_name ?? 'Project' }}" class="w-12 h-12 object-contain">
-                    </div> --}}
                     <div>
                         <h1 class="text-2xl font-bold {{ $whiteText }}">{{ $project->project_name }}</h1>
                         <h1 class="text-sm font-bold {{ $whiteText }}">{{ $project->projectType->project_name }}</h1>
@@ -86,7 +85,8 @@
                     <div id="project-timer-area"
                          data-project-status="{{ $project->status }}"
                          data-assign-timestamp="{{ $assignTimestamp }}"
-                         data-done-timestamp="{{ $doneTimestamp }}">
+                         data-done-timestamp="{{ $doneTimestamp }}"
+                         data-user-timezone="{{ $userTimezone }}">
 
                         @php
                             $activeStatuses = ['project assign', 'qc', 'draf', 'revision'];
@@ -96,7 +96,8 @@
                         @if ($isTimerActive)
                              <div class="grid grid-cols-4 gap-4" id="elapsed-timer"
                                   data-assign-timestamp="{{ $assignTimestamp }}"
-                                  data-done-timestamp="{{ $doneTimestamp }}">
+                                  data-done-timestamp="{{ $doneTimestamp }}"
+                                  data-user-timezone="{{ $userTimezone }}">
                                  @foreach(['days', 'hours', 'minutes', 'seconds'] as $unit)
                                  <div class="text-center">
                                      <div class="text-3xl font-bold {{ $whiteText }}" id="{{ $unit }}">00</div>
@@ -150,10 +151,11 @@
                             @php
                                 $infoItems = [
                                     'Project Name' => $project->project_name,
-                                    'Last Update' => $project->updated_at->format('D, d M Y'),
+                                    'Last Update' => $project->updated_at_local->format('D, d M Y | h:i A'),
                                     'QC Talent' => $project->assignedQcAgent->name ?? 'Not Assigned',
-                                    'Project Finish Date' => $project->finish_date ? $project->finish_date->format('D, d M Y') : 'Not finish yet',
-                                    'Project Assign Date' => $assignTimestamp ? \Carbon\Carbon::parse($assignTimestamp)->format('D, d M Y') : 'Not Assigned Yet',
+                                    'Project Finish Date' => $project->finish_date_local ? $project->finish_date_local->format('D, d M Y | h:i A') : 'Not finish yet',
+                                    'Project Assign Date' => $assignTimestamp ? $assignTimestamp->format('D, d M Y | h:i A') : 'Not Assigned Yet',
+                                    'User Timezone' => $userTimezone,
                                 ];
                             @endphp
 
@@ -182,7 +184,7 @@
                         <div class="{{ $flexBetween }} mb-6">
                             <h2 class="{{ $headingText }}">Project Records</h2>
                             <div class="flex space-x-3">
-                                @if($project->assignedQcAgent && $project->assignedQcAgent->id === auth()->id())
+                                @if($project->status === 'draf')
                                     <div x-data="{ open: false }">
                                         <button @click="open = true" type="button" class="{{ $secondaryButton }}">
                                             <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -196,25 +198,14 @@
                                         </div>
                                     </div>
                                 @else
-                                    <div x-data="{ open: false }">
-                                        <button @click="open = true" type="button" class="{{ $secondaryButton }}">
-                                            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                                            </svg>
-                                            Submit Project Draft
-                                        </button>
-                                        <!-- Draft Modal -->
-                                        <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                            <x-project-record.modal :project="$project" />
-                                        </div>
-                                    </div>
+
                                 @endif
 
                                 @if ($project->status === 'draf')
                                     <div x-data="{ open: false }">
                                         <button @click="open = true" type="button" class="{{ $primaryButton }}">
                                             <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5v-4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                                             </svg>
                                             Add Revision
                                         </button>
@@ -232,7 +223,8 @@
                                     <thead>
                                         <tr>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Project Stage</th>
-                                            <th class="{{ $tableHeader }} {{ $tableCell }}">Updated Date</th>
+                                            <th class="{{ $tableHeader }} {{ $tableCell }}">Updated Date (Local)</th>
+                                            <th class="{{ $tableHeader }} {{ $tableCell }}">Record Created (Local)</th>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Draft Submission</th>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">QC/ Revise Message</th>
                                             <th class="{{ $tableHeader }} {{ $tableCell }}">Action</th>
@@ -242,6 +234,15 @@
                                         @foreach($project->projectLogs as $log)
                                         @php
                                             $projectRecord = $project->projectRecords->where('created_at', '<=', $log->timestamp)->last();
+                                            // Convert database timestamp to user's timezone
+                                            $logTimestamp = \Carbon\Carbon::parse($log->timestamp)->setTimezone($userTimezone);
+                                            $originalTimestamp = $log->timestamp;
+
+                                            // Also convert project record timestamps if they exist
+                                            if ($projectRecord) {
+                                                $projectRecord->created_at_local = \Carbon\Carbon::parse($projectRecord->created_at)->setTimezone($userTimezone);
+                                                $projectRecord->updated_at_local = \Carbon\Carbon::parse($projectRecord->updated_at)->setTimezone($userTimezone);
+                                            }
                                         @endphp
                                         <tr>
                                             <td class="{{ $tableCell }}">
@@ -261,7 +262,14 @@
                                                 -
                                             @endif
                                             </td>
-                                            <td class="{{ $tableCell }}">{{ $log->timestamp->format('D, d M Y') }}</td>
+                                            <td class="{{ $tableCell }}">{{ $logTimestamp->format('D, d M Y | h:i A') }}</td>
+                                            <td class="{{ $tableCell }}">
+                                                @if($projectRecord)
+                                                    {{ $projectRecord->created_at_local->format('D, d M Y | h:i A') }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
                                             <td class="{{ $tableCell }}">
                                                 @if ($log->status === 'draf' && $projectRecord)
                                                     <a href="{{ $projectRecord->project_link }}" target="_blank" class="{{ $badgeBlue }}">Project Draf Submission</a>
@@ -309,73 +317,6 @@
                         @endif
                     </div>
                 </div>
-
-                {{-- Project Revision --}}
-                {{-- <div class="{{ $cardContainer }} {{ $cardSpacing }}">
-                    <div class="{{ $cardPadding }}">
-                        <div class="{{ $flexBetween }} mb-6">
-                            <h2 class="{{ $headingText }}">Project Revision</h2>
-                            @if ($project->status === 'draf')
-                                <div x-data="{ open: false }">
-                                    <button @click="open = true" type="button" class="{{ $primaryButton }}">
-                                        <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                                        </svg>
-                                        Add Revision
-                                    </button>
-                                    <!-- Modal -->
-                                    <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                        <x-project-record.revise-modal :project="$project" />
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-
-                        @php
-                            $revisionLogs = $project->projectLogs->filter(fn($log) => str_contains(strtolower($log->status), 'revise'));
-                        @endphp
-
-                        @if($revisionLogs->count() > 0)
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full {{ $tableDivider }}">
-                                    <thead>
-                                        <tr>
-                                            <th class="{{ $tableHeader }} {{ $tableCell }}">Project Stage</th>
-                                            <th class="{{ $tableHeader }} {{ $tableCell }}">Date</th>
-                                            <th class="{{ $tableHeader }} {{ $tableCell }}">Panel</th>
-                                            <th class="{{ $tableHeader }} {{ $tableCell }}">Message</th>
-                                            <th class="{{ $tableHeader }} {{ $tableCell }}">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="{{ $tableDivider }}">
-                                        @foreach($revisionLogs as $log)
-                                        <tr>
-                                            <td class="{{ $tableCell }}">{{ $log->status }}</td>
-                                            <td class="{{ $tableCell }}">{{ $log->timestamp->format('D, d M Y') }}</td>
-                                            <td class="{{ $tableCell }}">{{ $log->user->name ?? 'System' }}</td>
-                                            <td class="{{ $tableCell }}">
-                                                 @if ($log->message ?? null)
-                                                    <span class="{{ $badgeGreen }} cursor-pointer hover:opacity-90">OPEN MESSAGE</span>
-                                                 @else
-                                                    -
-                                                 @endif
-                                            </td>
-                                            <td class="{{ $tableCell }}">
-                                                 <div class="flex space-x-2">
-                                                    <span class="{{ $badgeYellow }} cursor-pointer hover:opacity-90">EDIT</span>
-                                                    <span class="{{ $badgeRed }} cursor-pointer hover:opacity-90">DELETE</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="text-center {{ $mutedText }}">No revision history available yet.</div>
-                        @endif
-                    </div>
-                </div> --}}
             </div>
 
             {{-- Project Status Timeline --}}
@@ -412,7 +353,7 @@
                                     $dotColorClass = 'bg-green-500 dark:bg-green-400';
                                     $displayText = 'Completed';
                                 } elseif (str_contains($status, 'revision') || str_contains($status, 'needed')) {
-                                    $colorClass = 'bg-red-100 dark:bg-red-900/30';
+                                    $colorClass = 'bg-red-100 dark:bg-gray-900/30';
                                     $dotColorClass = 'bg-red-500 dark:bg-red-400';
                                     $displayText = 'Revision Needed';
                                 } else {
@@ -420,6 +361,10 @@
                                     $dotColorClass = 'bg-gray-500 dark:bg-gray-400';
                                     $displayText = ucfirst($log->status);
                                 }
+
+                                // Convert database timestamp to user's timezone
+                                $logTimestamp = \Carbon\Carbon::parse($log->timestamp)->setTimezone($userTimezone);
+                                $originalTimestamp = $log->timestamp;
                             @endphp
 
                             <div class="relative flex items-center mb-8">
@@ -429,7 +374,7 @@
                                 <div class="{{ $timelineContent }}">
                                     <h4 class="{{ $subHeadingText }}">{{ $displayText }}</h4>
                                     <p class="{{ $mutedText }}">
-                                        {{ $log->timestamp->setTimezone(session('timezone', config('app.timezone')))->format('D, d M Y | h:i A') }}
+                                        {{ $logTimestamp->format('D, d M Y | h:i A') }}
                                     </p>
                                 </div>
                             </div>
@@ -445,7 +390,7 @@
     </div>
 </div>
 
-@if($project->status === 'draf')
+@if($project->status === 'draf' && !$isQcAgent)
     <div class="fixed bottom-6 right-6 z-50">
         <div x-data="{ open: false }">
             <button @click="open = true" type="button" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 transition-all duration-200 transform hover:scale-105">
@@ -494,6 +439,7 @@
         const assignTimestamp = timerElement.dataset.assignTimestamp;
         const doneTimestamp = timerElement.dataset.doneTimestamp;
         const projectStatus = document.getElementById('project-timer-area').dataset.projectStatus;
+        const userTimezone = document.getElementById('project-timer-area').dataset.userTimezone;
 
         if (assignTimestamp) {
             const startDate = new Date(assignTimestamp);

@@ -20,28 +20,28 @@
                 iconBackground="bg-green-100 dark:bg-green-800"
                 iconColor="text-green-500 dark:text-green-200"
                 value="{{ $totalCompany }}"
-                description="Total Company Registered"/>
+                title="Total Company Registered"/>
 
             <x-score-card
                 icon="fas fa-users"
                 iconBackground="bg-blue-100 dark:bg-blue-800"
                 iconColor="text-blue-500 dark:text-blue-200"
                 value="{{ $totalUser }}"
-                description="Total Talent Registered"/>
+                title="Total Talent Registered"/>
 
             <x-score-card
                 icon="fas fa-file-alt"
                 iconBackground="bg-orange-100 dark:bg-orange-800"
                 iconColor="text-orange-500 dark:text-orange-200"
                 value="{{ $totalProject }}"
-                description="Total Project Managed"/>
+                title="Total Project Managed"/>
 
             <x-score-card
                 icon="fas fa-list-alt"
                 iconBackground="bg-purple-100 dark:bg-purple-800"
                 iconColor="text-purple-500 dark:text-purple-200"
                 value="{{ $companyByCountry }}"
-                description="Total Country Registred"/>
+                title="Total Country Registred"/>
         </div>
 
         {{-- Company Data Table --}}

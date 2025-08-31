@@ -13,7 +13,8 @@ class ProjectType extends Model
         'project_name',
         'user_id',
         'company_id',
-        'project_rate'
+        'project_rate',
+        'qc_rate',
     ];
 
     // Relationship with Projects
@@ -27,4 +28,9 @@ class ProjectType extends Model
         return $this->hasMany(ProjectSop::class);
     }
 
+    // Relationship with Company
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }

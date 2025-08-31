@@ -1,4 +1,8 @@
-<x-guest-layout>
+@extends('layouts.guest')
+@section('title', 'Register Portal')
+@section('meta_description', 'Ini adalah halaman register portal.')
+
+@section('content')
     <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
         <div class="w-full max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden">
             <div class="text-center p-8 bg-white">
@@ -44,9 +48,9 @@
             <div class="text-center pb-8">
                 <p class="text-gray-600">
                     Already have an account?
-                    <a href="{{ route('login') }}" class="text-blue-500 hover:text-blue-600 font-semibold">Sign in</a>
+                    <a href="/login" class="text-blue-500 hover:text-blue-600 font-semibold">Sign in</a>
                 </p>
             </div>
         </div>
     </div>
-</x-guest-layout>
+@endsection

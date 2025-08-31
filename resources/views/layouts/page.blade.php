@@ -9,7 +9,7 @@
         <meta name="description" content="@yield('meta_description', 'Padma Cloud Office - Project Management System')">
 
         {{-- Favicon --}}
-        <link rel="icon" type="image/png" href="{{ asset('images/logo/favicon.png') }}" sizes="16x16">
+        <link rel="icon" type="image/png" href="{{ asset('favicon.ico') }}" sizes="16x16">
 
         {{-- font awesome --}}
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -32,6 +32,8 @@
             <x-banner />
 
             @if (Auth::check())
+                {{-- Sidebar --}}
+                {{-- <x-talent-responsive-sidebar/> --}}
                 {{-- Navbar --}}
                 <x-nav-page />
 

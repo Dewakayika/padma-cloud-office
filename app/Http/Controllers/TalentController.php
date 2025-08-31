@@ -2,23 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Talent;
 use App\Models\Company;
+use App\Models\CompanyTalent;
+use App\Models\Feedback;
+use App\Models\Invitation;
 use App\Models\Project;
 use App\Models\ProjectLog;
-use App\Models\ProjectType;
-use App\Models\ProjectSop;
 use App\Models\ProjectRecord;
-use App\Models\Feedback;
-
-use Illuminate\Support\Facades\Hash;
+use App\Models\ProjectSop;
+use App\Models\Talent;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class TalentController extends Controller
 {
+    /**
+     * Helper method to validate company access for talent
+     */
+    private function validateCompanyAccess($companySlug, $user)
+    {
+        // Find company by slug and verify talent has access to it
+        $company = Company::where('company_name', 'LIKE', '%' . str_replace('-', ' ', $companySlug) . '%')
+            ->orWhere('company_name', 'LIKE', '%' . ucwords(str_replace('-', ' ', $companySlug)) . '%')
+            ->firstOrFail();
+
+        // Verify that the talent is associated with this company
+        $companyTalent = CompanyTalent::where('company_id', $company->id)
+            ->where('talent_id', $user->id)
+            ->first();
+
+        if (!$companyTalent) {
+            abort(403, 'You do not have access to this company.');
+        }
+
+        return $company;
+    }
+
     /**
      * Display the talent registration form.
      */
@@ -93,12 +117,10 @@ class TalentController extends Controller
         return view('users.Talent.landing-page', compact('companies', 'projects'));
     }
 
-    public function detailCompany($slug)
+            public function detailCompany($companySlug)
     {
         $user = auth()->user();
-        $company = Company::where('company_name', 'LIKE', '%' . str_replace('-', ' ', $slug) . '%')
-            ->orWhere('company_name', 'LIKE', '%' . ucwords(str_replace('-', ' ', $slug)) . '%')
-            ->firstOrFail();
+        $company = $this->validateCompanyAccess($companySlug, $user);
 
         // Score Card Data
         $onGoingProjects = Project::where('company_id', $company->id)
@@ -179,16 +201,15 @@ class TalentController extends Controller
         ));
     }
 
-    public function manageProjects(Request $request)
+            public function manageProjects(Request $request, $companySlug)
     {
         $user = auth()->user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
 
-        // Base query for projects
-        $query = Project::whereHas('company', function($query) use ($user) {
-            $query->whereHas('companyTalent', function($q) use ($user) {
-                $q->where('talent', $user->id);
-            });
-        })->with(['projectType', 'User']);
+        // Base query for projects - now filtered by specific company
+        $query = Project::where('company_id', $company->id)
+            ->where('talent', $user->id)
+            ->with(['projectType', 'User']);
 
         // Status filtering
         $status = $request->get('status', ['project assign', 'draf', 'qc', 'revision', 'done']);
@@ -232,25 +253,30 @@ class TalentController extends Controller
 
         $projects = $query->paginate(10);
 
-        return view('users.Talent.talent-manage-projects', compact('projects'));
+        return view('users.Talent.talent-manage-projects', compact('projects', 'company'));
     }
 
     /**
      * Display the project detail page for a talent.
      *
+     * @param  string  $companySlug
      * @param  \App\Models\Project  $id
      * @return \Illuminate\View\View|\Illuminate\Http\Response
      */
-    public function projectDetail(Project $id)
+    public function projectDetail($companySlug, Project $id)
     {
+        $user = auth()->user();
+
         // Laravel's route model binding will automatically find the Project by the {id} from the route
         $project = $id;
 
         // Debug output
         \Log::info('Project Status:', ['status' => $project->status]);
 
+        $company = $this->validateCompanyAccess($companySlug, $user);
+
         // Check if the authenticated user is the assigned talent for this project
-        if ($project->assignedTalent && $project->assignedTalent->id !== auth()->id()) {
+        if ($project->talent !== $user->id) {
             abort(403, 'You are not authorized to view this project.');
         }
 
@@ -274,11 +300,21 @@ class TalentController extends Controller
         $assignLog = $project->projectLogs->first(function($log) {
             return $log->status === 'project assign';
         });
-        $assignTimestamp = $assignLog ? $assignLog->timestamp->toISOString() : null;
 
         // Find the timestamp for the 'done' status (if completed)
         $doneLog = $project->projectLogs->where('status', 'done')->last();
-        $doneTimestamp = $doneLog ? $doneLog->timestamp->toISOString() : null;
+
+        // Get user's timezone or use UTC as fallback
+        $userTimezone = $user->timezone ?? 'UTC';
+
+        // Convert timestamps to user's local timezone
+        $assignTimestamp = $assignLog ? $assignLog->timestamp->setTimezone($userTimezone) : null;
+        $doneTimestamp = $doneLog ? $doneLog->timestamp->setTimezone($userTimezone) : null;
+
+        // Get SOP list for this project
+        $sopList = ProjectSop::where('project_type_id', $project->project_type_id)
+            ->where('company_id', $project->company_id)
+            ->get();
 
         // Feedback logic
         $currentUser = auth()->user();
@@ -292,6 +328,8 @@ class TalentController extends Controller
 
         return view('users.Talent.talent-project-detail', compact(
             'project',
+            'company',
+            'companySlug',
             'assignTimestamp',
             'doneTimestamp',
             'sopList',
@@ -300,9 +338,12 @@ class TalentController extends Controller
         ));
     }
 
-    public function report()
+            public function report($companySlug)
     {
-        return view('users.Talent.report');
+        $user = auth()->user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
+
+        return view('users.Talent.report', compact('company'));
     }
 
 
@@ -312,33 +353,42 @@ class TalentController extends Controller
         return view('users.Talent.e-wallet');
     }
 
-    public function statistic()
+        public function statistic($companySlug)
     {
-        return view('users.Talent.statistic');
+        $user = auth()->user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
+
+        return view('users.Talent.statistic', compact('company'));
     }
 
     /**
      * Handle the project application by a talent.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Project  $id // Laravel will bind the Project model based on the {id} route parameter
+     * @param  string  $companySlug
+     * @param  \App\Models\Project  $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function applyProject(Request $request, Project $id)
+    public function applyProject(Request $request, $companySlug, $id)
     {
-
         $user = Auth::user(); // The authenticated talent
+        $company = $this->validateCompanyAccess($companySlug, $user);
+
+        // Find the project and validate it belongs to the company
+        $project = Project::where('id', $id)
+            ->where('company_id', $company->id)
+            ->firstOrFail();
 
         // Update the Project table
-        $id->talent = $user->id; // Using $id as the Project model instance
-        $id->status = 'project assign'; // Or a status code representing 'assigned'
-        $id->save();
+        $project->talent = $user->id;
+        $project->status = 'project assign'; // Or a status code representing 'assigned'
+        $project->save();
 
         // Create a log entry in the ProjectLog table
         ProjectLog::create([
             'user_id' => $user->id, // The user who applied
-            'project_id' => $id->id, // Using $id as the Project model instance
-            'company_id' => $id->company_id, // Using $id as the Project model instance
+            'project_id' => $project->id,
+            'company_id' => $project->company_id,
             'talent_id' => $user->id, // The talent who applied
             'timestamp' => now(),
             'status' => 'project assign', // Or a more descriptive log status
@@ -348,75 +398,195 @@ class TalentController extends Controller
     }
 
     /**
-     * Store a new project record.
+     * Store a new project record with SOP checklist.
      *
      * @param  \Illuminate\Http\Request  $request
+     * @param  string  $companySlug
      * @param  \App\Models\Project  $project
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function storeProjectRecord(Request $request, Project $project)
+    public function storeProjectRecord(Request $request, $companySlug, Project $project)
     {
         $request->validate([
-            'project_link' => ['required', 'url'],
-            'passed_sops' => ['required', 'string'],
+            'project_link' => 'required|url|max:255',
+            'passed_sops' => 'nullable|string',
         ]);
 
-        // Check if the authenticated user is the assigned talent
-        if ($project->talent !== auth()->id()) {
-            abort(403, 'You are not authorized to create records for this project.');
+        $user = auth()->user();
+        $company = $this->validateCompanyAccess($companySlug, $user);
+
+        // Check if user is a talent and has access to this project
+        if ($user->role !== 'talent') {
+            return redirect()->back()->with('error', 'Access denied.');
         }
 
-        // Get all SOPs for this project type and company
-        $requiredSops = ProjectSop::where('project_type_id', $project->project_type_id)
+        // Check if talent is part of the company that owns this project
+        $companyTalent = \App\Models\CompanyTalent::where('talent_id', $user->id)
             ->where('company_id', $project->company_id)
-            ->pluck('id')
-            ->toArray();
+            ->first();
 
-        // Get passed SOPs from request
-        $passedSops = array_map('intval', explode(',', $request->passed_sops));
+        if (!$companyTalent) {
+            return redirect()->back()->with('error', 'You do not have access to this project.');
+        }
 
-        // Check if all required SOPs are passed
-        if (count(array_diff($requiredSops, $passedSops)) > 0) {
-            return redirect()->back()->with('error', 'All SOPs must be passed before saving.');
+        // Check if project is assigned to this talent
+        if ($project->talent !== $user->id) {
+            return redirect()->back()->with('error', 'This project is not assigned to you.');
+        }
+
+        // Get SOP list for this project
+        $sopList = ProjectSop::where('project_type_id', $project->project_type_id)
+            ->where('company_id', $project->company_id)
+            ->get();
+
+        // If there are SOPs, validate that all are passed
+        if ($sopList && $sopList->count() > 0) {
+            $passedSops = $request->passed_sops ? explode(',', $request->passed_sops) : [];
+            $requiredSopIds = $sopList->pluck('id')->toArray();
+
+            if (count($passedSops) !== count($requiredSopIds)) {
+                return redirect()->back()->with('error', 'Please complete all SOP checklist items before submitting.');
+            }
         }
 
         try {
-            // Start database transaction
-            DB::beginTransaction();
-
-            // Create the project record
+            // Create project record
             $projectRecord = ProjectRecord::create([
-                'user_id' => auth()->id(),
-                'company_id' => $project->company_id,
                 'project_id' => $project->id,
-                'talent_id' => auth()->id(),
-                'status' => 'qc',
+                'company_id' => $project->company_id,
+                'talent_id' => $user->id,
+                'user_id' => $project->user_id,
+                'qc_id' => $project->assignedQcAgent->id ?? null,
                 'project_link' => $request->project_link,
-                'qc_message' => 'All SOPs passed: ' . implode(', ', $passedSops),
+                'status' => 'qc',
+                'qc_message' => 'Project draft submitted by talent',
             ]);
+
+            // Update project status to 'draf' (draft submitted)
+            $project->status = 'draf';
+            $project->save();
 
             // Create project log entry
             ProjectLog::create([
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
                 'project_id' => $project->id,
                 'company_id' => $project->company_id,
-                'talent_id' => auth()->id(),
+                'talent_id' => $user->id,
                 'timestamp' => now(),
                 'status' => 'qc',
-                'message' => 'Project record created with all SOPs passed'
+                'message' => 'Project draft submitted by talent',
             ]);
 
-            $project->update([
-                'status' => 'qc',
-                'talent' => auth()->id()
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Project record created successfully with all SOPs passed.');
+            return redirect()->back()->with('success', 'Project draft submitted successfully!');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to create project record. Please try again.');
+            \Log::error('Error creating project record: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error submitting project draft: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Save additional talent information
+     */
+    public function saveAdditionalInfo(Request $request)
+    {
+        // Validate that user is a talent
+        if (auth()->user()->role !== 'talent') {
+            return redirect()->back()->with('error', 'Access denied. Only talents can update this information.');
+        }
+
+        $request->validate([
+            'phone_number' => 'required|string|max:20',
+            'address' => 'required|string|max:1000',
+            'gender' => 'required|string|in:male,female,other',
+            'date_of_birth' => 'required|date',
+            'id_card' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account' => 'nullable|string|max:255',
+            'swift_code' => 'nullable|string|max:20',
+            'subjected_tax' => 'nullable|string|in:yes,no,exempt',
+        ]);
+
+        $user = auth()->user();
+        $talent = Talent::where('user_id', $user->id)->first();
+
+
+        $talent->update([
+            'phone_number' => $request->phone_number,
+            'address' => $request->address,
+            'gender' => $request->gender,
+            'date_of_birth' => $request->date_of_birth,
+            'id_card' => $request->id_card,
+            'bank_name' => $request->bank_name,
+            'bank_account' => $request->bank_account,
+            'swift_code' => $request->swift_code,
+            'subjected_tax' => $request->subjected_tax,
+        ]);
+
+        $returnTab = $request->input('return_tab');
+        $redirectUrl = route('profile.show');
+
+        if ($returnTab) {
+            $redirectUrl .= '?tab=' . $returnTab;
+        }
+
+        return redirect($redirectUrl)->with('success', 'Additional information saved successfully.');
+    }
+
+    /**
+     * Store talent feedback for a completed project.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $companySlug
+     * @param  string  $projectId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function storeTalentFeedback(Request $request, $companySlug, $projectId)
+    {
+        $request->validate([
+            'feedback_text' => 'required|string|max:1000',
+            'project_rate' => 'required|integer|min:1|max:5',
+        ]);
+
+        $user = auth()->user();
+
+        // Check if user is a talent and has access to this project
+        if ($user->role !== 'talent') {
+            return redirect()->back()->with('error', 'Access denied.');
+        }
+
+        // Validate company access
+        $company = $this->validateCompanyAccess($companySlug, $user);
+
+        // Find the project and validate it belongs to the company
+        $project = Project::where('id', $projectId)
+            ->where('company_id', $company->id)
+            ->firstOrFail();
+
+        // Check if project is completed
+        if ($project->status !== 'done') {
+            return redirect()->back()->with('error', 'Feedback can only be given for completed projects.');
+        }
+
+        // Check if talent has already given feedback
+        $existingFeedback = Feedback::where('project_id', $project->id)
+            ->where('from_user_id', $user->id)
+            ->where('role', 'talent')
+            ->first();
+
+        if ($existingFeedback) {
+            return redirect()->back()->with('error', 'You have already given feedback for this project.');
+        }
+
+        // Create feedback
+        Feedback::create([
+            'project_id' => $project->id,
+            'from_user_id' => $user->id,
+            'to_user_id' => $project->user_id, // Company user
+            'role' => 'talent',
+            'feedback_text' => $request->feedback_text,
+            'project_rate' => $request->project_rate,
+        ]);
+
+        return redirect()->back()->with('success', 'Feedback submitted successfully!');
     }
 }

@@ -6,6 +6,9 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\TalentController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\CompanyOnboardingController;
+use App\Http\Controllers\EwalletController;
+use App\Http\Controllers\ProjectTrackingController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -16,9 +19,7 @@ Route::get('/', function () {
 
 
 // Register Portal
-Route::get('/register', function () {
-    return view('auth.register-portal');
-})->name('register');
+Route::get('/signup', function () {return view('auth.register-portal');})->name('signup');
 
 // Register Company
 Route::get('/register/company', [CompanyController::class, 'create'])->name('company.register');
@@ -80,6 +81,15 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::get('/company/sop/{id}', [CompanyController::class, 'getSop'])->name('company.sop.get');
     Route::put('/company/sop/{id}', [CompanyController::class, 'updateSop'])->name('company.sop.update');
     Route::delete('/company/sop/{id}', [CompanyController::class, 'deleteSop'])->name('company.sop.delete');
+    Route::post('/company/notification-settings', [App\Http\Controllers\CompanyController::class, 'saveNotificationSettings'])->name('company.notification-settings.save');
+    Route::post('/company/notification-settings/test', [App\Http\Controllers\CompanyController::class, 'testNotificationWebhook'])->name('company.notification-settings.test');
+    Route::get('/company/sop-template/csv', [App\Http\Controllers\CompanyController::class, 'downloadSopCsvTemplate'])->name('company.sop.csv.template');
+
+    // Developer Mode Routes
+    Route::post('/company/developer/api-config', [App\Http\Controllers\Company\DeveloperModeController::class, 'saveApiConfig'])->name('company.developer.api-config.save');
+    Route::post('/company/developer/api-test', [App\Http\Controllers\Company\DeveloperModeController::class, 'testApi'])->name('company.developer.api-test');
+    Route::post('/company/developer/api-disable', [App\Http\Controllers\Company\DeveloperModeController::class, 'disableApi'])->name('company.developer.api-disable');
+    Route::get('/company/developer/api-status', [App\Http\Controllers\Company\DeveloperModeController::class, 'getApiStatus'])->name('company.developer.api-status');
 
     // Project Management Routes
     Route::get('/company/manage/projects', [CompanyController::class, 'manageProjects'])->name('company.manage.projects');
@@ -90,26 +100,156 @@ Route::middleware(['auth', 'company'])->group(function () {
 
     // Feedback routes
     Route::post('/projects/{project}/feedback/company', [CompanyController::class, 'storeCompanyFeedback'])->name('company.project.feedback');
+    Route::get('/company/ewallet', [EwalletController::class, 'eWallet'])->name('company.e-wallet');
+
+    // Project Tracking Monitor Routes
+    Route::get('/company/project-tracking-monitor', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'index'])->name('company.project-tracking.monitor');
+    Route::get('/company/project-tracking-monitor/realtime', [App\Http\Controllers\Company\ProjectTrackingMonitorController::class, 'getRealTimeData'])->name('company.project-tracking.realtime');
+
+    // Company Onboarding Routes
+    Route::get('/onboarding/{step}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
+    Route::post('/onboarding/{step}', [CompanyOnboardingController::class, 'postStep'])->name('company.onboarding.step.post');
+
+    // Project Management Routes
+    Route::get('/company/manage/projects', [CompanyController::class, 'manageProjects'])->name('company.manage.projects');
+    Route::get('/company/project/{slug}', [CompanyController::class, 'detailProject'])->name('company.project.detail');
+    Route::get('/company/project/{project}/qc', [CompanyController::class, 'storeQcReview'])->name('company.project.qc.store');
+    Route::post('/company/invitation/{id}/resend', [CompanyController::class, 'resendInvitation'])->name('company.invitation.resend');
+    Route::delete('/company/invitation/{id}/cancel', [CompanyController::class, 'cancelInvitation'])->name('company.invitation.cancel');
+
+    // Onboarding Routes
+    Route::get('/onboarding', [CompanyOnboardingController::class, 'showOnboarding'])->name('company.start.onboarding');
+    Route::get('/onboarding/{step?}', [CompanyOnboardingController::class, 'showStep'])->name('company.onboarding.step');
+    Route::post('/onboarding/{step}', [CompanyOnboardingController::class, 'postStep'])->name('company.onboarding.step.post');
 });
+
 
 // Talent Routes
 Route::prefix('talent')->middleware(['auth', 'talent'])->group(function () {
+    // Talent Landing Page (shows all companies)
     Route::get('/', [TalentController::class, 'index'])->name('talent.landing.page');
-    Route::get('/company/{slug}', [TalentController::class, 'detailCompany'])->name('[talent#company');
-    Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage.projects');
-    Route::get('/project-detail/{id}', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
-    Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
+    Route::post('/additional-info/save', [TalentController::class, 'saveAdditionalInfo'])->name('talent.additional-info.save');
     Route::get('/e-wallet', [TalentController::class, 'eWallet'])->name('talent.e-wallet');
-    Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
-    Route::post('/talent/project/{id}', [TalentController::class, 'applyProject'])->name('talent.projects.apply');
-    Route::post('/projects/{project}/records', [TalentController::class, 'storeProjectRecord'])->name('talent.project-records.store');
 
-    // Feedback routes
-    Route::post('/projects/{project}/feedback/talent', [CompanyController::class, 'storeTalentFeedback'])->name('talent.project.feedback');
+    // Company-specific routes - all routes now include company slug
+    Route::prefix('company/{companySlug}')->group(function () {
+        // Company detail view
+        Route::get('/', [TalentController::class, 'detailCompany'])->name('talent.company');
+
+        // Project management routes
+        Route::get('/manage-projects', [TalentController::class, 'manageProjects'])->name('talent.manage-projects');
+        Route::get('/project/{id}', [TalentController::class, 'projectDetail'])->name('talent.project.detail');
+        Route::post('/project/{id}/apply', [TalentController::class, 'applyProject'])->name('talent.project.apply');
+        Route::post('/project/{project}/record', [TalentController::class, 'storeProjectRecord'])->name('talent.project.record');
+
+        // Reporting and statistics
+        Route::get('/report', [TalentController::class, 'report'])->name('talent.report');
+        Route::get('/statistic', [TalentController::class, 'statistic'])->name('talent.statistic');
+
+        // Project tracking routes
+        Route::get('/project-tracking', [ProjectTrackingController::class, 'index'])->name('talent.project-tracking');
+        Route::post('/work-session/start', [ProjectTrackingController::class, 'startWorkSession'])->name('talent.work-session.start');
+        Route::post('/work-session/pause', [ProjectTrackingController::class, 'pauseWorkSession'])->name('talent.work-session.pause');
+        Route::post('/work-session/resume', [ProjectTrackingController::class, 'resumeWorkSession'])->name('talent.work-session.resume');
+        Route::post('/work-session/end', [ProjectTrackingController::class, 'endWorkSession'])->name('talent.work-session.end');
+        Route::get('/work-session/status', [ProjectTrackingController::class, 'getWorkSessionStatus'])->name('talent.work-session.status');
+        Route::post('/project/start', [ProjectTrackingController::class, 'startProject'])->name('talent.project.start');
+        Route::post('/project/{id}/end', [ProjectTrackingController::class, 'endProject'])->name('talent.project.end');
+        Route::get('/today-stats', [ProjectTrackingController::class, 'getTodayStats'])->name('talent.today-stats');
+        Route::get('/project-types', [ProjectTrackingController::class, 'getProjectTypesByCompanySlug'])->name('talent.project-types.by-company');
+
+        // Feedback route
+        Route::post('/project/{project}/feedback', [TalentController::class, 'storeTalentFeedback'])->name('talent.project.feedback');
+
+        // Debug route to test basic functionality
+        Route::get('/debug', function() {
+            return response()->json(['message' => 'Talent route working', 'user' => auth()->user()]);
+        })->name('talent.debug');
+    });
+
+    // Clear API URL from session
+    Route::post('/clear-api-url', function() {
+        session()->forget('api_url_to_open');
+        return response()->json(['success' => true]);
+    })->name('clear.api.url');
 });
 
-// Add this new route for invitation acceptance
+// Invitation Routes (Public - no company middleware required)
+Route::get('/invitations/{token}', [App\Http\Controllers\InvitationController::class, 'show'])->name('invitations.show');
+Route::get('/invitations/accept/{token}', [App\Http\Controllers\InvitationController::class, 'accept'])->name('invitations.accept');
+Route::post('/invitations/decline/{token}', [App\Http\Controllers\InvitationController::class, 'decline'])->name('invitations.decline');
+
+// Registration routes for invitations
 Route::get('/register/{token}', [RegisteredUserController::class, 'showInvitationRegistrationForm'])->middleware('guest')->name('register.invitation');
 Route::post('/register/store', [RegisteredUserController::class, 'store'])->middleware('guest')->name('register.invitation.store');
+
+// Timezone setting route
+Route::post('/set-timezone', function (\Illuminate\Http\Request $request) {
+    $request->validate(['timezone' => 'required|string']);
+    $timezone = $request->timezone;
+
+    // Validate timezone is valid
+    if (!empty($timezone) && in_array($timezone, timezone_identifiers_list())) {
+        // Store in session
+        session(['timezone' => $timezone]);
+
+        // Update user's timezone in database
+        if (Auth::check()) {
+            Auth::user()->update(['timezone' => $timezone]);
+        }
+
+        // Set application timezone using helper
+        \App\Helpers\TimezoneHelper::setAppTimezone($timezone);
+
+        return response()->json(['success' => true, 'timezone' => $timezone]);
+    } else {
+        // If invalid timezone, use UTC
+        session(['timezone' => 'UTC']);
+        \App\Helpers\TimezoneHelper::setAppTimezone('UTC');
+
+        return response()->json(['success' => false, 'message' => 'Invalid timezone, using UTC', 'timezone' => 'UTC']);
+    }
+})->name('set.timezone');
+
+// Get all available timezones
+Route::get('/timezones', function () {
+    return response()->json([
+        'timezones' => \App\Helpers\TimezoneHelper::getAllTimezones(),
+        'all_php_timezones' => \App\Helpers\TimezoneHelper::getAllPhpTimezones()
+    ]);
+})->name('timezones.list');
+
+// Profile timezone update route
+Route::post('/profile/timezone', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'timezone' => 'required|string|max:100'
+    ]);
+
+    $timezone = $request->timezone;
+
+    // Validate timezone is valid
+    if (!in_array($timezone, timezone_identifiers_list())) {
+        return redirect()->back()->with('error', 'Invalid timezone selected!');
+    }
+
+    $user = Auth::user();
+    $user->update(['timezone' => $timezone]);
+
+    // Update session timezone
+    session(['timezone' => $timezone]);
+
+    // Set application timezone
+    \App\Helpers\TimezoneHelper::setAppTimezone($timezone);
+
+    $returnTab = $request->input('return_tab');
+    $redirectUrl = route('profile.show');
+
+    if ($returnTab) {
+        $redirectUrl .= '?tab=' . $returnTab;
+    }
+
+    return redirect($redirectUrl)->with('success', 'Timezone updated successfully!');
+})->middleware(['auth'])->name('profile.timezone.update');
+
 
 
